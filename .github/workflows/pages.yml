@@ -10,14 +10,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
   pull-requests: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: preview-pages-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
@@ -64,21 +64,17 @@ jobs:
         run: make build-pages BASEURL="${{ github.event.repository.name }}"
 
       - name: Upload artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./_site
 
-      - name: Comment PR
+      - name: Preview Pages
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: rajyan/preview-pages@v1
         with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Jekyll site build completed. You can download and preview the build artifacts from the Actions tab.'
-            })
+          source-dir: _site
+          pr-comment: sticky
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
