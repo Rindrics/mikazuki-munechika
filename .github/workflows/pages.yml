@@ -81,8 +81,6 @@ jobs:
         with:
           source-dir: _site
           pr-comment: sticky
-          configured-domain: rindrics.github.io
-          target-dir: .
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -113,5 +111,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
-          destination_dir: .
+          destination_dir: mikazuki-munechika
           force_orphan: false
