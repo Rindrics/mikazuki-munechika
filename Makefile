@@ -10,7 +10,7 @@ install-pages: install-pages-ruby
 
 # Build Jekyll site
 build-pages: install-pages-ruby
-	JEKYLL_ENV=production jekyll build --baseurl "$(BASEURL)"
+	JEKYLL_ENV=production bundle exec jekyll build --baseurl "$(BASEURL)"
 
 # Serve Jekyll site locally
 pages: build-pages
