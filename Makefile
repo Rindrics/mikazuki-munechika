@@ -1,10 +1,10 @@
-.PHONY: all install-pages build-pages pages clean
+.PHONY: all install-pages build-pages pages clean lint lint-fix
 
 # Install Jekyll dependencies
 install-pages:
 	gem install jekyll bundler
 	bundle install
-	npm install
+	pnpm install
 
 # Build Jekyll site
 build-pages: install-pages
@@ -13,6 +13,14 @@ build-pages: install-pages
 # Serve Jekyll site locally
 pages: build-pages
 	bundle exec jekyll serve
+
+# Lint files
+lint:
+	pnpm run lint
+
+# Fix linting issues
+lint-fix:
+	pnpm run lint:fix
 
 # Clean build artifacts
 clean:
