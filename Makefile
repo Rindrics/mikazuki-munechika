@@ -2,7 +2,6 @@
 
 # Install Jekyll dependencies (Ruby only)
 install-pages-ruby:
-	gem install jekyll bundler
 	bundle install
 
 # Install all dependencies (Ruby + Node.js)
