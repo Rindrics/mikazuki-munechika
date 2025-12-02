@@ -72,4 +72,3 @@ jobs:
         with:
           source-dir: _site
           pr-comment: sticky
-
