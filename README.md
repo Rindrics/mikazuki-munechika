@@ -5,5 +5,5 @@
 Serve GitHub pages on local:
 
 ```sh
-make pages
+cd docs & make pages
 ```
