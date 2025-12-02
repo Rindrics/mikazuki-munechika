@@ -62,9 +62,8 @@ jobs:
 
       - name: Build Jekyll site
         run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            make build-pages BASEURL="/$REPO_NAME/pr-${{ github.event.number }}/${{ github.sha }}"
+            make build-pages BASEURL="/pr-${{ github.event.number }}/${{ github.sha }}"
           elif [ "${{ github.ref }}" == "refs/heads/main" ] && [ "${{ github.event_name }}" == "push" ]; then
             make build-pages BASEURL=""
           else
@@ -96,9 +95,7 @@ jobs:
         run: make install-pages-ruby
 
       - name: Build Jekyll site
-        run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          make build-pages BASEURL="/$REPO_NAME"
+        run: make build-pages BASEURL=""
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
