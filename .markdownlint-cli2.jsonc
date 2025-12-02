@@ -1,0 +1,8 @@
+{
+  "config": ".markdownlint.jsonc",
+  "globs": [
+    "**/*.md",
+    "!node_modules/**/*",
+    "!_site/**/*"
+  ]
+}
