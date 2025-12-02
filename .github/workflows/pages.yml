@@ -1,0 +1,75 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 'head'
+          bundler-cache: true
+      
+      - name: Install dependencies
+        run: make install-pages
+      
+      - name: Build Jekyll site
+        run: make build-pages BASEURL="${{ github.event.repository.name }}"
+      
+      - name: Upload artifact for preview
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./_site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Comment PR
+        uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Jekyll site build completed. You can download and preview the build artifacts from the Actions tab.'
+            })
