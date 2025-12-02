@@ -66,7 +66,7 @@ jobs:
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             make build-pages BASEURL="/$REPO_NAME/pr-${{ github.event.number }}/${{ github.sha }}"
           else
-            make build-pages BASEURL="/$REPO_NAME"
+            make build-pages BASEURL=""
           fi
 
       - name: Upload artifact
@@ -101,13 +101,12 @@ jobs:
 
       - name: Build Jekyll site
         run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          make build-pages BASEURL="/$REPO_NAME"
+          make build-pages BASEURL=""
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
-          destination_dir: mikazuki-munechika
+          destination_dir: .
           force_orphan: false
