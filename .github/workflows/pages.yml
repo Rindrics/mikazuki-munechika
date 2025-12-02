@@ -25,13 +25,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 'head'
+          ruby-version: "head"
           bundler-cache: true
-      
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -41,18 +41,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      
+          node-version: "20"
+          cache: "npm"
+
       - name: Install dependencies
         run: make install-pages
-      
+
       - name: Lint files
         run: make lint
-      
+
       - name: Build Jekyll site
         run: make build-pages BASEURL="${{ github.event.repository.name }}"
-      
+
       - name: Upload artifact for preview
         uses: actions/upload-pages-artifact@v4
         with:
@@ -68,7 +68,7 @@ jobs:
     steps:
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
