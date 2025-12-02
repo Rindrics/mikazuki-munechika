@@ -1,13 +1,16 @@
 .PHONY: all install-pages build-pages pages clean lint lint-fix
 
-# Install Jekyll dependencies
-install-pages:
+# Install Jekyll dependencies (Ruby only)
+install-pages-ruby:
 	gem install jekyll bundler
 	bundle install
+
+# Install all dependencies (Ruby + Node.js)
+install-pages: install-pages-ruby
 	pnpm install
 
 # Build Jekyll site
-build-pages: install-pages
+build-pages: install-pages-ruby
 	JEKYLL_ENV=production jekyll build --baseurl "$(BASEURL)"
 
 # Serve Jekyll site locally
