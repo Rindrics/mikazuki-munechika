@@ -89,8 +89,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          ref: gh-pages
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
