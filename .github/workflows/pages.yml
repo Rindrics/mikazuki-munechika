@@ -115,6 +115,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./${{ env.WORKDIR }}_site
-          destination_dir: .
+          destination_dir: docs
           keep_files: true
           force_orphan: false
