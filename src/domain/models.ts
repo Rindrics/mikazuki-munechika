@@ -10,22 +10,55 @@ export interface BiologicalData {
     value: string;
 }
 
-export interface AssessmentProject {
-  Assess(catchData: CatchData, biologicalData: BiologicalData): AcceptableBiologicalCatch;
+export type FisheryStock = (Type1Stock | Type2Stock | Type3Stock) & {
+  readonly id: number;
+  readonly name: string;
+  readonly reference: string;
+  readonly abundance: string;
+  assess(
+    catchData: CatchData,
+    biologicalData: BiologicalData
+  ): AcceptableBiologicalCatch;
+};
+
+export class Type1Stock {
+  readonly reference: string = "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf";
+
+  assess(
+    catchData: CatchData,
+    biologicalData: BiologicalData
+  ): AcceptableBiologicalCatch {
+    // Simulation logic with stock-recruitment relationship
+    return {
+      value: `Simulated with recruitment using ${catchData.value} and ${biologicalData.value}`,
+    };
+  }
 }
 
-export class TACAssessment implements AssessmentProject {
-  readonly #catchData: CatchData;
-  readonly #biologicalData: BiologicalData;
-  
-  constructor(catchData: CatchData, biologicalData: BiologicalData) {
-    this.#catchData = catchData;
-    this.#biologicalData = biologicalData;
-  }
+export class Type2Stock {
+  readonly reference: string = "Thttps://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf";
 
-  Assess(catchData: CatchData, biologicalData: BiologicalData): AcceptableBiologicalCatch {
+  assess(
+    catchData: CatchData,
+    biologicalData: BiologicalData
+  ): AcceptableBiologicalCatch {
+    // Simulation logic without stock-recruitment relationship
     return {
-      value: `calculation completed using ${this.#catchData.value} and ${this.#biologicalData.value}`,
+      value: `Simulated without recruitment using ${catchData.value} and ${biologicalData.value}`,
+    };
+  }
+}
+
+export class Type3Stock {
+  readonly reference: string = "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf";
+
+  assess(
+    catchData: CatchData,
+    biologicalData: BiologicalData
+  ): AcceptableBiologicalCatch {
+    // Direct ABC estimation logic
+    return {
+      value: `ABC estimated directly using ${catchData.value} and ${biologicalData.value}`,
     };
   }
 }
