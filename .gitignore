@@ -4,3 +4,11 @@ _site/
 .jekyll-metadata
 .DS_Store
 node_modules/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+*.log
+.env*.local
