@@ -12,7 +12,6 @@ export default function Home() {
   return (
     <main className="ml-4 mt-4">
       <h1>資源評価 web</h1>
-
       <div className="ml-4 mt-4">
         <h3>開発 TODO リスト:</h3>
         <ul className="list-none space-y-2 ml-4 mt-4">
