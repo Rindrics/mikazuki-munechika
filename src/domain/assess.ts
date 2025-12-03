@@ -12,8 +12,6 @@ import {
  */
 export function assess(
   fisheryStock: FisheryStock,
-  catchData: CatchData,
-  biologicalData: BiologicalData
 ): AcceptableBiologicalCatch {
-  return fisheryStock.assess(catchData, biologicalData);
+  return fisheryStock.assess();
 }
