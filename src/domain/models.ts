@@ -31,8 +31,9 @@ export abstract class FisheryStockBase {
   }
 
   // Only way to set abundance
-  estimateAbundance(catchData: CatchData, biologicalData: BiologicalData): void {
+  estimateAbundance(catchData: CatchData, biologicalData: BiologicalData): this {
     this.#abundance = `estimated using ${catchData.value} and ${biologicalData.value}`;
+    return this;
   }
 
   abstract assess(): AcceptableBiologicalCatch;

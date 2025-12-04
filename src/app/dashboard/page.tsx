@@ -4,7 +4,6 @@ import {
   Type3Stock,
   CatchData,
   BiologicalData,
-  assess,
 } from "@/domain";
 import ResultPanel from "./components/ResultPanel";
 
@@ -14,26 +13,20 @@ export default function Home() {
   const biologicalData: BiologicalData = { value: "生物データ 2024" };
 
   // Create sample stocks
-  const type1Stock = new Type1Stock(
-    "1 系資源サンプル",
-  );
-
-  const type2Stock = new Type2Stock(
-    "2 系資源サンプル",
-  );
-
-  const type3Stock = new Type3Stock(
-    "3 系資源サンプル",
-  );
+  const type1Stock = new Type1Stock("1 系資源サンプル");
+  const type2Stock = new Type2Stock("2 系資源サンプル");
+  const type3Stock = new Type3Stock("3 系資源サンプル");
 
   // Assess each stock
-  type1Stock.estimateAbundance(catchData, biologicalData);
-  type2Stock.estimateAbundance(catchData, biologicalData);
-  type3Stock.estimateAbundance(catchData, biologicalData);
-
-  const type1Result = assess(type1Stock);
-  const type2Result = assess(type2Stock);
-  const type3Result = assess(type3Stock);
+  const type1Result = type1Stock
+    .estimateAbundance(catchData, biologicalData)
+    .assess();
+  const type2Result = type2Stock
+    .estimateAbundance(catchData, biologicalData)
+    .assess();
+  const type3Result = type3Stock
+    .estimateAbundance(catchData, biologicalData)
+    .assess();
 
   return (
     <main className="p-8 max-w-5xl mx-auto">
