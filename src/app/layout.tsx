@@ -4,8 +4,8 @@ import { FaGithub } from "react-icons/fa";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "mikazuki-munechika",
-  description: "資源評価業務アプリケーション",
+  title: "資源評価 web",
+  description: "資源評価事業 web アプリケーション",
 };
 
 export default function RootLayout({
@@ -29,6 +29,7 @@ export default function RootLayout({
             </Link>
           </div>
         </nav>
+        <div className="ml-4 my-2 text-sm text-gray-500">本アプリは一般有志による非公式なものです</div>
         {children}
       </body>
     </html>
