@@ -8,12 +8,13 @@ export class GetAssessmentResultsService {
   constructor(private repository: AssessmentResultRepository) {}
 
   async execute(
-    stock: FisheryStock
-  ): Promise<AcceptableBiologicalCatch> {
-    const result = await this.repository.findByStockId(stock.id);
-    if (!result) {
-      throw new Error("Assessment result not found");
-    }
-    return result;
+    stocks: FisheryStock[]
+  ): Promise<Array<{ stock: FisheryStock; result: AcceptableBiologicalCatch | undefined }>> {
+    return await Promise.all(
+      stocks.map(async (stock) => {
+        const result = await this.repository.findByStockId(stock.id);
+        return { stock, result };
+      })
+    );
   }
 }
