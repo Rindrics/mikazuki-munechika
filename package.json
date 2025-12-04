@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start-db": "supabase start",
+    "stop-db": "supabase stop",
+    "status-db": "supabase status",
+    "reset-db": "supabase db reset"
   },
   "dependencies": {
     "next": "^16.0.7",
@@ -23,6 +27,7 @@
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.6",
     "postcss": "^8.5.6",
+    "supabase": "^2.65.5",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   }
