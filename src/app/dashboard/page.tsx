@@ -5,6 +5,7 @@ import {
   CatchData,
   BiologicalData,
 } from "@/domain";
+import { calculateAbc }from "@/application";
 import ResultPanel from "./components/ResultPanel";
 
 export default function Home() {
@@ -18,15 +19,9 @@ export default function Home() {
   const type3Stock = new Type3Stock("3 系資源サンプル");
 
   // Assess each stock
-  const type1Result = type1Stock
-    .estimateAbundance(catchData, biologicalData)
-    .assess();
-  const type2Result = type2Stock
-    .estimateAbundance(catchData, biologicalData)
-    .assess();
-  const type3Result = type3Stock
-    .estimateAbundance(catchData, biologicalData)
-    .assess();
+  const type1Result = calculateAbc(type1Stock, catchData, biologicalData);
+  const type2Result = calculateAbc(type2Stock, catchData, biologicalData);
+  const type3Result = calculateAbc(type3Stock, catchData, biologicalData);
 
   return (
     <main className="p-8 max-w-5xl mx-auto">
