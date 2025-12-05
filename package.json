@@ -10,7 +10,11 @@
     "start-db": "supabase start",
     "stop-db": "supabase stop",
     "status-db": "supabase status",
-    "reset-db": "supabase db reset"
+    "reset-db": "supabase db reset",
+    "migrate": "supabase db push",
+    "create-users": "tsx scripts/create-users.ts",
+    "maintenance:enable": "tsx scripts/toggle-maintenance-mode.ts enable",
+    "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
@@ -30,6 +34,7 @@
     "postcss": "^8.5.6",
     "supabase": "^2.65.5",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
