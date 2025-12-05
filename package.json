@@ -6,9 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start-db": "supabase start",
+    "stop-db": "supabase stop",
+    "status-db": "supabase status",
+    "reset-db": "supabase db reset",
+    "migrate": "supabase db push",
+    "migrate:local": "supabase db reset",
+    "create-users": "tsx scripts/create-users.ts",
+    "maintenance:enable": "tsx scripts/toggle-maintenance-mode.ts enable",
+    "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
     "next": "^16.0.7",
     "react": "^19.2.1",
     "react-dom": "^19.2.0",
@@ -20,10 +30,13 @@
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.6",
     "postcss": "^8.5.6",
+    "supabase": "^2.65.5",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
