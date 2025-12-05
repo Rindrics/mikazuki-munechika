@@ -113,3 +113,29 @@ export class Type3Stock extends FisheryStockBase {
     };
   }
 }
+
+export const USER_ROLES = {
+  PRIMARY: "主担当",
+  SECONDARY: "副担当",
+  ADMIN: "管理者",
+} as const;
+
+export type UserRole =
+  (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+export interface UserStockGroupRole {
+  stockGroupName: StockGroupName;
+  role: UserRole;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  // Map of stock group name to role
+  // A user can have different roles for different stock groups
+  // e.g., "主担当" for stock group A, "副担当" for stock group B
+  // Using stock group name as key for better readability and type safety
+  // (stock groups are few in number, so performance is not a concern)
+  // Partial because a user may not have roles for all stock groups
+  rolesByStockGroup: Partial<Record<StockGroupName, UserRole>>;
+}
