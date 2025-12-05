@@ -218,3 +218,12 @@ export interface User {
   // Partial because a user may not have roles for all stock groups
   rolesByStockGroup: Partial<Record<StockGroupName, UserRole>>;
 }
+
+declare const __authenticated: unique symbol;
+export type AuthenticatedUser = User & {
+  readonly [__authenticated]: true;
+};
+
+export function toAuthenticatedUser(user: User): AuthenticatedUser {
+  return user as AuthenticatedUser;
+}
