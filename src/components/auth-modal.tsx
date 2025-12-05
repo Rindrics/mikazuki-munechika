@@ -120,7 +120,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 />
               </div>
               {error && (
-                <div className="mb-4 p-3 bg-danger-hover text-danger-dark rounded text-sm">
+                <div className="mb-4 p-3 bg-danger-light text-danger-dark dark:bg-danger-dark dark:text-danger-hover rounded text-sm">
                   {error}
                 </div>
               )}
