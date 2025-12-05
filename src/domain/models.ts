@@ -10,9 +10,42 @@ export interface BiologicalData {
     value: string;
 }
 
+// Stock groups organized by species (hierarchical structure)
+export const STOCK_GROUPS = {
+  MAIWASHI: {
+    species: "マイワシ",
+    regions: {
+      PACIFIC: "太平洋系群",
+      TSUSHIMA: "対馬暖流系群",
+    },
+  },
+  ZUWAIGANI: {
+    species: "ズワイガニ",
+    regions: {
+      OKHOTSK: "オホーツク海系群",
+    },
+  },
+} as const;
+
+// Helper function to get full name from species and region
+function getStockGroupFullName(species: string, region: string): string {
+  return `${species}${region}`;
+}
+
+// Flattened structure for backward compatibility and easier access
 export const STOCK_GROUP_NAMES = {
-  MAIWASHI_PACIFIC: "マイワシ太平洋系群",
-  ZUWAIGANI_OKHOTSK: "ズワイガニオホーツク海系群",
+  MAIWASHI_PACIFIC: getStockGroupFullName(
+    STOCK_GROUPS.MAIWASHI.species,
+    STOCK_GROUPS.MAIWASHI.regions.PACIFIC
+  ),
+  MAIWASHI_TSUSHIMA: getStockGroupFullName(
+    STOCK_GROUPS.MAIWASHI.species,
+    STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA
+  ),
+  ZUWAIGANI_OKHOTSK: getStockGroupFullName(
+    STOCK_GROUPS.ZUWAIGANI.species,
+    STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK
+  ),
 } as const;
 
 export type StockGroupName =
@@ -20,6 +53,8 @@ export type StockGroupName =
 
 export class StockGroup {
   readonly name: StockGroupName;
+  readonly species: string;
+  readonly region: string;
 
   constructor(name: StockGroupName | string) {
     const trimmedName = typeof name === "string" ? name.trim() : name;
@@ -27,13 +62,52 @@ export class StockGroup {
       throw new Error("Stock group name cannot be empty");
     }
 
-    const validNames = Object.values(STOCK_GROUP_NAMES);
-    if (!validNames.includes(trimmedName as StockGroupName)) {
-      console.warn(
-        `Unknown stock group name: ${trimmedName}.`
-      );
+    // Find matching stock group definition in hierarchical structure
+    let stockGroupDef:
+      | {
+          species: string;
+          region: string;
+        }
+      | undefined;
+
+    for (const [_, speciesData] of Object.entries(STOCK_GROUPS)) {
+      for (const [regionData] of Object.entries(
+        speciesData.regions
+      )) {
+        const fullName = `${speciesData.species}${regionData}`;
+        if (fullName === trimmedName) {
+          stockGroupDef = {
+            species: speciesData.species,
+            region: regionData,
+          };
+          break;
+        }
+      }
+      if (stockGroupDef) break;
     }
-    this.name = trimmedName as StockGroupName;
+
+    if (!stockGroupDef) {
+      console.warn(
+        `Unknown stock group name: ${trimmedName}. Using name as-is.`
+      );
+      // For unknown stock groups, try to parse from name
+      // This is a fallback for database-loaded values
+      this.name = trimmedName as StockGroupName;
+      // Try to split by common patterns (this is a heuristic)
+      const parts = trimmedName.match(/^(.+?)(系群|海域|海)$/);
+      if (parts) {
+        this.species = parts[1];
+        this.region = parts[2];
+      } else {
+        this.species = trimmedName;
+        this.region = "";
+      }
+    } else {
+      const fullName = `${stockGroupDef.species}${stockGroupDef.region}`;
+      this.name = fullName as StockGroupName;
+      this.species = stockGroupDef.species;
+      this.region = stockGroupDef.region;
+    }
   }
 
   equals(other: StockGroup): boolean {
@@ -42,6 +116,11 @@ export class StockGroup {
 
   toString(): string {
     return this.name;
+  }
+
+  // Format for display with space between species and region
+  toDisplayString(separator: string = " "): string {
+    return this.region ? `${this.species}${separator}${this.region}` : this.species;
   }
 }
 
