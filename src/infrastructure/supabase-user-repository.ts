@@ -8,7 +8,7 @@ import {
   UserRole,
 } from "@/domain";
 import { getSupabaseClient } from "./supabase-client";
-import { logger, withLogger } from "@/utils/logger";
+import { logger } from "@/utils/logger";
 
 export class SupabaseUserRepository implements UserRepository {
   private supabase: SupabaseClient;
@@ -25,6 +25,7 @@ export class SupabaseUserRepository implements UserRepository {
     } = await this.supabase.auth.getUser();
 
     if (!currentUser || currentUser.email !== email) {
+      logger.debug("findByEmail failed: user not found", { email });
       return undefined;
     }
 
@@ -38,6 +39,7 @@ export class SupabaseUserRepository implements UserRepository {
     } = await this.supabase.auth.getUser();
 
     if (!currentUser || currentUser.id !== id) {
+      logger.debug("findById failed: user not found", { id });
       return undefined;
     }
 
@@ -45,7 +47,31 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
-    return await authenticateImpl(this.supabase, this.buildUserFromAuthUser.bind(this), email, password);
+    logger.debug("authenticate called", { email });
+    
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        logger.debug("authenticate failed", { email, error: error?.message });
+        return null;
+      }
+
+      const user = await this.buildUserFromAuthUser(data.user.id, data.user.email || email);
+      if (!user) {
+        logger.debug("authenticate failed: could not build user", { email, userId: data.user.id });
+        return null;
+      }
+
+      logger.debug("authenticate completed", { userId: user.id, email });
+      return toAuthenticatedUser(user);
+    } catch (error) {
+      logger.error("authenticate failed", { email }, error as Error);
+      throw error;
+    }
   }
 
   async getCurrentUser(): Promise<AuthenticatedUser | null> {
@@ -163,6 +189,7 @@ export class SupabaseUserRepository implements UserRepository {
       .eq("user_id", userId);
 
     if (userRolesError) {
+      logger.debug("failed: could not get user roles", { userId, email, error: userRolesError.message });
       return undefined;
     }
 
@@ -185,6 +212,7 @@ export class SupabaseUserRepository implements UserRepository {
       }
     }
 
+    logger.debug("completed", { userId, email, rolesByStockGroup });
     return {
       id: userId,
       email,
@@ -193,25 +221,4 @@ export class SupabaseUserRepository implements UserRepository {
   }
 }
 
-const authenticateImpl = withLogger(
-  "supabase-user-repository.authenticate",
-  async (
-    supabase: SupabaseClient,
-    buildUserFromAuthUser: (userId: string, email: string) => Promise<User | undefined>,
-    email: string,
-    password: string
-  ): Promise<AuthenticatedUser | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error || !data.user) {
-      return null;
-    }
-
-    const user = await buildUserFromAuthUser(data.user.id, data.user.email || email);
-    return user ? toAuthenticatedUser(user) : null;
-  }
-);
 

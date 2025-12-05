@@ -29,6 +29,41 @@ const SENSITIVE_FIELDS = [
   "auth",
 ];
 
+/**
+ * Extract caller function name from stack trace
+ * Returns undefined if unable to determine
+ */
+function getCallerName(skipFrames: number = 4): string | undefined {
+  try {
+    const stack = new Error().stack;
+    if (!stack) return undefined;
+
+    const lines = stack.split("\n");
+    // Skip frames: Error, getCallerName, createLogEntry, debug/info/warn/error, actual caller
+    const callerLine = lines[skipFrames];
+    if (!callerLine) return undefined;
+
+    // Chrome/Node.js format: "    at functionName (file:line:col)"
+    // or "    at Object.functionName (file:line:col)"
+    // or "    at ClassName.methodName (file:line:col)"
+    const chromeMatch = callerLine.match(/at\s+(?:(?:Object|Array|Function)\.)?([\w.<>]+)\s+\(/);
+    if (chromeMatch) {
+      return chromeMatch[1];
+    }
+
+    // Firefox/Safari format: "functionName@file:line:col"
+    const firefoxMatch = callerLine.match(/^([\w.<>]+)@/);
+    if (firefoxMatch) {
+      return firefoxMatch[1];
+    }
+
+    // Anonymous function or unable to parse
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function redactSensitiveFields(obj: Record<string, unknown>): Record<string, unknown> {
   const redacted: Record<string, unknown> = {};
 
@@ -118,6 +153,7 @@ interface LogEntry {
   level: string;
   message: string;
   service?: string;
+  caller?: string;
   userId?: string;
   requestId?: string;
   environment: string;
@@ -135,8 +171,12 @@ function createLogEntry(
   level: string,
   message: string,
   metadata?: Record<string, unknown>,
-  error?: Error
+  error?: Error,
+  explicitCaller?: string
 ): LogEntry {
+  // Use explicit caller if provided, otherwise auto-detect from stack trace
+  const caller = explicitCaller ?? getCallerName();
+
   const entry: LogEntry = {
     schemaVersion: LOG_SCHEMA_VERSION,
     timestamp: new Date().toISOString(),
@@ -144,6 +184,7 @@ function createLogEntry(
     message,
     environment,
     ...(globalContext.service && { service: globalContext.service }),
+    ...(caller && { caller }),
     ...(globalContext.userId && { userId: globalContext.userId }),
     ...(globalContext.requestId && { requestId: globalContext.requestId }),
     ...(deploymentInfo.deploymentId && { deploymentId: deploymentInfo.deploymentId }),
@@ -181,11 +222,17 @@ export const logger = {
    * Set global context (userId, requestId, service)
    * These values will be automatically included in all log entries
    * Pass undefined to remove a field from context
+   * 
+   * For `service`, if a value already exists, the new value will be appended with a dot separator
+   * to create a hierarchical service name (e.g., "in-memory-user-repository" + "authenticate" = "in-memory-user-repository.authenticate")
    */
   setContext(context: Partial<LogContext>): void {
     for (const [key, value] of Object.entries(context)) {
       if (value === undefined) {
         delete globalContext[key as keyof LogContext];
+      } else if (key === "service" && globalContext.service) {
+        // Append to existing service name for hierarchical structure
+        globalContext.service = `${globalContext.service}.${value}`;
       } else {
         globalContext[key as keyof LogContext] = value as string;
       }
@@ -234,85 +281,3 @@ export const logger = {
     }
   },
 };
-
-/**
- * Higher-order function to automatically log function execution
- * Sets service context and logs function entry/exit with arguments and return value
- *
- * @param serviceName - Service name to set in logger context
- * @param fn - Function to wrap with logging
- * @returns Wrapped function with automatic logging
- *
- * @example
- * ```typescript
- * export const calculateAbc = withLogger(
- *   "calculate-abc",
- *   (stock: FisheryStock, catchData: CatchData, biologicalData: BiologicalData) => {
- *     return stock.estimateAbundance(catchData, biologicalData).assess();
- *   }
- * );
- * ```
- */
-export function withLogger<T extends (...args: any[]) => any>(
-  serviceName: string,
-  fn: T
-): T {
-  const wrapped = ((...args: Parameters<T>): ReturnType<T> => {
-    // Save previous context and set service context for this function call
-    const previousContext = logger.getContext();
-    logger.setContext({ service: serviceName });
-
-    // Use serviceName as function name, or fall back to fn.name or "anonymous"
-    const functionName = fn.name || serviceName.split(".").pop() || "anonymous";
-    logger.debug(`${functionName} called`, {
-      args: redactSensitiveFields(
-        args.reduce((acc, arg, index) => {
-          acc[`arg${index}`] = arg;
-          return acc;
-        }, {} as Record<string, unknown>)
-      ),
-    });
-
-    try {
-      const result = fn(...args);
-      
-      // Handle async functions
-      if (result instanceof Promise) {
-        return result
-          .then((resolvedValue) => {
-            logger.debug(`${functionName} completed`, {
-              result: resolvedValue,
-            });
-            // Restore previous context after async operation completes
-            logger.setContext(previousContext);
-            return resolvedValue;
-          })
-          .catch((error) => {
-            logger.error(`${functionName} failed`, { error: error.message }, error);
-            // Restore previous context even on error
-            logger.setContext(previousContext);
-            throw error;
-          }) as ReturnType<T>;
-      }
-
-      // Handle sync functions
-      logger.debug(`${functionName} completed`, {
-        result: result,
-      });
-      // Restore previous context after sync operation completes
-      logger.setContext(previousContext);
-      return result;
-    } catch (error) {
-      logger.error(
-        `${functionName} failed`,
-        { error: error instanceof Error ? error.message : String(error) },
-        error instanceof Error ? error : new Error(String(error))
-      );
-      // Restore previous context even on error
-      logger.setContext(previousContext);
-      throw error;
-    }
-  }) as T;
-
-  return wrapped;
-}

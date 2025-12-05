@@ -1,12 +1,15 @@
 import { FisheryStock, CatchData, BiologicalData, AcceptableBiologicalCatch } from "@/domain";
-import { withLogger } from "@/utils/logger";
+import { logger } from "@/utils/logger";
 
-function calculateAbcImpl(
+export function calculateAbc(
   stock: FisheryStock,
   catchData: CatchData,
   biologicalData: BiologicalData
 ): AcceptableBiologicalCatch {
-  return stock.estimateAbundance(catchData, biologicalData).assess();
+  logger.debug("calculateAbc called", { stockId: stock.id });
+  
+  const result = stock.estimateAbundance(catchData, biologicalData).assess();
+  
+  logger.debug("calculateAbc completed", { result: result.value });
+  return result;
 }
-
-export const calculateAbc = withLogger("calculate-abc", calculateAbcImpl);
