@@ -42,17 +42,13 @@ USE_IN_MEMORY_USER_REPOSITORY=false
 
 #### Run database migrations
 
-Run migrations to set up the database schema:
+For local development, reset the database (applies all migrations):
 
 ```sh
-pnpm run migrate
+pnpm run migrate:local
 ```
 
-Or reset the database (local development only):
-
-```sh
-pnpm run reset-db
-```
+> **Note**: `pnpm run migrate` (or `supabase db push`) is for **production** deployments only. It pushes migrations to the remote Supabase project. For local development, always use `reset-db` or `migrate:local`.
 
 #### Create initial users
 

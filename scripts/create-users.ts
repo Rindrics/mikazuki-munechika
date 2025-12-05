@@ -1,16 +1,32 @@
+// Use only for local development
 import { createClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load environment variables from .env.local
+config({ path: resolve(process.cwd(), ".env.local") });
 
 // Get environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl) {
-  throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
+  throw new Error(
+    "NEXT_PUBLIC_SUPABASE_URL is not set. Please set it in .env.local file."
+  );
 }
 
 if (!supabaseServiceKey) {
   throw new Error(
-    "SUPABASE_SERVICE_ROLE_KEY is not set. Get it from 'supabase status' output."
+    "SUPABASE_SERVICE_ROLE_KEY is not set. Get it from 'supabase status' output and set it in .env.local file."
+  );
+}
+
+// Validate JWT format (basic check)
+if (!supabaseServiceKey.includes(".")) {
+  throw new Error(
+    "SUPABASE_SERVICE_ROLE_KEY appears to be invalid. It should be a JWT token (contains dots).\n" +
+    "Get the correct service_role key from 'supabase status' output."
   );
 }
 
