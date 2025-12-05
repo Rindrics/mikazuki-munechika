@@ -7,6 +7,7 @@ import {
   USER_ROLES,
   StockGroupName,
 } from "@/domain";
+import { logger } from "@/utils/logger";
 
 // User data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
@@ -75,6 +76,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
+    logger.debug("authenticate", email);
     const user = this.usersByEmail.get(email);
     if (!user) {
       return null;

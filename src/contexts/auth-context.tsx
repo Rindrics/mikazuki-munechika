@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { AuthenticatedUser, UserRepository } from "@/domain";
 import { createUserRepository } from "@/infrastructure";
+import { logger } from "@/utils/logger";
 
 interface AuthContextType {
   user: AuthenticatedUser | null;
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const userRepository = useMemo<UserRepository>(() => createUserRepository(), []);
+  logger.debug("userRepository", userRepository);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -40,11 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userRepository]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    logger.debug("login attempt", email);
     const authenticatedUser = await userRepository.authenticate(email, password);
     if (!authenticatedUser) {
+      logger.debug("login failed: invalid credentials");
       return false;
     }
-
+    logger.debug("login successful", email);
     setUser(authenticatedUser);
     return true;
   };
