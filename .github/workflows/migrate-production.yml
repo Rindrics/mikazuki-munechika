@@ -17,34 +17,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
+          version: latest
 
       - name: Run migrations
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
-          # Option 1: Direct database connection (if SUPABASE_DB_URL is set)
-          if [ -n "$SUPABASE_DB_URL" ]; then
-            pnpm exec supabase db push --db-url "$SUPABASE_DB_URL"
-          # Option 2: Using Supabase API (if access token and project ID are set)
-          elif [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_ID" ]; then
-            pnpm exec supabase link --project-ref "$SUPABASE_PROJECT_ID"
-            pnpm exec supabase db push
-          else
-            echo "Error: Either SUPABASE_DB_URL or SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_ID must be set"
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "Error: SUPABASE_DB_URL must be set"
             exit 1
           fi
+          supabase db push --db-url "$SUPABASE_DB_URL"
