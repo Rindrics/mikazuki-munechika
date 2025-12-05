@@ -81,6 +81,8 @@ pnpm dev
 - `NEXT_PUBLIC_SUPABASE_URL`: Supabase API URL (local: `http://127.0.0.1:54321`, production: your Supabase project URL)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key (for client-side operations)
 - `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key (for admin operations, used by user creation script)
+- `LOG_LEVEL`: Log level for server-side (DEBUG, INFO, WARN, ERROR). Defaults: development/preview = DEBUG, production = ERROR
+- `NEXT_PUBLIC_LOG_LEVEL`: Log level for client-side (DEBUG, INFO, WARN, ERROR). Defaults: development/preview = DEBUG, production = ERROR
 - `USE_IN_MEMORY_USER_REPOSITORY`: Set to `"true"` to use in-memory repository (for Vercel preview environments), `"false"` to use Supabase
 
 ## GitHub Pages

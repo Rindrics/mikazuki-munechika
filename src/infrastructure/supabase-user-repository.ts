@@ -8,6 +8,7 @@ import {
   UserRole,
 } from "@/domain";
 import { getSupabaseClient } from "./supabase-client";
+import { logger, withLogger } from "@/utils/logger";
 
 export class SupabaseUserRepository implements UserRepository {
   private supabase: SupabaseClient;
@@ -44,17 +45,7 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error || !data.user) {
-      return null;
-    }
-
-    const user = await this.buildUserFromAuthUser(data.user.id, data.user.email || email);
-    return user ? toAuthenticatedUser(user) : null;
+    return await authenticateImpl(this.supabase, this.buildUserFromAuthUser.bind(this), email, password);
   }
 
   async getCurrentUser(): Promise<AuthenticatedUser | null> {
@@ -201,4 +192,26 @@ export class SupabaseUserRepository implements UserRepository {
     };
   }
 }
+
+const authenticateImpl = withLogger(
+  "supabase-user-repository.authenticate",
+  async (
+    supabase: SupabaseClient,
+    buildUserFromAuthUser: (userId: string, email: string) => Promise<User | undefined>,
+    email: string,
+    password: string
+  ): Promise<AuthenticatedUser | null> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      return null;
+    }
+
+    const user = await buildUserFromAuthUser(data.user.id, data.user.email || email);
+    return user ? toAuthenticatedUser(user) : null;
+  }
+);
 

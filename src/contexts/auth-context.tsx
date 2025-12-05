@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { AuthenticatedUser, UserRepository } from "@/domain";
 import { createUserRepository } from "@/infrastructure";
-import { logger } from "@/utils/logger";
+import { logger, withLogger } from "@/utils/logger";
 
 interface AuthContextType {
   user: AuthenticatedUser | null;
@@ -18,7 +18,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const userRepository = useMemo<UserRepository>(() => createUserRepository(), []);
-  logger.debug("userRepository", userRepository);
+
+  // Set service name in logger context
+  useEffect(() => {
+    logger.setContext({ service: "auth" });
+    return () => {
+      logger.clearContext();
+    };
+  }, []);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -42,20 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userRepository]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    logger.debug("login attempt", email);
-    const authenticatedUser = await userRepository.authenticate(email, password);
-    if (!authenticatedUser) {
-      logger.debug("login failed: invalid credentials");
-      return false;
-    }
-    logger.debug("login successful", email);
-    setUser(authenticatedUser);
-    return true;
+    return await loginImpl(userRepository, setUser, email, password);
   };
 
   const logout = async () => {
-    await userRepository.logout();
-    setUser(null);
+    return await logoutImpl(userRepository, user, setUser);
   };
 
   return (
@@ -72,3 +70,37 @@ export function useAuth() {
   }
   return context;
 }
+
+const loginImpl = withLogger(
+  "auth.login",
+  async (
+    userRepository: UserRepository,
+    setUser: (user: AuthenticatedUser | null) => void,
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    const authenticatedUser = await userRepository.authenticate(email, password);
+    if (!authenticatedUser) {
+      logger.debug("Login failed: invalid credentials", { email });
+      return false;
+    }
+    logger.setContext({ userId: authenticatedUser.id });
+    logger.info("Login successful", { email });
+    setUser(authenticatedUser);
+    return true;
+  }
+);
+
+const logoutImpl = withLogger(
+  "auth.logout",
+  async (
+    userRepository: UserRepository,
+    user: AuthenticatedUser | null,
+    setUser: (user: AuthenticatedUser | null) => void
+  ): Promise<void> => {
+    const userId = user?.id;
+    await userRepository.logout();
+    logger.setContext({ userId: undefined });
+    setUser(null);
+  }
+);
