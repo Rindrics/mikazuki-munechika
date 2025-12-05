@@ -3,7 +3,7 @@ import {
   FisheryStock,
   AcceptableBiologicalCatch,
 } from "@/domain";
-import { withLogger } from "@/utils/logger";
+import { logger } from "@/utils/logger";
 
 export class SaveAssessmentResultService {
   constructor(private repository: AssessmentResultRepository) {}
@@ -12,17 +12,14 @@ export class SaveAssessmentResultService {
     stock: FisheryStock,
     result: AcceptableBiologicalCatch
   ): Promise<void> {
-    return await executeImpl(this.repository, stock, result);
+    logger.debug("execute called", { stockId: stock.id, resultValue: result.value });
+    
+    try {
+      await this.repository.save(stock.id, result);
+      logger.debug("execute completed", { stockId: stock.id });
+    } catch (error) {
+      logger.error("execute failed", { stockId: stock.id }, error as Error);
+      throw error;
+    }
   }
 }
-
-const executeImpl = withLogger(
-  "save-assessment-result",
-  async (
-    repository: AssessmentResultRepository,
-    stock: FisheryStock,
-    result: AcceptableBiologicalCatch
-  ): Promise<void> => {
-    await repository.save(stock.id, result);
-  }
-);

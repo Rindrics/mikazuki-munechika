@@ -7,7 +7,7 @@ import {
   USER_ROLES,
   StockGroupName,
 } from "@/domain";
-import { withLogger } from "@/utils/logger";
+import { logger } from "@/utils/logger";
 
 // User data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
@@ -76,12 +76,32 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
-    return await authenticateImpl(
-      this.usersByEmail,
-      this.passwordsByEmail,
-      email,
-      password
-    );
+    logger.debug("authenticate called", { email });
+    
+    try {
+      const user = this.usersByEmail.get(email);
+      if (!user) {
+        logger.debug("authenticate failed: user not found", { email });
+        return null;
+      }
+
+      const storedPassword = this.passwordsByEmail.get(email);
+      if (storedPassword !== password) {
+        logger.debug("authenticate failed: invalid password", { email });
+        return null;
+      }
+
+      // Store user ID in localStorage for session persistence
+      if (typeof window !== "undefined") {
+        localStorage.setItem("auth_user_id", user.id);
+      }
+
+      logger.debug("authenticate completed", { userId: user.id, email });
+      return toAuthenticatedUser(user);
+    } catch (error) {
+      logger.error("authenticate failed", { email }, error as Error);
+      throw error;
+    }
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
@@ -130,30 +150,4 @@ export class InMemoryUserRepository implements UserRepository {
   }
 }
 
-const authenticateImpl = withLogger(
-  "in-memory-user-repository.authenticate",
-  async (
-    usersByEmail: Map<string, User>,
-    passwordsByEmail: Map<string, string>,
-    email: string,
-    password: string
-  ): Promise<AuthenticatedUser | null> => {
-    const user = usersByEmail.get(email);
-    if (!user) {
-      return null;
-    }
-
-    const storedPassword = passwordsByEmail.get(email);
-    if (storedPassword !== password) {
-      return null;
-    }
-
-    // Store user ID in localStorage for session persistence
-    if (typeof window !== "undefined") {
-      localStorage.setItem("auth_user_id", user.id);
-    }
-
-    return toAuthenticatedUser(user);
-  }
-);
 

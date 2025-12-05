@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { AuthenticatedUser, UserRepository } from "@/domain";
 import { createUserRepository } from "@/infrastructure";
-import { logger, withLogger } from "@/utils/logger";
+import { logger } from "@/utils/logger";
 
 interface AuthContextType {
   user: AuthenticatedUser | null;
@@ -18,14 +18,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const userRepository = useMemo<UserRepository>(() => createUserRepository(), []);
-
-  // Set service name in logger context
-  useEffect(() => {
-    logger.setContext({ service: "auth" });
-    return () => {
-      logger.clearContext();
-    };
-  }, []);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -49,11 +41,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userRepository]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    return await loginImpl(userRepository, setUser, email, password);
+    logger.debug("Login attempt", { email });
+    
+    try {
+      // do not use withLogger here to avoid logging the email-password pair
+      const authenticatedUser = await userRepository.authenticate(email, password);
+      if (!authenticatedUser) {
+        logger.debug("Login failed: invalid credentials", { email });
+        return false;
+      }
+      logger.setContext({ userId: authenticatedUser.id });
+      logger.info("Login successful", { email });
+      setUser(authenticatedUser);
+      return true;
+    } catch (error) {
+      logger.error("Login failed", { email }, error as Error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    return await logoutImpl(userRepository, user, setUser);
+    const userId = user?.id;
+    logger.debug("Logout attempt", userId ? { userId } : undefined);
+    
+    try {
+      await userRepository.logout();
+      logger.setContext({ userId: undefined });
+      logger.info("Logout successful", userId ? { userId } : undefined);
+      setUser(null);
+    } catch (error) {
+      logger.error("Logout failed", userId ? { userId } : undefined, error as Error);
+      throw error;
+    }
   };
 
   return (
@@ -71,36 +90,3 @@ export function useAuth() {
   return context;
 }
 
-const loginImpl = withLogger(
-  "auth.login",
-  async (
-    userRepository: UserRepository,
-    setUser: (user: AuthenticatedUser | null) => void,
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    const authenticatedUser = await userRepository.authenticate(email, password);
-    if (!authenticatedUser) {
-      logger.debug("Login failed: invalid credentials", { email });
-      return false;
-    }
-    logger.setContext({ userId: authenticatedUser.id });
-    logger.info("Login successful", { email });
-    setUser(authenticatedUser);
-    return true;
-  }
-);
-
-const logoutImpl = withLogger(
-  "auth.logout",
-  async (
-    userRepository: UserRepository,
-    user: AuthenticatedUser | null,
-    setUser: (user: AuthenticatedUser | null) => void
-  ): Promise<void> => {
-    const userId = user?.id;
-    await userRepository.logout();
-    logger.setContext({ userId: undefined });
-    setUser(null);
-  }
-);
