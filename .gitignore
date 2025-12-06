@@ -10,6 +10,8 @@ docs/references/
 
 # OS
 .DS_Store
+
+# Dependencies
 node_modules/
 
 # TypeScript
