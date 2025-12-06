@@ -1,12 +1,13 @@
 ---
 layout: default
 title: Home
+nav_order: 1
 ---
 
 ## Web app for Japanese Fisheries Stock Assessment project
 
-- [Developer Guide](./develop)
-- [References](./references)
+- [References](./references) (for stakeholders)
+- [Developer Guide](./develop) (for developers)
 
 ---
 
