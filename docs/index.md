@@ -1,8 +1,16 @@
 ---
 layout: default
 title: Home
+nav_order: 1
 ---
 
-## Welcome
+## Web app for Japanese Fisheries Stock Assessment project
 
-This is a Jekyll site hosted on GitHub Pages.
+- [References](./references) (for stakeholders)
+- [Developer Guide](./develop) (for developers)
+
+---
+
+Blog posts about this app: [`https://rindrics.com/tags/mikazuki-munechika/`](ttps://rindrics.com/tags/mikazuki-munechika/)
+
+(`mikazuki-munechika` is the development codename, named after the Japanese sword "三日月宗近")

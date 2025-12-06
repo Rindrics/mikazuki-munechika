@@ -5,6 +5,7 @@ import {
   Type2Stock,
   Type3Stock,
   STOCK_GROUP_NAMES,
+  createStockGroup,
 } from "@/domain";
 import { logger } from "@/utils/logger";
 import ResultPanel from "./components/ResultPanel";
@@ -21,9 +22,9 @@ export default async function Home() {
   // Get stocks (in the future, this will be FisheryStock.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
   const stocks = [
-    new Type1Stock(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC),
-    new Type2Stock(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK),
-    new Type3Stock("3 系資源サンプル"), // Test data, not a real stock group
+    new Type1Stock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
+    new Type2Stock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
+    new Type3Stock(createStockGroup("3 系資源サンプル")), // Test data, not a real stock group
   ];
 
   // Get assessment results from repository

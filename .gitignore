@@ -1,9 +1,21 @@
+# Jekyll
 _site/
+docs/_site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+
+# TypeDoc
+docs/references/
+
+# OS
 .DS_Store
+
+# Dependencies
 node_modules/
+
+# TypeScript
+*.tsbuildinfo
 
 # Next.js
 .next/

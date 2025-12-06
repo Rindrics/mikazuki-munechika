@@ -15,7 +15,9 @@
     "migrate:local": "supabase db reset",
     "create-users": "tsx scripts/create-users.ts",
     "maintenance:enable": "tsx scripts/toggle-maintenance-mode.ts enable",
-    "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable"
+    "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable",
+    "docs:generate": "typedoc",
+    "docs:generate-watch": "typedoc --watch"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
@@ -37,6 +39,7 @@
     "supabase": "^2.65.5",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.21.0",
+    "typedoc": "^0.28.15",
     "typescript": "^5.9.3"
   }
 }
