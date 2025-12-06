@@ -4,7 +4,4 @@ baseurl: ""
 url: ""
 
 markdown: kramdown
-theme: minima
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
+theme: just-the-docs
