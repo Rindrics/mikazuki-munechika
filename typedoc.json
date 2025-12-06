@@ -1,0 +1,26 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/domain/models.ts",
+    "src/domain/implementations/fishery-stock.ts",
+    "src/application/index.ts"
+  ],
+  "sortEntryPoints": false,
+  "out": "docs/references",
+  "name": "資源評価 web リファレンス",
+  "readme": "README.md",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "exclude": [
+    ".next/**/*",
+    "scripts/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "skipErrorChecking": true,
+  "navigationLinks": {
+    "GitHub": "https://github.com/Rindrics/mikazuki-munechika"
+  }
+}
