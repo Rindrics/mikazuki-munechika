@@ -1,10 +1,11 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { getUserStockGroupRoles, USER_ROLES, StockGroupName } from "@/domain";
+import { getUserStockGroupRoles, USER_ROLES, StockGroupName, AcceptableBiologicalCatch } from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
+import { calculateAbcAction } from "./actions";
 
 interface AssessmentPageProps {
   params: Promise<{ stockGroupName: string }>;
@@ -18,6 +19,18 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   const [catchDataValue, setCatchDataValue] = useState("");
   const [biologicalDataValue, setBiologicalDataValue] = useState("");
+  const [calculationResult, setCalculationResult] = useState<AcceptableBiologicalCatch | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const handleCalculate = async () => {
+    setIsCalculating(true);
+    try {
+      const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
+      setCalculationResult(result);
+    } finally {
+      setIsCalculating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -108,14 +121,22 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
         <button
           type="button"
-          disabled={!catchDataValue || !biologicalDataValue}
+          onClick={handleCalculate}
+          disabled={!catchDataValue || !biologicalDataValue || isCalculating}
           className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
         >
-          ABC を計算
+          {isCalculating ? "計算中..." : "ABC を計算"}
         </button>
 
         <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
-          <p className="text-secondary italic">計算結果がここに表示されます</p>
+          {calculationResult ? (
+            <div>
+              <p className="font-medium mb-1">計算結果:</p>
+              <p>{calculationResult.value}</p>
+            </div>
+          ) : (
+            <p className="text-secondary italic">計算結果がここに表示されます</p>
+          )}
         </div>
       </section>
 
