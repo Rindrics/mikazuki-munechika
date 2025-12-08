@@ -43,15 +43,10 @@ export function createStockGroup(name: StockGroupName | string): StockGroup {
     }
   }
 
-  logger.warn(`Unknown stock group name: ${trimmedName}. Using name as-is with default type 1.`);
-  const parts = trimmedName.match(/^(.+?)(系群|海域|海)$/);
-  if (parts) {
-    return createStockGroupObject(trimmedName as StockGroupName, parts[1], parts[2], 1);
-  }
-  return createStockGroupObject(trimmedName as StockGroupName, trimmedName, "", 1);
+  throw new Error(`Unknown stock group name: ${trimmedName}`);
 }
 
-export function createType1Stock(stockGroup: StockGroup): FisheryStock {
+function createType1Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
     assess: (abundance) => ({
@@ -60,7 +55,7 @@ export function createType1Stock(stockGroup: StockGroup): FisheryStock {
   });
 }
 
-export function createType2Stock(stockGroup: StockGroup): FisheryStock {
+function createType2Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     assess: (abundance) => ({
@@ -69,7 +64,7 @@ export function createType2Stock(stockGroup: StockGroup): FisheryStock {
   });
 }
 
-export function createType3Stock(stockGroup: StockGroup): FisheryStock {
+function createType3Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     assess: (abundance) => ({

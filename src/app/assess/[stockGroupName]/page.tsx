@@ -5,7 +5,7 @@ import { getUserStockGroupRoles, USER_ROLES, StockGroupName, AcceptableBiologica
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
-import { calculateAbcAction } from "./actions";
+import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
 
 interface AssessmentPageProps {
   params: Promise<{ stockGroupName: string }>;
@@ -21,14 +21,34 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [biologicalDataValue, setBiologicalDataValue] = useState("");
   const [calculationResult, setCalculationResult] = useState<AcceptableBiologicalCatch | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleCalculate = async () => {
     setIsCalculating(true);
+    setIsSaved(false);
+    setSaveError(null);
     try {
       const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
       setCalculationResult(result);
     } finally {
       setIsCalculating(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!calculationResult) return;
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await saveAssessmentResultAction(stockGroupName, calculationResult);
+      setIsSaved(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "登録に失敗しました";
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -145,11 +165,22 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
         <button
           type="button"
-          disabled={true}
-          className="px-6 py-3 bg-success text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+          onClick={handleSave}
+          disabled={!calculationResult || isSaving || isSaved}
+          className="px-6 py-3 bg-primary text-foreground rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
         >
-          評価結果を登録
+          {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
         </button>
+
+        {isSaved && (
+          <p className="mt-4 text-success font-medium">評価結果を登録しました。</p>
+        )}
+
+        {saveError && (
+          <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
+            <p className="text-danger-dark font-medium dark:text-foreground-dark">結果の登録に失敗しました</p>
+          </div>
+        )}
       </section>
     </main>
   );
