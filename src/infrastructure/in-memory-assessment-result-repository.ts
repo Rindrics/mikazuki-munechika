@@ -6,18 +6,18 @@ import {
 export class InMemoryAssessmentResultRepository
   implements AssessmentResultRepository
 {
-  private storage: Map<number, AcceptableBiologicalCatch> = new Map();
+  private storage: Map<string, AcceptableBiologicalCatch> = new Map();
 
-  async findByStockId(
-    stockId: number
+  async findByStockName(
+    stockName: string
   ): Promise<AcceptableBiologicalCatch | undefined> {
-    return this.storage.get(stockId);
+    return this.storage.get(stockName);
   }
 
   async save(
-    stockId: number,
+    stockName: string,
     result: AcceptableBiologicalCatch
   ): Promise<void> {
-    this.storage.set(stockId, result);
+    this.storage.set(stockName, result);
   }
 }

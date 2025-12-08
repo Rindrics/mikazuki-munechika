@@ -38,13 +38,13 @@ export class SaveAssessmentResultService {
     stock: FisheryStock,
     result: AcceptableBiologicalCatch
   ): Promise<void> {
-    logger.debug("execute called", { stockId: stock.id, resultValue: result.value });
+    logger.debug("execute called", { stockName: stock.name, resultValue: result.value });
 
     try {
-      await this.repository.save(stock.id, result);
-      logger.debug("execute completed", { stockId: stock.id });
+      await this.repository.save(stock.name, result);
+      logger.debug("execute completed", { stockName: stock.name });
     } catch (error) {
-      logger.error("execute failed", { stockId: stock.id }, error as Error);
+      logger.error("execute failed", { stockName: stock.name }, error as Error);
       throw error;
     }
   }

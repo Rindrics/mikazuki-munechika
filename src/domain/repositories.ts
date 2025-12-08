@@ -6,10 +6,10 @@ import { AcceptableBiologicalCatch } from "./data";
 import { StockGroupName } from "./stock";
 
 export interface AssessmentResultRepository {
-  findByStockId(stockId: number): Promise<AcceptableBiologicalCatch | undefined>;
+  findByStockName(stockName: string): Promise<AcceptableBiologicalCatch | undefined>;
 
   save(
-    stockId: number,
+    stockName: string,
     result: AcceptableBiologicalCatch
   ): Promise<void>;
 }

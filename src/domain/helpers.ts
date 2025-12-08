@@ -1,21 +1,15 @@
-import { AuthenticatedUser, StockGroup, User, UserStockGroupRole } from "./models";
-import { StockGroupImpl, StockGroupName } from "./stock";
+import { AuthenticatedUser, User, UserStockGroupRole } from "./models";
+import { StockGroupName } from "./stock";
 
 export function toAuthenticatedUser(user: User): AuthenticatedUser {
-    return user as AuthenticatedUser;
-  }
-  
-  export function getUserStockGroupRoles(user: User): UserStockGroupRole[] {
-    return Object.entries(user.rolesByStockGroup)
-      .filter(([_, role]) => role !== undefined)
-      .map(([stockGroupName, role]) => ({
-        stockGroupName: stockGroupName as StockGroupName,
-        role: role!,
-      }));
-  }
+  return user as AuthenticatedUser;
+}
 
-  
-export function createStockGroup(name: StockGroupName | string): StockGroup {
-    return new StockGroupImpl(name);
-  }
-  
+export function getUserStockGroupRoles(user: User): UserStockGroupRole[] {
+  return Object.entries(user.rolesByStockGroup)
+    .filter(([_, role]) => role !== undefined)
+    .map(([stockGroupName, role]) => ({
+      stockGroupName: stockGroupName as StockGroupName,
+      role: role!,
+    }));
+}
