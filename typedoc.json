@@ -2,8 +2,10 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "src/domain/models.ts",
-    "src/domain/implementations/fishery-stock.ts",
-    "src/application/index.ts"
+    "src/domain/constants/index.ts",
+    "src/domain/stock/models.ts",
+    "src/domain/data/index.ts",
+    "src/application/index.ts",
   ],
   "sortEntryPoints": false,
   "out": "docs/references",

@@ -1,9 +1,9 @@
 import {
-  AcceptableBiologicalCatch,
   User,
   AuthenticatedUser,
-  StockGroupName,
 } from "./models";
+import { AcceptableBiologicalCatch } from "./data";
+import { StockGroupName } from "./stock";
 
 export interface AssessmentResultRepository {
   findByStockId(stockId: number): Promise<AcceptableBiologicalCatch | undefined>;

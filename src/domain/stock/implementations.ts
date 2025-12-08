@@ -1,8 +1,10 @@
-import { StockGroup, StockGroupName, STOCK_GROUPS } from "../models";
+import { StockGroup } from "../models";
+import { STOCK_GROUPS } from "../constants";
+import { StockGroupName } from "./models";
 
 export class StockGroupImpl implements StockGroup {
   readonly name: StockGroupName;
-  readonly species: string;
+  readonly call_name: string;
   readonly region: string;
 
   constructor(name: StockGroupName | string) {
@@ -14,17 +16,17 @@ export class StockGroupImpl implements StockGroup {
     // Find matching stock group definition in hierarchical structure
     let stockGroupDef:
       | {
-          species: string;
+          call_name: string;
           region: string;
         }
       | undefined;
 
-    for (const [_, speciesData] of Object.entries(STOCK_GROUPS)) {
-      for (const [regionKey, regionValue] of Object.entries(speciesData.regions)) {
-        const fullName = `${speciesData.name}${regionValue}`;
+    for (const [_, stockData] of Object.entries(STOCK_GROUPS)) {
+      for (const [regionKey, regionValue] of Object.entries(stockData.regions)) {
+        const fullName = `${stockData.call_name}${regionValue}`;
         if (fullName === trimmedName) {
           stockGroupDef = {
-            species: speciesData.name,
+            call_name: stockData.call_name,
             region: regionValue,
           };
           break;
@@ -43,16 +45,16 @@ export class StockGroupImpl implements StockGroup {
       // Try to split by common patterns (this is a heuristic)
       const parts = trimmedName.match(/^(.+?)(系群|海域|海)$/);
       if (parts) {
-        this.species = parts[1];
+        this.call_name = parts[1];
         this.region = parts[2];
       } else {
-        this.species = trimmedName;
+        this.call_name = trimmedName;
         this.region = "";
       }
     } else {
-      const fullName = `${stockGroupDef.species}${stockGroupDef.region}`;
+      const fullName = `${stockGroupDef.call_name}${stockGroupDef.region}`;
       this.name = fullName as StockGroupName;
-      this.species = stockGroupDef.species;
+      this.call_name = stockGroupDef.call_name;
       this.region = stockGroupDef.region;
     }
   }
@@ -66,11 +68,6 @@ export class StockGroupImpl implements StockGroup {
   }
 
   toDisplayString(separator: string = " "): string {
-    return this.region ? `${this.species}${separator}${this.region}` : this.species;
+    return this.region ? `${this.call_name}${separator}${this.region}` : this.call_name;
   }
 }
-
-export function createStockGroup(name: StockGroupName | string): StockGroup {
-  return new StockGroupImpl(name);
-}
-
