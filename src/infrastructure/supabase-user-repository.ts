@@ -48,7 +48,7 @@ export class SupabaseUserRepository implements UserRepository {
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
     logger.debug("authenticate called", { email });
-    
+
     try {
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
@@ -83,10 +83,7 @@ export class SupabaseUserRepository implements UserRepository {
       return null;
     }
 
-    const user = await this.buildUserFromAuthUser(
-      session.user.id,
-      session.user.email || ""
-    );
+    const user = await this.buildUserFromAuthUser(session.user.id, session.user.email || "");
     return user ? toAuthenticatedUser(user) : null;
   }
 
@@ -99,10 +96,7 @@ export class SupabaseUserRepository implements UserRepository {
       data: { subscription },
     } = this.supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const user = await this.buildUserFromAuthUser(
-          session.user.id,
-          session.user.email || ""
-        );
+        const user = await this.buildUserFromAuthUser(session.user.id, session.user.email || "");
         callback(user ? toAuthenticatedUser(user) : null);
       } else {
         callback(null);
@@ -173,10 +167,7 @@ export class SupabaseUserRepository implements UserRepository {
     return users;
   }
 
-  private async buildUserFromAuthUser(
-    userId: string,
-    email: string
-  ): Promise<User | undefined> {
+  private async buildUserFromAuthUser(userId: string, email: string): Promise<User | undefined> {
     // Get all roles for this user with stock group names
     const { data: userRoles, error: userRolesError } = await this.supabase
       .from("user_stock_group_roles")
@@ -189,7 +180,11 @@ export class SupabaseUserRepository implements UserRepository {
       .eq("user_id", userId);
 
     if (userRolesError) {
-      logger.debug("failed: could not get user roles", { userId, email, error: userRolesError.message });
+      logger.debug("failed: could not get user roles", {
+        userId,
+        email,
+        error: userRolesError.message,
+      });
       return undefined;
     }
 
@@ -220,5 +215,3 @@ export class SupabaseUserRepository implements UserRepository {
     };
   }
 }
-
-

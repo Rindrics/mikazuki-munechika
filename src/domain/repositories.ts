@@ -4,10 +4,7 @@ import { AcceptableBiologicalCatch } from "./data";
 export interface AssessmentResultRepository {
   findByStockName(stockName: string): Promise<AcceptableBiologicalCatch | undefined>;
 
-  save(
-    stockName: string,
-    result: AcceptableBiologicalCatch
-  ): Promise<void>;
+  save(stockName: string, result: AcceptableBiologicalCatch): Promise<void>;
 }
 
 export interface UserRepository {
@@ -17,7 +14,5 @@ export interface UserRepository {
   authenticate(email: string, password: string): Promise<AuthenticatedUser | null>;
   getCurrentUser(): Promise<AuthenticatedUser | null>;
   logout(): Promise<void>;
-  onAuthStateChange(
-    callback: (user: AuthenticatedUser | null) => void
-  ): () => void;
+  onAuthStateChange(callback: (user: AuthenticatedUser | null) => void): () => void;
 }

@@ -3,11 +3,7 @@
  * 資源評価結果取得サービス
  */
 
-import {
-  AssessmentResultRepository,
-  FisheryStock,
-  AcceptableBiologicalCatch,
-} from "@/domain";
+import { AssessmentResultRepository, FisheryStock, AcceptableBiologicalCatch } from "@/domain";
 import { logger } from "@/utils/logger";
 
 /**

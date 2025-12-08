@@ -15,9 +15,7 @@ export default async function Home() {
 
   // Initialize repository (in production, this would be injected via DI)
   const repository = new InMemoryAssessmentResultRepository();
-  const getAssessmentResultsService = new GetAssessmentResultsService(
-    repository
-  );
+  const getAssessmentResultsService = new GetAssessmentResultsService(repository);
 
   // Get stocks (in the future, this will be FisheryStock.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
@@ -31,7 +29,7 @@ export default async function Home() {
   const assessmentResults = await getAssessmentResultsService.execute(stocks);
 
   logger.info("Dashboard page loaded");
-  
+
   return (
     <main className="p-8 max-w-5xl mx-auto">
       <h1 className="mb-8">資源評価結果一覧</h1>

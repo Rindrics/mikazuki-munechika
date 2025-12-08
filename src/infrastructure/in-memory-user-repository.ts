@@ -77,7 +77,7 @@ export class InMemoryUserRepository implements UserRepository {
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
     logger.debug("authenticate called", { email });
-    
+
     try {
       const user = this.usersByEmail.get(email);
       if (!user) {
@@ -149,5 +149,3 @@ export class InMemoryUserRepository implements UserRepository {
     };
   }
 }
-
-

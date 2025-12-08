@@ -1,6 +1,6 @@
 {
-  "MD013": false,  // Is line length limited
-  "MD033": false,  // Is inline HTML restricted
-  "MD041": false,  // Is the 1st line sould be a heading
-  "default": true
+  "MD013": false, // Is line length limited
+  "MD033": false, // Is inline HTML restricted
+  "MD041": false, // Is the 1st line sould be a heading
+  "default": true,
 }

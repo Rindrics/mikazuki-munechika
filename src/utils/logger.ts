@@ -73,7 +73,12 @@ function redactSensitiveFields(obj: Record<string, unknown>): Record<string, unk
 
     if (isSensitive) {
       redacted[key] = "[REDACTED]";
-    } else if (value && typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
+    } else if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      !(value instanceof Date)
+    ) {
       redacted[key] = redactSensitiveFields(value as Record<string, unknown>);
     } else {
       redacted[key] = value;
@@ -84,10 +89,9 @@ function redactSensitiveFields(obj: Record<string, unknown>): Record<string, unk
 }
 
 function getLogLevel(): LogLevel {
-  const envLogLevel =
-    (typeof window !== "undefined"
-      ? process.env.NEXT_PUBLIC_LOG_LEVEL
-      : process.env.LOG_LEVEL)?.toUpperCase();
+  const envLogLevel = (
+    typeof window !== "undefined" ? process.env.NEXT_PUBLIC_LOG_LEVEL : process.env.LOG_LEVEL
+  )?.toUpperCase();
 
   if (envLogLevel) {
     switch (envLogLevel) {
@@ -222,7 +226,7 @@ export const logger = {
    * Set global context (userId, requestId, service)
    * These values will be automatically included in all log entries
    * Pass undefined to remove a field from context
-   * 
+   *
    * For `service`, if a value already exists, the new value will be appended with a dot separator
    * to create a hierarchical service name (e.g., "in-memory-user-repository" + "authenticate" = "in-memory-user-repository.authenticate")
    */

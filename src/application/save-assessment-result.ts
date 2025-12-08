@@ -3,10 +3,7 @@
  * 資源評価結果保存サービス
  */
 
-import {
-  AssessmentResultRepository,
-  AcceptableBiologicalCatch,
-} from "@/domain";
+import { AssessmentResultRepository, AcceptableBiologicalCatch } from "@/domain";
 import { FisheryStock } from "@/domain/models";
 import { logger } from "@/utils/logger";
 
@@ -34,10 +31,7 @@ export class SaveAssessmentResultService {
    * await service.execute(stock, abc);
    * ```
    */
-  async execute(
-    stock: FisheryStock,
-    result: AcceptableBiologicalCatch
-  ): Promise<void> {
+  async execute(stock: FisheryStock, result: AcceptableBiologicalCatch): Promise<void> {
     logger.debug("execute called", { stockName: stock.name, resultValue: result.value });
 
     try {

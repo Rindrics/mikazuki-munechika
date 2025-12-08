@@ -86,10 +86,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <h2 className="text-xl font-bold mb-4 text-maintext">ログイン</h2>
             <form onSubmit={handleLogin}>
               <div className="mb-4">
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-maintext mb-1"
-                >
+                <label htmlFor="email" className="block text-sm font-medium text-maintext mb-1">
                   メールアドレス
                 </label>
                 <input
@@ -103,10 +100,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 />
               </div>
               <div className="mb-4">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-maintext mb-1"
-                >
+                <label htmlFor="password" className="block text-sm font-medium text-maintext mb-1">
                   パスワード
                 </label>
                 <input
@@ -147,4 +141,3 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     </div>
   );
 }
-

@@ -48,12 +48,12 @@ Use **TypeDoc** to generate domain references from TypeScript source files with 
 
 Key settings:
 
-| Option | Value | Reason |
-|--------|-------|--------|
-| `out` | `docs/references` | Output alongside Jekyll site |
-| `name` | `資源評価 web リファレンス` | Japanese title for stakeholders |
-| `skipErrorChecking` | `true` | Avoid errors from external module types |
-| `exclude` | `.next/`, `scripts/` | Focus on domain/application code |
+| Option              | Value                       | Reason                                  |
+| ------------------- | --------------------------- | --------------------------------------- |
+| `out`               | `docs/references`           | Output alongside Jekyll site            |
+| `name`              | `資源評価 web リファレンス` | Japanese title for stakeholders         |
+| `skipErrorChecking` | `true`                      | Avoid errors from external module types |
+| `exclude`           | `.next/`, `scripts/`        | Focus on domain/application code        |
 
 ### Integration with Jekyll
 

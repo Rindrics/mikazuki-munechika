@@ -16,12 +16,7 @@
   "excludeProtected": true,
   "excludeInternal": true,
   "includeVersion": true,
-  "exclude": [
-    ".next/**/*",
-    "scripts/**/*",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "exclude": [".next/**/*", "scripts/**/*", "**/*.test.ts", "**/*.spec.ts"],
   "skipErrorChecking": true,
   "navigationLinks": {
     "GitHub": "https://github.com/Rindrics/mikazuki-munechika"
