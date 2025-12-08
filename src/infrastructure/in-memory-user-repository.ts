@@ -140,7 +140,7 @@ export class InMemoryUserRepository implements UserRepository {
     localStorage.removeItem("auth_user_id");
   }
 
-  onAuthStateChange(callback: (user: AuthenticatedUser | null) => void): () => void {
+  onAuthStateChange(_callback: (user: AuthenticatedUser | null) => void): () => void {
     // For in-memory repository, we don't have real-time auth state changes
     // We'll check on initialization and after login/logout
     // Return a no-op unsubscribe function

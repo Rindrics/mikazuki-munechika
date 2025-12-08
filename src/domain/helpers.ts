@@ -22,8 +22,8 @@ export function createStockGroup(name: StockGroupName | string): StockGroup {
       throw new Error("Stock group name cannot be empty");
     }
   
-    for (const [_, stockData] of Object.entries(STOCK_GROUPS)) {
-      for (const [regionKey, regionValue] of Object.entries(stockData.regions)) {
+    for (const [_key, stockData] of Object.entries(STOCK_GROUPS)) {
+      for (const [_regionKey, regionValue] of Object.entries(stockData.regions)) {
         const fullName = `${stockData.call_name}${regionValue}`;
         if (fullName === trimmedName) {
           return createStockGroupObject(
