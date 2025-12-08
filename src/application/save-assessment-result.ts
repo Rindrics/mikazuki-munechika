@@ -5,9 +5,9 @@
 
 import {
   AssessmentResultRepository,
-  FisheryStock,
   AcceptableBiologicalCatch,
 } from "@/domain";
+import { FisheryStock } from "@/domain/models";
 import { logger } from "@/utils/logger";
 
 /**

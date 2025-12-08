@@ -5,9 +5,9 @@ import {
   toAuthenticatedUser,
   STOCK_GROUP_NAMES,
   USER_ROLES,
-  StockGroupName,
 } from "@/domain";
 import { logger } from "@/utils/logger";
+import { StockGroupName } from "@/domain/models/stock";
 
 // User data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
