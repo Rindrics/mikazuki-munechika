@@ -38,7 +38,8 @@ export interface BiologicalData {
 export const STOCK_GROUPS = {
   /** マイワシ */
   MAIWASHI: {
-    species: "マイワシ",
+    name: "マイワシ",
+    species: ["マイワシ"],
     regions: {
       /** 太平洋系群 */
       PACIFIC: "太平洋系群",
@@ -46,9 +47,17 @@ export const STOCK_GROUPS = {
       TSUSHIMA: "対馬暖流系群",
     },
   },
+  MACHIRUI: {
+    name: "マチ類",
+    species: ["アオダイ", "ハマダイ", "ヒメダイ", "オオヒメ"],
+    regions: {
+      ANAMI_OKIBNAWA_SAKISHIMA: "奄美諸島・沖縄諸島・先島諸島",
+    },
+  },
   /** ズワイガニ */
   ZUWAIGANI: {
-    species: "ズワイガニ",
+    name: "ズワイガニ",
+    species: ["ズワイガニ"],
     regions: {
       /** オホーツク海系群 */
       OKHOTSK: "オホーツク海系群",
@@ -67,11 +76,11 @@ export const STOCK_GROUPS = {
  */
 export const STOCK_GROUP_NAMES = {
   /** マイワシ太平洋系群 */
-  MAIWASHI_PACIFIC: `${STOCK_GROUPS.MAIWASHI.species}${STOCK_GROUPS.MAIWASHI.regions.PACIFIC}`,
+  MAIWASHI_PACIFIC: `${STOCK_GROUPS.MAIWASHI.name}${STOCK_GROUPS.MAIWASHI.regions.PACIFIC}`,
   /** マイワシ対馬暖流系群 */
-  MAIWASHI_TSUSHIMA: `${STOCK_GROUPS.MAIWASHI.species}${STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA}`,
+  MAIWASHI_TSUSHIMA: `${STOCK_GROUPS.MAIWASHI.name}${STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA}`,
   /** ズワイガニオホーツク海系群 */
-  ZUWAIGANI_OKHOTSK: `${STOCK_GROUPS.ZUWAIGANI.species}${STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK}`,
+  ZUWAIGANI_OKHOTSK: `${STOCK_GROUPS.ZUWAIGANI.name}${STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK}`,
 } as const;
 
 /**

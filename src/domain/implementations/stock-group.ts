@@ -21,10 +21,10 @@ export class StockGroupImpl implements StockGroup {
 
     for (const [_, speciesData] of Object.entries(STOCK_GROUPS)) {
       for (const [regionKey, regionValue] of Object.entries(speciesData.regions)) {
-        const fullName = `${speciesData.species}${regionValue}`;
+        const fullName = `${speciesData.name}${regionValue}`;
         if (fullName === trimmedName) {
           stockGroupDef = {
-            species: speciesData.species,
+            species: speciesData.name,
             region: regionValue,
           };
           break;
