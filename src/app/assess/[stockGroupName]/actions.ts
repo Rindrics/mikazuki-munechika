@@ -7,7 +7,7 @@ import {
   BiologicalData,
   StockGroupName,
   createStockGroup,
-  createType1Stock,
+  createFisheryStock,
 } from "@/domain";
 
 export async function calculateAbcAction(
@@ -16,8 +16,7 @@ export async function calculateAbcAction(
   biologicalDataValue: string
 ): Promise<AcceptableBiologicalCatch> {
   const stockGroup = createStockGroup(stockGroupName);
-  // TODO: Determine stock type based on stockGroupName
-  const stock = createType1Stock(stockGroup);
+  const stock = createFisheryStock(stockGroup);
 
   const catchData: CatchData = { value: catchDataValue };
   const biologicalData: BiologicalData = { value: biologicalDataValue };
