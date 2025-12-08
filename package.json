@@ -12,6 +12,7 @@
     "start-db": "supabase start",
     "stop-db": "supabase stop",
     "status-db": "supabase status",
+    "sync-env": "bash scripts/sync-supabase-env.sh",
     "reset-db": "supabase db reset",
     "migrate": "supabase db push",
     "migrate:local": "supabase db reset",
