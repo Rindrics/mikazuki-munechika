@@ -159,23 +159,19 @@ CREATE POLICY "Service role can insert audit logs"
 
 ```typescript
 // Example: Log approval operation
-async function approveAssessmentResult(
-  resultId: string,
-  userId: string,
-  stockGroupId: string
-) {
+async function approveAssessmentResult(resultId: string, userId: string, stockGroupId: string) {
   // Perform approval
   await approveResult(resultId);
-  
+
   // Log the action
-  await supabase.from('audit_logs').insert({
+  await supabase.from("audit_logs").insert({
     user_id: userId,
-    action_type: 'APPROVE_FIRST',
-    resource_type: 'assessment_result',
+    action_type: "APPROVE_FIRST",
+    resource_type: "assessment_result",
     resource_id: resultId,
     stock_group_id: stockGroupId,
-    after_data: { status: 'approved' },
-    metadata: { timestamp: new Date().toISOString() }
+    after_data: { status: "approved" },
+    metadata: { timestamp: new Date().toISOString() },
   });
 }
 ```
@@ -262,4 +258,3 @@ CREATE TRIGGER user_role_changes_audit
 
 - ADR 0002: Adopt Supabase Auth - Audit logs reference authenticated users
 - ADR 0003: User Role and Stock Group Design - Audit logs track role and stock group changes
-

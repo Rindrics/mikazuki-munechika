@@ -71,6 +71,7 @@ export interface User {
 ### Database Query Patterns
 
 **Reading user roles:**
+
 ```sql
 SELECT usgr.*, sg.name
 FROM user_stock_group_roles usgr
@@ -80,6 +81,7 @@ WHERE usgr.user_id = $1;
 ```
 
 **Writing user roles:**
+
 ```sql
 -- 1. Lookup stock_group_id from name (uses UNIQUE index)
 SELECT id FROM stock_groups WHERE name = $1;

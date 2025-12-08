@@ -5,9 +5,9 @@ import {
   toAuthenticatedUser,
   STOCK_GROUP_NAMES,
   USER_ROLES,
-  StockGroupName,
 } from "@/domain";
 import { logger } from "@/utils/logger";
+import { StockGroupName } from "@/domain/models/stock";
 
 // User data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
@@ -77,7 +77,7 @@ export class InMemoryUserRepository implements UserRepository {
 
   async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
     logger.debug("authenticate called", { email });
-    
+
     try {
       const user = this.usersByEmail.get(email);
       if (!user) {
@@ -140,7 +140,7 @@ export class InMemoryUserRepository implements UserRepository {
     localStorage.removeItem("auth_user_id");
   }
 
-  onAuthStateChange(callback: (user: AuthenticatedUser | null) => void): () => void {
+  onAuthStateChange(_callback: (user: AuthenticatedUser | null) => void): () => void {
     // For in-memory repository, we don't have real-time auth state changes
     // We'll check on initialization and after login/logout
     // Return a no-op unsubscribe function
@@ -149,5 +149,3 @@ export class InMemoryUserRepository implements UserRepository {
     };
   }
 }
-
-

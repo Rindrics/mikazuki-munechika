@@ -84,8 +84,7 @@ export const STOCK_GROUP_NAMES = {
   ZUWAIGANI_OKHOTSK: "ズワイガニオホーツク海系群",
 } as const;
 
-export type StockGroupName =
-  (typeof STOCK_GROUP_NAMES)[keyof typeof STOCK_GROUP_NAMES];
+export type StockGroupName = (typeof STOCK_GROUP_NAMES)[keyof typeof STOCK_GROUP_NAMES];
 
 export class StockGroup {
   readonly name: StockGroupName;

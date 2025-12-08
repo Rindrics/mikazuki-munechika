@@ -15,9 +15,7 @@ if (!supabaseUrl) {
 }
 
 if (!supabaseServiceKey) {
-  throw new Error(
-    "SUPABASE_SERVICE_ROLE_KEY is not set. Get it from 'supabase status' output."
-  );
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set. Get it from 'supabase status' output.");
 }
 
 // Create Supabase client with service role key (bypasses RLS)
@@ -44,9 +42,7 @@ async function toggleMaintenanceMode(enable: boolean) {
     process.exit(1);
   }
 
-  console.log(
-    `Maintenance mode ${enable ? "enabled" : "disabled"} successfully`
-  );
+  console.log(`Maintenance mode ${enable ? "enabled" : "disabled"} successfully`);
   console.log(`Current value: ${data.value}`);
 }
 

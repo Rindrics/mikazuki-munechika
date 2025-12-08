@@ -1,9 +1,9 @@
 import { GetAssessmentResultsService } from "@/application";
 import { InMemoryAssessmentResultRepository } from "@/infrastructure";
 import {
-  Type1Stock,
-  Type2Stock,
-  Type3Stock,
+  createType1Stock,
+  createType2Stock,
+  createType3Stock,
   STOCK_GROUP_NAMES,
   createStockGroup,
 } from "@/domain";
@@ -15,23 +15,21 @@ export default async function Home() {
 
   // Initialize repository (in production, this would be injected via DI)
   const repository = new InMemoryAssessmentResultRepository();
-  const getAssessmentResultsService = new GetAssessmentResultsService(
-    repository
-  );
+  const getAssessmentResultsService = new GetAssessmentResultsService(repository);
 
   // Get stocks (in the future, this will be FisheryStock.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
   const stocks = [
-    new Type1Stock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
-    new Type2Stock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
-    new Type3Stock(createStockGroup("3 系資源サンプル")), // Test data, not a real stock group
+    createType1Stock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
+    createType2Stock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
+    createType3Stock(createStockGroup("3 系資源サンプル")), // Test data, not a real stock group
   ];
 
   // Get assessment results from repository
   const assessmentResults = await getAssessmentResultsService.execute(stocks);
 
   logger.info("Dashboard page loaded");
-  
+
   return (
     <main className="p-8 max-w-5xl mx-auto">
       <h1 className="mb-8">資源評価結果一覧</h1>

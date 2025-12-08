@@ -11,9 +11,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl) {
-  throw new Error(
-    "NEXT_PUBLIC_SUPABASE_URL is not set. Please set it in .env.local file."
-  );
+  throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set. Please set it in .env.local file.");
 }
 
 if (!supabaseServiceKey) {
@@ -26,7 +24,7 @@ if (!supabaseServiceKey) {
 if (!supabaseServiceKey.includes(".")) {
   throw new Error(
     "SUPABASE_SERVICE_ROLE_KEY appears to be invalid. It should be a JWT token (contains dots).\n" +
-    "Get the correct service_role key from 'supabase status' output."
+      "Get the correct service_role key from 'supabase status' output."
   );
 }
 
@@ -90,9 +88,7 @@ async function createUsers() {
     );
   }
 
-  const stockGroupMap = new Map(
-    stockGroups.map((sg) => [sg.name, sg.id])
-  );
+  const stockGroupMap = new Map(stockGroups.map((sg) => [sg.name, sg.id]));
 
   for (const userData of users) {
     try {
@@ -117,9 +113,7 @@ async function createUsers() {
 
       // Check if user already exists
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users.find(
-        (u) => u.email === userData.email
-      );
+      const existingUser = existingUsers?.users.find((u) => u.email === userData.email);
 
       if (existingUser) {
         console.log(`User ${userData.email} already exists, updating roles...`);
@@ -142,13 +136,11 @@ async function createUsers() {
           }
 
           // Create user role
-          const { error: roleError } = await supabase
-            .from("user_stock_group_roles")
-            .insert({
-              user_id: existingUser.id,
-              stock_group_id: stockGroupId,
-              role: userData.role,
-            });
+          const { error: roleError } = await supabase.from("user_stock_group_roles").insert({
+            user_id: existingUser.id,
+            stock_group_id: stockGroupId,
+            role: userData.role,
+          });
 
           if (roleError) {
             console.error(
@@ -168,18 +160,14 @@ async function createUsers() {
       }
 
       // Create user using admin API
-      const { data: newUser, error: userError } =
-        await supabase.auth.admin.createUser({
-          email: userData.email,
-          password: userData.password,
-          email_confirm: true, // Auto-confirm email for local development
-        });
+      const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true, // Auto-confirm email for local development
+      });
 
       if (userError) {
-        console.error(
-          `Error creating user ${userData.email}:`,
-          userError.message
-        );
+        console.error(`Error creating user ${userData.email}:`, userError.message);
         continue;
       }
 
@@ -188,19 +176,15 @@ async function createUsers() {
         continue;
       }
 
-      console.log(
-        `User ${userData.email} created with ID: ${newUser.user.id}`
-      );
+      console.log(`User ${userData.email} created with ID: ${newUser.user.id}`);
 
       // Assign roles to all stock groups (for admin) or specific stock group
       for (const stockGroupId of stockGroupsToAssign) {
-        const { error: roleError } = await supabase
-          .from("user_stock_group_roles")
-          .insert({
-            user_id: newUser.user.id,
-            stock_group_id: stockGroupId,
-            role: userData.role,
-          });
+        const { error: roleError } = await supabase.from("user_stock_group_roles").insert({
+          user_id: newUser.user.id,
+          stock_group_id: stockGroupId,
+          role: userData.role,
+        });
 
         if (roleError) {
           console.error(

@@ -22,9 +22,7 @@ export default function RootLayout({
           <div className="ml-4 my-2 text-sm text-secondary">
             本アプリは一般有志による非公式なものです
           </div>
-          <div className="flex-1">
-            {children}
-          </div>
+          <div className="flex-1">{children}</div>
         </AuthProvider>
         <Footer />
       </body>

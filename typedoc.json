@@ -1,8 +1,11 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "src/domain/models.ts",
-    "src/domain/implementations/fishery-stock.ts",
+    "src/domain/models/stock/index.ts",
+    "src/domain/models/user/index.ts",
+    "src/domain/constants/index.ts",
+    "src/domain/data/index.ts",
+    "src/domain/repositories.ts",
     "src/application/index.ts"
   ],
   "sortEntryPoints": false,
@@ -13,12 +16,7 @@
   "excludeProtected": true,
   "excludeInternal": true,
   "includeVersion": true,
-  "exclude": [
-    ".next/**/*",
-    "scripts/**/*",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "exclude": [".next/**/*", "scripts/**/*", "**/*.test.ts", "**/*.spec.ts"],
   "skipErrorChecking": true,
   "navigationLinks": {
     "GitHub": "https://github.com/Rindrics/mikazuki-munechika"

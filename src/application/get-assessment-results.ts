@@ -3,11 +3,7 @@
  * 資源評価結果取得サービス
  */
 
-import {
-  AssessmentResultRepository,
-  FisheryStock,
-  AcceptableBiologicalCatch,
-} from "@/domain";
+import { AssessmentResultRepository, FisheryStock, AcceptableBiologicalCatch } from "@/domain";
 import { logger } from "@/utils/logger";
 
 /**
@@ -46,7 +42,7 @@ export class GetAssessmentResultsService {
     try {
       const results = await Promise.all(
         stocks.map(async (stock) => {
-          const result = await this.repository.findByStockId(stock.id);
+          const result = await this.repository.findByStockName(stock.name);
           return { stock, result };
         })
       );

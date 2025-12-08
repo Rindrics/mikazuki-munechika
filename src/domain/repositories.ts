@@ -1,17 +1,10 @@
-import {
-  AcceptableBiologicalCatch,
-  User,
-  AuthenticatedUser,
-  StockGroupName,
-} from "./models";
+import { User, AuthenticatedUser, StockGroupName } from "./models";
+import { AcceptableBiologicalCatch } from "./data";
 
 export interface AssessmentResultRepository {
-  findByStockId(stockId: number): Promise<AcceptableBiologicalCatch | undefined>;
+  findByStockName(stockName: string): Promise<AcceptableBiologicalCatch | undefined>;
 
-  save(
-    stockId: number,
-    result: AcceptableBiologicalCatch
-  ): Promise<void>;
+  save(stockName: string, result: AcceptableBiologicalCatch): Promise<void>;
 }
 
 export interface UserRepository {
@@ -21,7 +14,5 @@ export interface UserRepository {
   authenticate(email: string, password: string): Promise<AuthenticatedUser | null>;
   getCurrentUser(): Promise<AuthenticatedUser | null>;
   logout(): Promise<void>;
-  onAuthStateChange(
-    callback: (user: AuthenticatedUser | null) => void
-  ): () => void;
+  onAuthStateChange(callback: (user: AuthenticatedUser | null) => void): () => void;
 }

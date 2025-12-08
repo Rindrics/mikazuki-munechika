@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'supabase/migrations/**'
-      - '.github/workflows/migrate-production.yml'
+      - "supabase/migrations/**"
+      - ".github/workflows/migrate-production.yml"
   workflow_dispatch:
 
 jobs:

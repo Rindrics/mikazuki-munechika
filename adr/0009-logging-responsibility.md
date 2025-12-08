@@ -25,7 +25,7 @@ We considered using a `withLogger` higher-order function to automatically log fu
 async function authenticate(email: string, password: string) {
   // Explicitly log what's safe to log (not the password!)
   logger.debug("authenticate called", { email });
-  
+
   const user = await findUser(email);
   if (!user) {
     logger.debug("user not found", { email });
@@ -60,12 +60,12 @@ The `caller` field in log entries is automatically extracted from the stack trac
 
 ### Guidelines
 
-| Situation | Approach |
-|-----------|----------|
-| Function entry | `logger.debug("called", { safeArgs })` |
-| Function exit | `logger.debug("completed", { result })` |
-| Errors | `logger.error("failed", { context }, error)` |
-| Sensitive data | Never log passwords, tokens, etc. |
+| Situation      | Approach                                     |
+| -------------- | -------------------------------------------- |
+| Function entry | `logger.debug("called", { safeArgs })`       |
+| Function exit  | `logger.debug("completed", { result })`      |
+| Errors         | `logger.error("failed", { context }, error)` |
+| Sensitive data | Never log passwords, tokens, etc.            |
 
 ## Related
 

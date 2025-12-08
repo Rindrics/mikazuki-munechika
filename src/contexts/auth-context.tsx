@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     logger.debug("Login attempt", { email });
-    
+
     try {
       // do not use withLogger here to avoid logging the email-password pair
       const authenticatedUser = await userRepository.authenticate(email, password);
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     const userId = user?.id;
     logger.debug("Logout attempt", userId ? { userId } : undefined);
-    
+
     try {
       await userRepository.logout();
       logger.setContext({ userId: undefined });
@@ -89,4 +89,3 @@ export function useAuth() {
   }
   return context;
 }
-

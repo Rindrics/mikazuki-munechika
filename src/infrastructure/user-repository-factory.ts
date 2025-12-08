@@ -14,4 +14,3 @@ export function createUserRepository(): UserRepository {
 
   return new SupabaseUserRepository();
 }
-

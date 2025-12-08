@@ -75,7 +75,6 @@ Implement structured logging using a custom logger that outputs JSON format, wit
 3. **Standard Metadata Fields**
 
    These fields are automatically included in every log entry:
-
    - `schemaVersion`: Log schema version (e.g., "1.0.0") - enables format evolution and backward compatibility
    - `timestamp`: ISO 8601 format timestamp
    - `level`: Log level (debug, info, warn, error)
@@ -91,7 +90,6 @@ Implement structured logging using a custom logger that outputs JSON format, wit
    **Field Organization**:
 
    Fields are organized into three categories:
-
    1. **Top-Level Standard Fields** (e.g., `environment`, `deploymentId`, `gitCommitSha`, `userId`, `requestId`):
       - Values that are consistent across multiple log entries (request/session/deployment scope)
       - Stored in memory/context and automatically included in all log entries
@@ -109,7 +107,6 @@ Implement structured logging using a custom logger that outputs JSON format, wit
       - Always at top level for consistency
 
    **Why Top-Level vs. Metadata**:
-
    - **Top-Level**: Fields that are frequently used for filtering, searching, or correlation (environment, deploymentId, userId, requestId). Keeping them at top level makes queries simpler: `environment=production AND deploymentId=dpl_abc123`
    - **Metadata**: Fields that are specific to individual log entries and less commonly used for filtering. These can be nested in the `metadata` object to keep the top-level structure clean.
 

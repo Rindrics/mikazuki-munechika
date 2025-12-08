@@ -3,11 +3,8 @@
  * 資源評価結果保存サービス
  */
 
-import {
-  AssessmentResultRepository,
-  FisheryStock,
-  AcceptableBiologicalCatch,
-} from "@/domain";
+import { AssessmentResultRepository, AcceptableBiologicalCatch } from "@/domain";
+import { FisheryStock } from "@/domain/models";
 import { logger } from "@/utils/logger";
 
 /**
@@ -34,17 +31,14 @@ export class SaveAssessmentResultService {
    * await service.execute(stock, abc);
    * ```
    */
-  async execute(
-    stock: FisheryStock,
-    result: AcceptableBiologicalCatch
-  ): Promise<void> {
-    logger.debug("execute called", { stockId: stock.id, resultValue: result.value });
+  async execute(stock: FisheryStock, result: AcceptableBiologicalCatch): Promise<void> {
+    logger.debug("execute called", { stockName: stock.name, resultValue: result.value });
 
     try {
-      await this.repository.save(stock.id, result);
-      logger.debug("execute completed", { stockId: stock.id });
+      await this.repository.save(stock.name, result);
+      logger.debug("execute completed", { stockName: stock.name });
     } catch (error) {
-      logger.error("execute failed", { stockId: stock.id }, error as Error);
+      logger.error("execute failed", { stockName: stock.name }, error as Error);
       throw error;
     }
   }
