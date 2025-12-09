@@ -25,6 +25,7 @@ export function getUserStockGroupRoles(user: User): UserStockGroupRole[] {
 
 export function createStockGroup(name: StockGroupName | string): StockGroup {
   const trimmedName = typeof name === "string" ? name.trim() : name;
+  logger.debug("createStockGroup", { trimmedName });
   if (!trimmedName || trimmedName.length === 0) {
     throw new Error("Stock group name cannot be empty");
   }
@@ -32,6 +33,7 @@ export function createStockGroup(name: StockGroupName | string): StockGroup {
   for (const [_key, stockData] of Object.entries(STOCK_GROUPS)) {
     for (const [_regionKey, regionInfo] of Object.entries(stockData.regions)) {
       const fullName = `${stockData.call_name}${regionInfo.name}`;
+      logger.debug("createStockGroup", { fullName });
       if (fullName === trimmedName) {
         return createStockGroupObject(
           fullName as StockGroupName,
