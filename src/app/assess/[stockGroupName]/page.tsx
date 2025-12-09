@@ -174,7 +174,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           type="button"
           onClick={handleSave}
           disabled={!calculationResult || isSaving || isSaved}
-          className="px-6 py-3 bg-primary text-foreground rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
         >
           {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
         </button>
