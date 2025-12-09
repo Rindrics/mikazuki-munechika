@@ -30,7 +30,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="ml-4 mt-4">
+    <main className="mx-auto mt-4 max-w-4xl">
       <h1>資源評価 web</h1>
       <div className="ml-4 mt-4">
         <h3>開発 TODO リスト:</h3>
