@@ -6,7 +6,6 @@ import { getUserStockGroupRoles, USER_ROLES } from "@/domain";
 import Link from "next/link";
 import AuthModal from "@/components/auth-modal";
 
-
 export default function AssessPage() {
   const { user, isLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -25,8 +24,15 @@ export default function AssessPage() {
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">資源評価</h1>
         <p className="text-secondary">
-          <span onClick={() => setIsAuthModalOpen(true)} className="text-link hover:text-link-hover underline cursor-pointer">ログイン</span>してください。</p>
-          <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+          <span
+            onClick={() => setIsAuthModalOpen(true)}
+            className="text-link hover:text-link-hover underline cursor-pointer"
+          >
+            ログイン
+          </span>
+          してください。
+        </p>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </main>
     );
   }
