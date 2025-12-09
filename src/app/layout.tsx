@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <Navbar />
-          <div className="ml-4 my-2 text-sm text-secondary">
+          <div className="mx-auto my-4 text-sm text-secondary">
             本アプリは一般有志による非公式なものです
           </div>
           <div className="flex-1">{children}</div>

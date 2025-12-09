@@ -30,7 +30,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="ml-4 mt-4">
+    <main className="mx-auto mt-4 max-w-4xl">
       <h1>資源評価 web</h1>
       <div className="ml-4 mt-4">
         <h3>開発 TODO リスト:</h3>
@@ -41,16 +41,16 @@ export default function Home() {
                 type="checkbox"
                 checked={item.href !== undefined}
                 readOnly
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 accent-success dark:accent-success"
               />
               {item.href ? (
-                <a href={item.href} className="text-blue-600 hover:underline">
+                <a href={item.href} className="text-success hover:underline">
                   {item.text}
                 </a>
               ) : (
-                <span className="text-gray-500">{item.text}</span>
+                <span className="text-secondary-dark dark:text-secondary-hover">{item.text}</span>
               )}
-              : <span className="text-gray-500">{item.description}</span>
+              : <span className="text-secondary">{item.description}</span>
             </li>
           ))}
         </ul>
