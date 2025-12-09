@@ -32,11 +32,29 @@ Use **Terraform** with the official Vercel provider to manage environment variab
 3. **Clean syntax**: Environment variables can be expressed as simple key-value pairs
 4. **Declarative**: Define desired state, Terraform handles the rest
 
+### State Management
+
+Use **Terraform Cloud** for state management to avoid self-hosting state files.
+
+Benefits:
+
+- No need to manage state storage infrastructure (S3, GCS, etc.)
+- Built-in state locking
+- Free tier available for small teams
+- Secure state storage with encryption
+
 ### Configuration Structure
 
 ```hcl
 # terraform/main.tf
 terraform {
+  cloud {
+    organization = "your-org"
+    workspaces {
+      name = "mikazuki-munechika"
+    }
+  }
+
   required_providers {
     vercel = {
       source = "vercel/vercel"
@@ -63,17 +81,18 @@ resource "vercel_project_environment_variable" "example" {
 
 ### Drawbacks
 
-1. **State management**: Terraform state must be stored securely
+1. **External dependency**: Relies on Terraform Cloud service
 2. **Learning curve**: Team members unfamiliar with Terraform need onboarding
-3. **Secret handling**: Sensitive values should not be committed; use environment variables or secret managers
+3. **Secret handling**: Sensitive values should not be committed; use Terraform Cloud variables
 
 ### Security Considerations
 
-- Store Terraform state in a secure backend (e.g., Terraform Cloud, S3 with encryption)
-- Use environment variables or secret managers for sensitive values
+- Terraform Cloud handles state encryption and access control
+- Store sensitive values as Terraform Cloud variables (marked as sensitive)
 - Never commit secrets to the repository
 
 ## Related
 
 - Vercel Terraform Provider: https://registry.terraform.io/providers/vercel/vercel/latest/docs
 - Terraform: https://www.terraform.io/
+- Terraform Cloud: https://app.terraform.io/
