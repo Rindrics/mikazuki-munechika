@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.2.0](https://github.com/Rindrics/mikazuki-munechika/compare/v0.1.0...v0.2.0) - 2025-12-09
+- Manage Vercel envvar using Terraform by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/48
+- Correct variable declaration by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/50
+- Correct format of URL to avoid startup error by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/51
+- Provide `/assess/{stockGroupName}` page based on user role by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/46
+
 ## [v0.1.0](https://github.com/Rindrics/mikazuki-munechika/commits/v0.1.0) - 2025-12-08
 - Configure GitHub Pages by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/1
 - Fix deploy error by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/2
