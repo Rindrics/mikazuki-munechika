@@ -17,7 +17,7 @@ terraform {
 }
 
 provider "vercel" {
-    api_token = var.vercel_api_token
+  api_token = var.vercel_api_token
 }
 
 data "vercel_project" "main" {
