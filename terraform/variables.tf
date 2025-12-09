@@ -24,7 +24,7 @@ variable "supabase_anon_key_production" {
 variable "supabase_url_preview" {
   description = "Supabase project URL for preview"
   type        = string
-  default     = "dummy" # no need to set in preview because it uses in-memory database
+  default     = "https://dummy.example.com" # no need to set in preview because it uses in-memory database
 }
 
 variable "supabase_anon_key_preview" {
