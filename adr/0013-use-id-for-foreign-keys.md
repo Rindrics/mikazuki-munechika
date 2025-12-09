@@ -1,4 +1,4 @@
-# ADR 0012: Use ID for Foreign Keys
+# ADR 0013: Use ID for Foreign Keys
 
 ## Status
 

@@ -1,4 +1,4 @@
-# ADR 0013: Supabase SSR Authentication
+# ADR 0014: Supabase SSR Authentication
 
 ## Status
 
@@ -98,4 +98,4 @@ src/
 ### Related ADRs
 
 - ADR 0002: Use Supabase Auth
-- ADR 0011: Use Server Actions
+- ADR 0012: Use Server Actions

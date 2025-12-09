@@ -1,4 +1,4 @@
-# ADR 0011: Use Server Actions for Form Submissions
+# ADR 0012: Use Server Actions for Form Submissions
 
 ## Status
 
