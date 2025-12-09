@@ -1,7 +1,12 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { getUserStockGroupRoles, USER_ROLES, StockGroupName, AcceptableBiologicalCatch } from "@/domain";
+import {
+  getUserStockGroupRoles,
+  USER_ROLES,
+  StockGroupName,
+  AcceptableBiologicalCatch,
+} from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
@@ -19,7 +24,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   const [catchDataValue, setCatchDataValue] = useState("");
   const [biologicalDataValue, setBiologicalDataValue] = useState("");
-  const [calculationResult, setCalculationResult] = useState<AcceptableBiologicalCatch | null>(null);
+  const [calculationResult, setCalculationResult] = useState<AcceptableBiologicalCatch | null>(
+    null
+  );
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -172,17 +179,16 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
         </button>
 
-        {isSaved && (
-          <p className="mt-4 text-success font-medium">評価結果を登録しました。</p>
-        )}
+        {isSaved && <p className="mt-4 text-success font-medium">評価結果を登録しました。</p>}
 
         {saveError && (
           <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
-            <p className="text-danger-dark font-medium dark:text-foreground-dark">結果の登録に失敗しました</p>
+            <p className="text-danger-dark font-medium dark:text-foreground-dark">
+              結果の登録に失敗しました
+            </p>
           </div>
         )}
       </section>
     </main>
   );
 }
-

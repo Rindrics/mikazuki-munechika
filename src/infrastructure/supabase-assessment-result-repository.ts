@@ -77,4 +77,3 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     logger.debug("save completed", { stockName, stockGroupId: stockGroup.id });
   }
 }
-

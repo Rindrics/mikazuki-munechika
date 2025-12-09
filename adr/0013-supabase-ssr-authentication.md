@@ -9,6 +9,7 @@ Accepted
 When using Server Actions with Next.js App Router, Supabase authentication information must be properly transmitted.
 
 With only `@supabase/supabase-js`'s `createClient`:
+
 - Authentication information set on the client side is not transmitted to Server Actions
 - `auth.uid()` becomes NULL and RLS policies do not function correctly
 
@@ -38,7 +39,7 @@ import { cookies } from "next/headers";
 
 export async function getSupabaseServerClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
-  
+
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

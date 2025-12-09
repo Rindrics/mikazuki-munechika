@@ -14,10 +14,10 @@ We need to implement the assessment page (`/assess/[stockGroupName]`) where user
 
 We need to choose how the client-side form communicates with server-side logic:
 
-| Approach | Description |
-|----------|-------------|
+| Approach           | Description                                                                  |
+| ------------------ | ---------------------------------------------------------------------------- |
 | **Server Actions** | Next.js feature for calling server functions directly from client components |
-| **API Routes** | Traditional REST endpoints under `/app/api/` |
+| **API Routes**     | Traditional REST endpoints under `/app/api/`                                 |
 
 ## Decision
 
