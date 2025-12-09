@@ -7,7 +7,7 @@ import {
   FisheryStock,
 } from "./models";
 import { AcceptableBiologicalCatch, CatchData, BiologicalData } from "./data";
-import { STOCK_GROUPS } from "./constants";
+import { STOCK_GROUPS, StockType } from "./constants";
 import { logger } from "../utils/logger";
 
 export function toAuthenticatedUser(user: User): AuthenticatedUser {
@@ -25,28 +25,30 @@ export function getUserStockGroupRoles(user: User): UserStockGroupRole[] {
 
 export function createStockGroup(name: StockGroupName | string): StockGroup {
   const trimmedName = typeof name === "string" ? name.trim() : name;
+  logger.debug("createStockGroup", { trimmedName });
   if (!trimmedName || trimmedName.length === 0) {
     throw new Error("Stock group name cannot be empty");
   }
 
   for (const [_key, stockData] of Object.entries(STOCK_GROUPS)) {
-    for (const [_regionKey, regionValue] of Object.entries(stockData.regions)) {
-      const fullName = `${stockData.call_name}${regionValue}`;
+    for (const [_regionKey, regionInfo] of Object.entries(stockData.regions)) {
+      const fullName = `${stockData.call_name}${regionInfo.name}`;
+      logger.debug("createStockGroup", { fullName });
       if (fullName === trimmedName) {
-        return createStockGroupObject(fullName as StockGroupName, stockData.call_name, regionValue);
+        return createStockGroupObject(
+          fullName as StockGroupName,
+          stockData.call_name,
+          regionInfo.name,
+          regionInfo.type
+        );
       }
     }
   }
 
-  logger.warn(`Unknown stock group name: ${trimmedName}. Using name as-is.`);
-  const parts = trimmedName.match(/^(.+?)(系群|海域|海)$/);
-  if (parts) {
-    return createStockGroupObject(trimmedName as StockGroupName, parts[1], parts[2]);
-  }
-  return createStockGroupObject(trimmedName as StockGroupName, trimmedName, "");
+  throw new Error(`Unknown stock group name: ${trimmedName}`);
 }
 
-export function createType1Stock(stockGroup: StockGroup): FisheryStock {
+function createType1Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
     assess: (abundance) => ({
@@ -55,7 +57,7 @@ export function createType1Stock(stockGroup: StockGroup): FisheryStock {
   });
 }
 
-export function createType2Stock(stockGroup: StockGroup): FisheryStock {
+function createType2Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     assess: (abundance) => ({
@@ -64,7 +66,7 @@ export function createType2Stock(stockGroup: StockGroup): FisheryStock {
   });
 }
 
-export function createType3Stock(stockGroup: StockGroup): FisheryStock {
+function createType3Stock(stockGroup: StockGroup): FisheryStock {
   return createStock(stockGroup, {
     reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     assess: (abundance) => ({
@@ -73,15 +75,43 @@ export function createType3Stock(stockGroup: StockGroup): FisheryStock {
   });
 }
 
+/**
+ * Create a FisheryStock from a StockGroup, automatically selecting the correct type
+ * based on the StockGroup's type property.
+ *
+ * @param stockGroup - The stock group to create a stock for
+ * @returns A FisheryStock of the appropriate type
+ *
+ * @example
+ * ```typescript
+ * const stockGroup = createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC);
+ * const stock = createFisheryStock(stockGroup); // Creates Type1Stock
+ * ```
+ */
+export function createFisheryStock(stockGroup: StockGroup): FisheryStock {
+  switch (stockGroup.type) {
+    case 1:
+      return createType1Stock(stockGroup);
+    case 2:
+      return createType2Stock(stockGroup);
+    case 3:
+      return createType3Stock(stockGroup);
+    default:
+      throw new Error(`Unknown stock type: ${stockGroup.type}`);
+  }
+}
+
 function createStockGroupObject(
   name: StockGroupName,
   call_name: string,
-  region: string
+  region: string,
+  type: StockType
 ): StockGroup {
   return {
     name,
     call_name,
     region,
+    type,
     equals(other: StockGroup): boolean {
       return name === other.name;
     },

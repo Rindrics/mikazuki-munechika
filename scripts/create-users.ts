@@ -68,6 +68,25 @@ const users = [
     role: "管理者" as const,
     // Admin role: will be assigned to all stock groups automatically
   },
+  // User with multiple roles across different stock groups
+  {
+    email: "multiple@example.com",
+    password: "multiple123",
+    stockGroupName: "マイワシ太平洋系群",
+    role: "主担当" as const,
+  },
+  {
+    email: "multiple@example.com",
+    password: "multiple123",
+    stockGroupName: "マイワシ対馬暖流系群",
+    role: "副担当" as const,
+  },
+  {
+    email: "multiple@example.com",
+    password: "multiple123",
+    stockGroupName: "マチ類（奄美諸島・沖縄諸島・先島諸島）",
+    role: "主担当" as const,
+  },
 ];
 
 async function createUsers() {

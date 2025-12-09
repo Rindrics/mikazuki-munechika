@@ -1,5 +1,5 @@
 import { CatchData, BiologicalData, AcceptableBiologicalCatch } from "../../data";
-import { STOCK_GROUPS } from "../../constants";
+import { STOCK_GROUPS, StockType } from "../../constants";
 
 export type StockGroupName =
   (typeof STOCK_GROUPS)[keyof typeof STOCK_GROUPS]["call_name"] extends string
@@ -14,6 +14,7 @@ export type StockGroupName =
  * const stockGroup: StockGroup = createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC);
  * stockGroup.call_name // "マイワシ"
  * stockGroup.region    // "太平洋系群"
+ * stockGroup.type      // 1
  * stockGroup.toDisplayString() // "マイワシ 太平洋系群"
  * ```
  */
@@ -21,6 +22,7 @@ export interface StockGroup {
   readonly name: StockGroupName;
   readonly call_name: string;
   readonly region: string;
+  readonly type: StockType;
   equals(other: StockGroup): boolean;
   toString(): string;
   toDisplayString(separator?: string): string;

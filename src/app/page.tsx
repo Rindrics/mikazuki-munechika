@@ -8,8 +8,8 @@ export default function Home() {
     },
     { text: "管理画面", href: undefined, description: "ユーザーの認可・権限管理を行う" },
     {
-      text: "データ登録・資源量推定機能",
-      href: undefined,
+      text: "データ登録・資源量推定機能（ダミー版）",
+      href: "/assess",
       description: "最新のデータを登録し、資量量推定結果をプレビューする",
     },
     {

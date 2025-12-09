@@ -1,12 +1,6 @@
 import { GetAssessmentResultsService } from "@/application";
 import { InMemoryAssessmentResultRepository } from "@/infrastructure";
-import {
-  createType1Stock,
-  createType2Stock,
-  createType3Stock,
-  STOCK_GROUP_NAMES,
-  createStockGroup,
-} from "@/domain";
+import { STOCK_GROUP_NAMES, createStockGroup, createFisheryStock } from "@/domain";
 import { logger } from "@/utils/logger";
 import ResultPanel from "./components/ResultPanel";
 
@@ -20,11 +14,10 @@ export default async function Home() {
   // Get stocks (in the future, this will be FisheryStock.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
   const stocks = [
-    createType1Stock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
-    createType2Stock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
-    createType3Stock(createStockGroup("3 系資源サンプル")), // Test data, not a real stock group
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.MACHIRUI_ANAMI_OKINAWA_SAKISHIMA)),
   ];
-
   // Get assessment results from repository
   const assessmentResults = await getAssessmentResultsService.execute(stocks);
 
