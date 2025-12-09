@@ -9,10 +9,9 @@ resource "vercel_project_environment_variables" "production" {
       target = ["production"]
     },
     {
-      key        = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-      value      = var.supabase_anon_key_production
-      git_branch = "staging"
-      target     = ["preview"]
+      key    = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      value  = var.supabase_anon_key_production
+      target = ["production"]
     },
     {
       key    = "LOG_LEVEL"
@@ -46,10 +45,9 @@ resource "vercel_project_environment_variables" "preview" {
       target = ["preview"]
     },
     {
-      key        = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-      value      = var.supabase_anon_key_preview
-      git_branch = "staging"
-      target     = ["preview"]
+      key    = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      value  = var.supabase_anon_key_preview
+      target = ["preview"]
     },
     {
       key    = "LOG_LEVEL"
@@ -83,10 +81,9 @@ resource "vercel_project_environment_variables" "development" {
       target = ["development"]
     },
     {
-      key        = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-      value      = var.supabase_anon_key_development
-      git_branch = "staging"
-      target     = ["development"]
+      key    = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      value  = var.supabase_anon_key_development
+      target = ["development"]
     },
     {
       key    = "LOG_LEVEL"
