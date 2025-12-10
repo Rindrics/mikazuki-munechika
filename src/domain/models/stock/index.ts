@@ -16,6 +16,7 @@ export type StockGroupName =
  * stockGroup.region    // "太平洋系群"
  * stockGroup.type      // 1
  * stockGroup.toDisplayString() // "マイワシ 太平洋系群"
+ * stockGroup.toDisplayString((c, r) => `<span>${c}</span><span>${r}</span>`)
  * ```
  */
 export interface StockGroup {
@@ -25,7 +26,7 @@ export interface StockGroup {
   readonly type: StockType;
   equals(other: StockGroup): boolean;
   toString(): string;
-  toDisplayString(separator?: string): string;
+  toDisplayString(formatter?: (callName: string, region: string) => string): string;
 }
 
 /**

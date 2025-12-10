@@ -118,8 +118,11 @@ function createStockGroupObject(
     toString(): string {
       return name;
     },
-    toDisplayString(separator: string = " "): string {
-      return region ? `${call_name}${separator}${region}` : call_name;
+    toDisplayString(formatter?: (callName: string, region: string) => string): string {
+      if (formatter) {
+        return formatter(call_name, region);
+      }
+      return region ? `${call_name} ${region}` : call_name;
     },
   };
 }
