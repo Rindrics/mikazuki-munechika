@@ -111,7 +111,7 @@ async function createUsers() {
 
   for (const userData of users) {
     try {
-      // For administrators, assign to all stock groups
+      // For 管理者, assign to all stock groups
       const stockGroupsToAssign =
         userData.role === "管理者"
           ? Array.from(stockGroupMap.values())

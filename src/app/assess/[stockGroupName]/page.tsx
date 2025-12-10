@@ -81,7 +81,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const assignments = getStockGroupRoleAssignments(user);
   const assignment = assignments.find(({ stockGroupName: name }) => name === stockGroupName);
   const hasPermission =
-  assignment && (assignment.role === ROLES.PRIMARY || assignment.role === ROLES.SECONDARY);
+  assignment && (assignment.role === ROLES.主担当 || assignment.role === ROLES.副担当);
 
   if (!hasPermission) {
     return (

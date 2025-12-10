@@ -21,8 +21,8 @@ CREATE TRIGGER update_system_settings_updated_at
 -- Enable Row Level Security
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
--- Only administrators can read system settings
-CREATE POLICY "Only administrators can read system settings"
+-- Only 管理者 can read system settings
+CREATE POLICY "Only 管理者 can read system settings"
   ON public.system_settings
   FOR SELECT
   USING (
@@ -34,8 +34,8 @@ CREATE POLICY "Only administrators can read system settings"
     )
   );
 
--- Only administrators can update system settings
-CREATE POLICY "Only administrators can update system settings"
+-- Only 管理者 can update system settings
+CREATE POLICY "Only 管理者 can update system settings"
   ON public.system_settings
   FOR UPDATE
   USING (

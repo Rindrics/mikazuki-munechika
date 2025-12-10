@@ -37,10 +37,10 @@ export default function AssessPage() {
     );
   }
 
-  // Get stock groups where user is PRIMARY or SECONDARY
+  // Get stock groups where user is 主担当 or 副担当
   const userRoles = getStockGroupRoleAssignments(user);
   const assessableStocks = userRoles.filter(
-    ({ role }) => role === ROLES.PRIMARY || role === ROLES.SECONDARY
+    ({ role }) => role === ROLES.主担当 || role === ROLES.副担当
   );
 
   if (assessableStocks.length === 0) {
@@ -68,7 +68,7 @@ export default function AssessPage() {
                   <span className="font-medium">{stockGroupName}</span>
                   <span
                     className={`text-sm px-2 py-1 rounded ${
-                      role === ROLES.PRIMARY
+                      role === ROLES.主担当
                         ? "bg-primary-light text-foreground dark:bg-primary-dark dark:text-foreground-dark"
                         : "bg-secondary-light text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
                     }`}

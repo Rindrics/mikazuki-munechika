@@ -17,7 +17,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-primary@example.com",
     password: "maiwashi-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.PRIMARY,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.主担当,
     },
   },
   {
@@ -25,7 +25,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-secondary@example.com",
     password: "maiwashi-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.SECONDARY,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.副担当,
     },
   },
   {
@@ -33,7 +33,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-primary@example.com",
     password: "zuwaigani-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.PRIMARY,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.主担当,
     },
   },
   {
@@ -41,7 +41,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-secondary@example.com",
     password: "zuwaigani-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.SECONDARY,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.副担当,
     },
   },
   {
@@ -50,8 +50,8 @@ const INITIAL_USER_DATA = [
     password: "admin123",
     // Admin has "管理者" role for all stock groups
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.ADMIN,
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.ADMIN,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.管理者,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.管理者,
     },
   },
 ] as const;
