@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.3](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.2...v0.2.3) - 2025-12-10
+- Avoid second Jekyll building on deploy by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/72
+
 ## [v0.2.2](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.1...v0.2.2) - 2025-12-10
 - Setup Vitest by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/69
 - Translate models into Japanese by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/71
