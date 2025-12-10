@@ -4,7 +4,7 @@ import {
   AuthenticatedUser,
   toAuthenticatedUser,
   STOCK_GROUP_NAMES,
-  USER_ROLES,
+  ROLES,
 } from "@/domain";
 import { logger } from "@/utils/logger";
 import { StockGroupName } from "@/domain/models/stock";
@@ -17,7 +17,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-primary@example.com",
     password: "maiwashi-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: USER_ROLES.PRIMARY,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.PRIMARY,
     },
   },
   {
@@ -25,7 +25,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-secondary@example.com",
     password: "maiwashi-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: USER_ROLES.SECONDARY,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.SECONDARY,
     },
   },
   {
@@ -33,7 +33,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-primary@example.com",
     password: "zuwaigani-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: USER_ROLES.PRIMARY,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.PRIMARY,
     },
   },
   {
@@ -41,7 +41,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-secondary@example.com",
     password: "zuwaigani-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: USER_ROLES.SECONDARY,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.SECONDARY,
     },
   },
   {
@@ -50,8 +50,8 @@ const INITIAL_USER_DATA = [
     password: "admin123",
     // Admin has "管理者" role for all stock groups
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: USER_ROLES.ADMIN,
-      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: USER_ROLES.ADMIN,
+      [STOCK_GROUP_NAMES.MAIWASHI_PACIFIC]: ROLES.ADMIN,
+      [STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK]: ROLES.ADMIN,
     },
   },
 ] as const;

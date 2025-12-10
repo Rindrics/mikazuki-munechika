@@ -5,7 +5,7 @@ import {
   AuthenticatedUser,
   toAuthenticatedUser,
   StockGroupName,
-  UserRole,
+  Role,
 } from "@/domain";
 import { getSupabaseClient } from "./supabase-client";
 import { logger } from "@/utils/logger";
@@ -141,10 +141,10 @@ export class SupabaseUserRepository implements UserRepository {
       // Get user email from auth.users (requires RLS or service role)
       // For now, we'll try to build user with available data
       const userRolesForUser = userRoles.filter((ur) => ur.user_id === userId);
-      const rolesByStockGroup: Partial<Record<StockGroupName, UserRole>> = {};
+      const rolesByStockGroup: Partial<Record<StockGroupName, Role>> = {};
 
       for (const userRole of userRolesForUser) {
-        rolesByStockGroup[stockGroupName] = userRole.role as UserRole;
+        rolesByStockGroup[stockGroupName] = userRole.role as Role;
       }
 
       // Try to get email from current session or user metadata
@@ -189,7 +189,7 @@ export class SupabaseUserRepository implements UserRepository {
     }
 
     // Build rolesByStockGroup mapping
-    const rolesByStockGroup: Partial<Record<StockGroupName, UserRole>> = {};
+    const rolesByStockGroup: Partial<Record<StockGroupName, Role>> = {};
 
     if (userRoles) {
       for (const userRole of userRoles) {
@@ -197,11 +197,11 @@ export class SupabaseUserRepository implements UserRepository {
         const stockGroups = userRole.stock_groups;
         if (Array.isArray(stockGroups) && stockGroups.length > 0) {
           const stockGroupName = stockGroups[0].name as StockGroupName;
-          const role = userRole.role as UserRole;
+          const role = userRole.role as Role;
           rolesByStockGroup[stockGroupName] = role;
         } else if (stockGroups && typeof stockGroups === "object" && "name" in stockGroups) {
           const stockGroupName = (stockGroups as { name: string }).name as StockGroupName;
-          const role = userRole.role as UserRole;
+          const role = userRole.role as Role;
           rolesByStockGroup[stockGroupName] = role;
         }
       }

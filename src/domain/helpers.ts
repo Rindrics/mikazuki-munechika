@@ -1,7 +1,7 @@
 import {
   AuthenticatedUser,
   User,
-  UserStockGroupRole,
+  StockGroupRoleAssignment,
   StockGroupName,
   StockGroup,
   FisheryStock,
@@ -14,7 +14,7 @@ export function toAuthenticatedUser(user: User): AuthenticatedUser {
   return user as AuthenticatedUser;
 }
 
-export function getUserStockGroupRoles(user: User): UserStockGroupRole[] {
+export function getStockGroupRoleAssignments(user: User): StockGroupRoleAssignment[] {
   return Object.entries(user.rolesByStockGroup)
     .filter(([_, role]) => role !== undefined)
     .map(([stockGroupName, role]) => ({
@@ -123,6 +123,9 @@ function createStockGroupObject(
         return formatter(call_name, region);
       }
       return region ? `${call_name} ${region}` : call_name;
+    },
+    fullName(): StockGroupName {
+      return name;
     },
   };
 }

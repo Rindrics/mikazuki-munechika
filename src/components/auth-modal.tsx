@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { getUserStockGroupRoles } from "@/domain";
+import { getStockGroupRoleAssignments } from "@/domain";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -58,7 +58,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <div className="text-sm text-gray-600">
                 <strong>ロール:</strong>
                 <ul className="list-disc list-inside mt-1 ml-4">
-                  {getUserStockGroupRoles(user).map((role, index) => (
+                  {getStockGroupRoleAssignments(user).map((role, index) => (
                     <li key={index}>
                       {role.stockGroupName} - {role.role}
                     </li>

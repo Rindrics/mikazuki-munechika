@@ -1,14 +1,22 @@
-import { USER_ROLES } from "../../constants";
+import { ROLES } from "../../constants";
 import { StockGroupName } from "../stock";
 
-export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 /**
- * ユーザーの系群別ロール
+ * ある資源に対するロールを表す
+ * 
+ * @example
+ * ```typescript
+ * const assignment: StockGroupRoleAssignment = {
+ *   stockGroupName: STOCK_GROUP_NAMES.MAIWASHI_PACIFIC,
+ *   role: ROLES.PRIMARY,
+ * };
+ * ```
  */
-export interface UserStockGroupRole {
+export interface StockGroupRoleAssignment {
   stockGroupName: StockGroupName;
-  role: UserRole;
+  role: Role;
 }
 
 /**
@@ -19,7 +27,7 @@ export interface UserStockGroupRole {
 export interface User {
   id: string;
   email: string;
-  rolesByStockGroup: Partial<Record<StockGroupName, UserRole>>;
+  rolesByStockGroup: Partial<Record<StockGroupName, Role>>;
 }
 
 declare const __authenticated: unique symbol;

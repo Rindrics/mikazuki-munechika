@@ -2,8 +2,8 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import {
-  getUserStockGroupRoles,
-  USER_ROLES,
+  getStockGroupRoleAssignments,
+  ROLES,
   StockGroupName,
   AcceptableBiologicalCatch,
 } from "@/domain";
@@ -78,10 +78,10 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }
 
   // Check if user has permission for this stock group
-  const userRoles = getUserStockGroupRoles(user);
-  const userRole = userRoles.find(({ stockGroupName: name }) => name === stockGroupName);
+  const assignments = getStockGroupRoleAssignments(user);
+  const assignment = assignments.find(({ stockGroupName: name }) => name === stockGroupName);
   const hasPermission =
-    userRole && (userRole.role === USER_ROLES.PRIMARY || userRole.role === USER_ROLES.SECONDARY);
+  assignment && (assignment.role === ROLES.PRIMARY || assignment.role === ROLES.SECONDARY);
 
   if (!hasPermission) {
     return (
@@ -106,7 +106,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
       <h1 className="mb-2">{stockGroupName}</h1>
       <p className="text-secondary mb-8">
-        担当: <span className="font-medium">{userRole.role}</span>
+        担当: <span className="font-medium">{assignment?.role}</span>
       </p>
 
       <section className="mb-8">

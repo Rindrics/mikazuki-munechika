@@ -1,10 +1,16 @@
 import { CatchData, BiologicalData, AcceptableBiologicalCatch } from "../../data";
-import { STOCK_GROUPS, StockType } from "../../constants";
+import { STOCK_GROUP_NAMES, StockType } from "../../constants";
 
-export type StockGroupName =
-  (typeof STOCK_GROUPS)[keyof typeof STOCK_GROUPS]["call_name"] extends string
-    ? `${(typeof STOCK_GROUPS)[keyof typeof STOCK_GROUPS]["call_name"]}${string}`
-    : never;
+/**
+ * 評価対象資源の名前（呼称 + 系群名）
+ *
+ * @useDeclaredType
+ * @example
+ * ```typescript
+ * const name: StockGroupName = "マイワシ太平洋系群";
+ * ```
+ */
+export type StockGroupName = (typeof STOCK_GROUP_NAMES)[keyof typeof STOCK_GROUP_NAMES];
 
 /**
  * 評価対象資源
@@ -27,6 +33,10 @@ export interface StockGroup {
   equals(other: StockGroup): boolean;
   toString(): string;
   toDisplayString(formatter?: (callName: string, region: string) => string): string;
+  /**
+   * Returns the full name (call_name + region) as StockGroupName type
+   */
+  fullName(): StockGroupName;
 }
 
 /**

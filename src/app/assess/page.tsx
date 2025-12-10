@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { useState } from "react";
-import { getUserStockGroupRoles, USER_ROLES } from "@/domain";
+import { getStockGroupRoleAssignments, ROLES } from "@/domain";
 import Link from "next/link";
 import AuthModal from "@/components/auth-modal";
 
@@ -38,9 +38,9 @@ export default function AssessPage() {
   }
 
   // Get stock groups where user is PRIMARY or SECONDARY
-  const userRoles = getUserStockGroupRoles(user);
+  const userRoles = getStockGroupRoleAssignments(user);
   const assessableStocks = userRoles.filter(
-    ({ role }) => role === USER_ROLES.PRIMARY || role === USER_ROLES.SECONDARY
+    ({ role }) => role === ROLES.PRIMARY || role === ROLES.SECONDARY
   );
 
   if (assessableStocks.length === 0) {
@@ -68,7 +68,7 @@ export default function AssessPage() {
                   <span className="font-medium">{stockGroupName}</span>
                   <span
                     className={`text-sm px-2 py-1 rounded ${
-                      role === USER_ROLES.PRIMARY
+                      role === ROLES.PRIMARY
                         ? "bg-primary-light text-foreground dark:bg-primary-dark dark:text-foreground-dark"
                         : "bg-secondary-light text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
                     }`}
