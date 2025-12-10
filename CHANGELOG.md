@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.1](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.0...v0.2.1) - 2025-12-10
+- Improve styling by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/52
+- Correct color of button text by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/53
+- Deploy pages on release by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/66
+
 ## [v0.2.0](https://github.com/Rindrics/mikazuki-munechika/compare/v0.1.0...v0.2.0) - 2025-12-09
 - Manage Vercel envvar using Terraform by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/48
 - Correct variable declaration by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/50
