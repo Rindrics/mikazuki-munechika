@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -130,9 +132,8 @@ jobs:
           pr-comment: sticky
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.changes.outputs.changed == 'true'
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    needs: [changes, build]
     env:
       WORKDIR: docs/
     steps:
