@@ -19,7 +19,7 @@ import { logger } from "@/utils/logger";
  *
  * @example
  * ```typescript
- * const stock = createType1Stock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC));
+ * const stock = createType1Stock(createStockGroup(STOCK_GROUP_NAMES.マイワシ太平洋));
  * const abc = calculateAbc(stock, catchData, biologicalData);
  * console.log(abc.value);
  * ```

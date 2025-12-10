@@ -9,7 +9,7 @@ export type Role = (typeof ROLES)[keyof typeof ROLES];
  * @example
  * ```typescript
  * const assignment: StockGroupRoleAssignment = {
- *   stockGroupName: STOCK_GROUP_NAMES.MAIWASHI_PACIFIC,
+ *   stockGroupName: STOCK_GROUP_NAMES.マイワシ太平洋,
  *   role: ROLES.主担当,
  * };
  * ```

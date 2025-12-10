@@ -84,7 +84,7 @@ function createType3Stock(stockGroup: StockGroup): FisheryStock {
  *
  * @example
  * ```typescript
- * const stockGroup = createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC);
+ * const stockGroup = createStockGroup(STOCK_GROUP_NAMES.マイワシ太平洋);
  * const stock = createFisheryStock(stockGroup); // Creates Type1Stock
  * ```
  */

@@ -14,9 +14,9 @@ export default async function Home() {
   // Get stocks (in the future, this will be FisheryStock.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
   const stocks = [
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC)),
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.ZUWAIGANI_OKHOTSK)),
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.MACHIRUI_ANAMI_OKINAWA_SAKISHIMA)),
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.マイワシ太平洋)),
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.ズワイガニオホーツク)),
+    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.マチ類)),
   ];
   // Get assessment results from repository
   const assessmentResults = await getAssessmentResultsService.execute(stocks);

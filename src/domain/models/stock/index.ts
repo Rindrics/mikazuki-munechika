@@ -17,7 +17,7 @@ export type StockGroupName = (typeof STOCK_GROUP_NAMES)[keyof typeof STOCK_GROUP
  *
  * @example
  * ```typescript
- * const stockGroup: StockGroup = createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC);
+ * const stockGroup: StockGroup = createStockGroup(STOCK_GROUP_NAMES.マイワシ太平洋);
  * stockGroup.call_name // "マイワシ"
  * stockGroup.region    // "太平洋系群"
  * stockGroup.type      // 1

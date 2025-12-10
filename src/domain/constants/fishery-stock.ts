@@ -5,9 +5,9 @@
  * - 3系: 漁獲量変動の経験的解析結果を利用
  */
 export const STOCK_TYPES = {
-  TYPE_1: 1,
-  TYPE_2: 2,
-  TYPE_3: 3,
+  "1系": 1,
+  "2系": 2,
+  "3系": 3,
 } as const;
 
 export type StockType = (typeof STOCK_TYPES)[keyof typeof STOCK_TYPES];
@@ -71,12 +71,12 @@ export const STOCK_GROUPS: {
  *
  * @example
  * ```typescript
- * STOCK_GROUP_NAMES.MAIWASHI_PACIFIC // "マイワシ太平洋系群"
+ * STOCK_GROUP_NAMES.マイワシ太平洋 // "マイワシ太平洋系群"
  * ```
  */
 export const STOCK_GROUP_NAMES = {
-  MAIWASHI_PACIFIC: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.PACIFIC.name}`,
-  MAIWASHI_TSUSHIMA: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA.name}`,
-  ZUWAIGANI_OKHOTSK: `${STOCK_GROUPS.ZUWAIGANI.call_name}${STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK.name}`,
-  MACHIRUI_ANAMI_OKINAWA_SAKISHIMA: `${STOCK_GROUPS.MACHIRUI.call_name}${STOCK_GROUPS.MACHIRUI.regions.ANAMI_OKINAWA_SAKISHIMA.name}`,
+  マイワシ太平洋: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.PACIFIC.name}`,
+  マイワシ対馬: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA.name}`,
+  ズワイガニオホーツク: `${STOCK_GROUPS.ZUWAIGANI.call_name}${STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK.name}`,
+  マチ類: `${STOCK_GROUPS.MACHIRUI.call_name}${STOCK_GROUPS.MACHIRUI.regions.ANAMI_OKINAWA_SAKISHIMA.name}`,
 } as const;
