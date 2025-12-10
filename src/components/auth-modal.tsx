@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { getStockGroupRoleAssignments } from "@/domain";
+import { get担当資源情報s } from "@/domain";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -53,14 +53,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <h2 className="text-xl font-bold mb-4 text-maintext">ログアウト</h2>
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">
-                <strong>メールアドレス:</strong> {user.email}
+                <strong>メールアドレス:</strong> {user.メールアドレス}
               </p>
               <div className="text-sm text-gray-600">
                 <strong>ロール:</strong>
                 <ul className="list-disc list-inside mt-1 ml-4">
-                  {getStockGroupRoleAssignments(user).map((role, index) => (
+                  {get担当資源情報s(user).map((role, index) => (
                     <li key={index}>
-                      {role.stockGroupName} - {role.role}
+                      {role.担当資源名} - {role.ロール}
                     </li>
                   ))}
                 </ul>

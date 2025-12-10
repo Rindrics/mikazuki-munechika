@@ -25,7 +25,7 @@ export default function Navbar() {
                   role="tooltip"
                   className="absolute top-full right-0 mt-2 px-2 py-1 text-xs text-background bg-foreground rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap before:content-[''] before:absolute before:bottom-full before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-foreground"
                 >
-                  <span className="font-mono">{user.email}</span>
+                  <span className="font-mono">{user.メールアドレス}</span>
                 </div>
                 <button
                   onClick={() => setIsAuthModalOpen(true)}

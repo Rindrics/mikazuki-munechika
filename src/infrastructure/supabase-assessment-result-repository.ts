@@ -1,4 +1,4 @@
-import { AssessmentResultRepository, AcceptableBiologicalCatch } from "@/domain";
+import { AssessmentResultRepository, ABC算定結果 } from "@/domain";
 import { logger } from "@/utils/logger";
 
 // Dynamic import to avoid bundling server-only code in client components
@@ -8,7 +8,7 @@ async function getServerClient() {
 }
 
 export class SupabaseAssessmentResultRepository implements AssessmentResultRepository {
-  async findByStockName(stockName: string): Promise<AcceptableBiologicalCatch | undefined> {
+  async findByStockName(stockName: string): Promise<ABC算定結果 | undefined> {
     logger.debug("findByStockName called", { stockName });
 
     const supabase = await getServerClient();
@@ -41,7 +41,7 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     return { value: data.value };
   }
 
-  async save(stockName: string, result: AcceptableBiologicalCatch): Promise<void> {
+  async save(stockName: string, result: ABC算定結果): Promise<void> {
     logger.debug("save called", { stockName, value: result.value });
 
     const supabase = await getServerClient();

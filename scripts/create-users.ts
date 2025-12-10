@@ -41,25 +41,25 @@ const users = [
   {
     email: "maiwashi-primary@example.com",
     password: "maiwashi-primary123",
-    stockGroupName: "マイワシ太平洋系群",
+    担当資源名: "マイワシ太平洋系群",
     role: "主担当" as const,
   },
   {
     email: "maiwashi-secondary@example.com",
     password: "maiwashi-secondary123",
-    stockGroupName: "マイワシ太平洋系群",
+    担当資源名: "マイワシ太平洋系群",
     role: "副担当" as const,
   },
   {
     email: "zuwaigani-primary@example.com",
     password: "zuwaigani-primary123",
-    stockGroupName: "ズワイガニオホーツク海系群",
+    担当資源名: "ズワイガニオホーツク海系群",
     role: "主担当" as const,
   },
   {
     email: "zuwaigani-secondary@example.com",
     password: "zuwaigani-secondary123",
-    stockGroupName: "ズワイガニオホーツク海系群",
+    担当資源名: "ズワイガニオホーツク海系群",
     role: "副担当" as const,
   },
   {
@@ -72,19 +72,19 @@ const users = [
   {
     email: "multiple@example.com",
     password: "multiple123",
-    stockGroupName: "マイワシ太平洋系群",
+    担当資源名: "マイワシ太平洋系群",
     role: "主担当" as const,
   },
   {
     email: "multiple@example.com",
     password: "multiple123",
-    stockGroupName: "マイワシ対馬暖流系群",
+    担当資源名: "マイワシ対馬暖流系群",
     role: "副担当" as const,
   },
   {
     email: "multiple@example.com",
     password: "multiple123",
-    stockGroupName: "マチ類（奄美諸島・沖縄諸島・先島諸島）",
+    担当資源名: "マチ類（奄美諸島・沖縄諸島・先島諸島）",
     role: "主担当" as const,
   },
 ];
@@ -115,8 +115,8 @@ async function createUsers() {
       const stockGroupsToAssign =
         userData.role === "管理者"
           ? Array.from(stockGroupMap.values())
-          : userData.stockGroupName
-            ? [stockGroupMap.get(userData.stockGroupName)].filter(
+          : userData.担当資源名
+            ? [stockGroupMap.get(userData.担当資源名)].filter(
                 (id): id is string => id !== undefined
               )
             : [];
@@ -124,7 +124,7 @@ async function createUsers() {
       if (stockGroupsToAssign.length === 0) {
         if (userData.role !== "管理者") {
           console.error(
-            `Stock group "${userData.stockGroupName}" not found, skipping user ${userData.email}`
+            `Stock group "${userData.担当資源名}" not found, skipping user ${userData.email}`
           );
         }
         continue;

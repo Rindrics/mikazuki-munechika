@@ -3,7 +3,7 @@
  * 資源評価結果取得サービス
  */
 
-import { AssessmentResultRepository, FisheryStock, AcceptableBiologicalCatch } from "@/domain";
+import { AssessmentResultRepository, 資源評価, ABC算定結果 } from "@/domain";
 import { logger } from "@/utils/logger";
 
 /**
@@ -35,14 +35,14 @@ export class GetAssessmentResultsService {
    * ```
    */
   async execute(
-    stocks: FisheryStock[]
-  ): Promise<Array<{ stock: FisheryStock; result: AcceptableBiologicalCatch | undefined }>> {
+    stocks: 資源評価[]
+  ): Promise<Array<{ stock: 資源評価; result: ABC算定結果 | undefined }>> {
     logger.debug("execute called", { stockCount: stocks.length });
 
     try {
       const results = await Promise.all(
         stocks.map(async (stock) => {
-          const result = await this.repository.findByStockName(stock.name);
+          const result = await this.repository.findByStockName(stock.対象.fullName());
           return { stock, result };
         })
       );

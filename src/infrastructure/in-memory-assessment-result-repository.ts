@@ -1,13 +1,13 @@
-import { AssessmentResultRepository, AcceptableBiologicalCatch } from "@/domain";
+import { AssessmentResultRepository, ABC算定結果 } from "@/domain";
 
 export class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
-  private storage: Map<string, AcceptableBiologicalCatch> = new Map();
+  private storage: Map<string, ABC算定結果> = new Map();
 
-  async findByStockName(stockName: string): Promise<AcceptableBiologicalCatch | undefined> {
+  async findByStockName(stockName: string): Promise<ABC算定結果 | undefined> {
     return this.storage.get(stockName);
   }
 
-  async save(stockName: string, result: AcceptableBiologicalCatch): Promise<void> {
+  async save(stockName: string, result: ABC算定結果): Promise<void> {
     this.storage.set(stockName, result);
   }
 }

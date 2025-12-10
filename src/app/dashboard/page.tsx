@@ -1,6 +1,6 @@
 import { GetAssessmentResultsService } from "@/application";
 import { InMemoryAssessmentResultRepository } from "@/infrastructure";
-import { STOCK_GROUP_NAMES, createStockGroup, createFisheryStock } from "@/domain";
+import { 資源名s, create資源情報, create資源評価 } from "@/domain";
 import { logger } from "@/utils/logger";
 import ResultPanel from "./components/ResultPanel";
 
@@ -11,12 +11,12 @@ export default async function Home() {
   const repository = new InMemoryAssessmentResultRepository();
   const getAssessmentResultsService = new GetAssessmentResultsService(repository);
 
-  // Get stocks (in the future, this will be FisheryStock.findAll())
+  // Get stocks (in the future, this will be 資源評価.findAll())
   // Note: stock.name corresponds to stock_groups.name in the database
   const stocks = [
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.マイワシ太平洋)),
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.ズワイガニオホーツク)),
-    createFisheryStock(createStockGroup(STOCK_GROUP_NAMES.マチ類)),
+    create資源評価(create資源情報(資源名s.マイワシ太平洋)),
+    create資源評価(create資源情報(資源名s.ズワイガニオホーツク)),
+    create資源評価(create資源情報(資源名s.マチ類)),
   ];
   // Get assessment results from repository
   const assessmentResults = await getAssessmentResultsService.execute(stocks);

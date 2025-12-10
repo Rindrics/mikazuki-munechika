@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { useState } from "react";
-import { getStockGroupRoleAssignments, ROLES } from "@/domain";
+import { get担当資源情報s, ロールs } from "@/domain";
 import Link from "next/link";
 import AuthModal from "@/components/auth-modal";
 
@@ -38,9 +38,9 @@ export default function AssessPage() {
   }
 
   // Get stock groups where user is 主担当 or 副担当
-  const userRoles = getStockGroupRoleAssignments(user);
+  const userRoles = get担当資源情報s(user);
   const assessableStocks = userRoles.filter(
-    ({ role }) => role === ROLES.主担当 || role === ROLES.副担当
+    ({ ロール }) => ロール === ロールs.主担当 || ロール === ロールs.副担当
   );
 
   if (assessableStocks.length === 0) {
@@ -58,22 +58,22 @@ export default function AssessPage() {
       <section>
         <h2 className="mb-4">担当資源一覧</h2>
         <ul className="space-y-3">
-          {assessableStocks.map(({ stockGroupName, role }) => (
-            <li key={stockGroupName}>
+          {assessableStocks.map(({ 担当資源名, ロール }) => (
+            <li key={担当資源名}>
               <Link
-                href={`/assess/${encodeURIComponent(stockGroupName)}`}
+                href={`/assess/${encodeURIComponent(担当資源名)}`}
                 className="block p-4 border rounded-lg hover:bg-secondary-light transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{stockGroupName}</span>
+                  <span className="font-medium">{担当資源名}</span>
                   <span
                     className={`text-sm px-2 py-1 rounded ${
-                      role === ROLES.主担当
+                      ロール === ロールs.主担当
                         ? "bg-primary-light text-foreground dark:bg-primary-dark dark:text-foreground-dark"
                         : "bg-secondary-light text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
                     }`}
                   >
-                    {role}
+                    {ロール}
                   </span>
                 </div>
               </Link>

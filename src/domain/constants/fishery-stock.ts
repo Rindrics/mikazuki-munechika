@@ -4,64 +4,71 @@
  * - 2系: 再生産関係を利用しない将来予測の結果を利用
  * - 3系: 漁獲量変動の経験的解析結果を利用
  */
-export const STOCK_TYPES = {
+export const 資源タイプs = {
   "1系": 1,
   "2系": 2,
   "3系": 3,
 } as const;
 
-export type StockType = (typeof STOCK_TYPES)[keyof typeof STOCK_TYPES];
+export type 資源タイプ = (typeof 資源タイプs)[keyof typeof 資源タイプs];
 
 /**
- * 海域名（name:string）と資源タイプ（type:StockType）を保持する型
+ * 資源タイプごとの参考文献URL
  */
-interface RegionInfo {
-  readonly name: string;
-  readonly type: StockType;
+export const 参考文献URLs: Record<資源タイプ, string> = {
+  1: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
+  2: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
+  3: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
+};
+
+/**
+ * 系群名（name:string）と資源タイプ（type:資源タイプ）を保持する型
+ */
+interface 系群情報 {
+  readonly 系群名: string;
+  readonly 資源タイプ: 資源タイプ;
 }
 
 /**
  * 評価対象資源名の生成に利用する情報を保持する定数
  *
- * 呼称（call_name）・構成種の標準和名（member_species）・地域系群（regions）を保持する
+ * 呼称（呼称）・構成種の標準和名（構成種）・系群（系群）を保持する
  *
  * @example
- * ```typescript
- * STOCK_GROUPS.MAIWASHI.call_name // "マイワシ"
- * STOCK_GROUPS.MAIWASHI.member_species // ["マイワシ"]
- * STOCK_GROUPS.MAIWASHI.regions.PACIFIC.name // "太平洋系群"
- * STOCK_GROUPS.MAIWASHI.regions.PACIFIC.type // 1
+ * ```資源タイプscript
+ * 資源グループs.マイワシ.呼称 // "マイワシ"
+ * 資源グループs.マイワシ.構成種 // ["マイワシ"]
+ * 資源グループs.マイワシ.系群.太平洋.系群名 // "太平洋系群"
+ * 資源グループs.マイワシ.系群.太平洋.資源タイプ // 1
  * ```
  */
-export const STOCK_GROUPS: {
-  readonly [key: string]: {
-    readonly call_name: string;
-    readonly member_species: readonly string[];
-    readonly regions: { readonly [regionKey: string]: RegionInfo };
+export const 資源グループs: {
+  readonly [資源グループ名: string]: {
+    readonly 呼称: string;
+    readonly 構成種: readonly string[];
+    readonly 系群: { readonly [regionKey: string]: 系群情報 };
   };
 } = {
-  /** マイワシ */
-  MAIWASHI: {
-    call_name: "マイワシ",
-    member_species: ["マイワシ"],
-    regions: {
-      PACIFIC: { name: "太平洋系群", type: 1 },
-      TSUSHIMA: { name: "対馬暖流系群", type: 1 },
+  マイワシ: {
+    呼称: "マイワシ",
+    構成種: ["マイワシ"],
+    系群: {
+      太平洋: { 系群名: "太平洋系群", 資源タイプ: 1 },
+      対馬: { 系群名: "対馬暖流系群", 資源タイプ: 1 },
     },
   },
-  MACHIRUI: {
-    call_name: "マチ類",
-    member_species: ["アオダイ", "ハマダイ", "ヒメダイ", "オオヒメ"],
-    regions: {
-      ANAMI_OKINAWA_SAKISHIMA: { name: "（奄美諸島・沖縄諸島・先島諸島）", type: 3 },
+  マチ類: {
+    呼称: "マチ類",
+    構成種: ["アオダイ", "ハマダイ", "ヒメダイ", "オオヒメ"],
+    系群: {
+      奄美沖縄先島: { 系群名: "（奄美諸島・沖縄諸島・先島諸島）", 資源タイプ: 3 },
     },
   },
-  /** ズワイガニ */
-  ZUWAIGANI: {
-    call_name: "ズワイガニ",
-    member_species: ["ズワイガニ"],
-    regions: {
-      OKHOTSK: { name: "オホーツク海系群", type: 2 },
+  ズワイガニ: {
+    呼称: "ズワイガニ",
+    構成種: ["ズワイガニ"],
+    系群: {
+      オホーツク: { 系群名: "オホーツク海系群", 資源タイプ: 2 },
     },
   },
 } as const;
@@ -71,12 +78,12 @@ export const STOCK_GROUPS: {
  *
  * @example
  * ```typescript
- * STOCK_GROUP_NAMES.マイワシ太平洋 // "マイワシ太平洋系群"
+ * 資源名.マイワシ太平洋 // "マイワシ太平洋系群"
  * ```
  */
-export const STOCK_GROUP_NAMES = {
-  マイワシ太平洋: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.PACIFIC.name}`,
-  マイワシ対馬: `${STOCK_GROUPS.MAIWASHI.call_name}${STOCK_GROUPS.MAIWASHI.regions.TSUSHIMA.name}`,
-  ズワイガニオホーツク: `${STOCK_GROUPS.ZUWAIGANI.call_name}${STOCK_GROUPS.ZUWAIGANI.regions.OKHOTSK.name}`,
-  マチ類: `${STOCK_GROUPS.MACHIRUI.call_name}${STOCK_GROUPS.MACHIRUI.regions.ANAMI_OKINAWA_SAKISHIMA.name}`,
+export const 資源名s = {
+  マイワシ太平洋: `${資源グループs.マイワシ.呼称}${資源グループs.マイワシ.系群.太平洋.系群名}`,
+  マイワシ対馬: `${資源グループs.マイワシ.呼称}${資源グループs.マイワシ.系群.対馬.系群名}`,
+  ズワイガニオホーツク: `${資源グループs.ズワイガニ.呼称}${資源グループs.ズワイガニ.系群.オホーツク.系群名}`,
+  マチ類: `${資源グループs.マチ類.呼称}${資源グループs.マチ類.系群.奄美沖縄先島.系群名}`,
 } as const;

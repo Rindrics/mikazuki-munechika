@@ -1,15 +1,15 @@
 import {
-  UserRepository,
-  User,
-  AuthenticatedUser,
-  toAuthenticatedUser,
-  STOCK_GROUP_NAMES,
-  ROLES,
+  ユーザーRepository,
+  ユーザー,
+  認証済ユーザー,
+  to認証済ユーザー,
+  資源名s,
+  ロールs,
 } from "@/domain";
 import { logger } from "@/utils/logger";
-import { StockGroupName } from "@/domain/models/stock";
+import { 資源名 } from "@/domain/models/stock";
 
-// User data with passwords for in-memory repository (used in preview environments)
+// ユーザー data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
 const INITIAL_USER_DATA = [
   {
@@ -17,7 +17,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-primary@example.com",
     password: "maiwashi-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.マイワシ太平洋]: ROLES.主担当,
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
     },
   },
   {
@@ -25,7 +25,7 @@ const INITIAL_USER_DATA = [
     email: "maiwashi-secondary@example.com",
     password: "maiwashi-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.マイワシ太平洋]: ROLES.副担当,
+      [資源名s.マイワシ太平洋]: ロールs.副担当,
     },
   },
   {
@@ -33,7 +33,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-primary@example.com",
     password: "zuwaigani-primary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ズワイガニオホーツク]: ROLES.主担当,
+      [資源名s.ズワイガニオホーツク]: ロールs.主担当,
     },
   },
   {
@@ -41,7 +41,7 @@ const INITIAL_USER_DATA = [
     email: "zuwaigani-secondary@example.com",
     password: "zuwaigani-secondary123",
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.ズワイガニオホーツク]: ROLES.副担当,
+      [資源名s.ズワイガニオホーツク]: ロールs.副担当,
     },
   },
   {
@@ -50,32 +50,32 @@ const INITIAL_USER_DATA = [
     password: "admin123",
     // Admin has "管理者" role for all stock groups
     rolesByStockGroup: {
-      [STOCK_GROUP_NAMES.マイワシ太平洋]: ROLES.管理者,
-      [STOCK_GROUP_NAMES.ズワイガニオホーツク]: ROLES.管理者,
+      [資源名s.マイワシ太平洋]: ロールs.管理者,
+      [資源名s.ズワイガニオホーツク]: ロールs.管理者,
     },
   },
 ] as const;
 
-export class InMemoryUserRepository implements UserRepository {
-  private usersById: Map<string, User> = new Map();
-  private usersByEmail: Map<string, User> = new Map();
+export class InMemoryユーザーRepository implements ユーザーRepository {
+  private usersById: Map<string, ユーザー> = new Map();
+  private usersByEmail: Map<string, ユーザー> = new Map();
   private passwordsByEmail: Map<string, string> = new Map();
 
   constructor() {
     // Initialize with default users
     for (const userData of INITIAL_USER_DATA) {
-      const user: User = {
+      const user: ユーザー = {
         id: userData.id,
-        email: userData.email,
-        rolesByStockGroup: userData.rolesByStockGroup,
+        メールアドレス: userData.email,
+        担当資源情報リスト: userData.rolesByStockGroup,
       };
       this.usersById.set(user.id, user);
-      this.usersByEmail.set(user.email, user);
-      this.passwordsByEmail.set(user.email, userData.password);
+      this.usersByEmail.set(user.メールアドレス, user);
+      this.passwordsByEmail.set(user.メールアドレス, userData.password);
     }
   }
 
-  async authenticate(email: string, password: string): Promise<AuthenticatedUser | null> {
+  async authenticate(email: string, password: string): Promise<認証済ユーザー | null> {
     logger.debug("authenticate called", { email });
 
     try {
@@ -97,39 +97,39 @@ export class InMemoryUserRepository implements UserRepository {
       }
 
       logger.debug("authenticate completed", { userId: user.id, email });
-      return toAuthenticatedUser(user);
+      return to認証済ユーザー(user);
     } catch (error) {
       logger.error("authenticate failed", { email }, error as Error);
       throw error;
     }
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
+  async findByEmail(email: string): Promise<ユーザー | undefined> {
     return this.usersByEmail.get(email);
   }
 
-  async findById(id: string): Promise<User | undefined> {
+  async findById(id: string): Promise<ユーザー | undefined> {
     return this.usersById.get(id);
   }
 
-  async findByStockGroupName(stockGroupName: StockGroupName): Promise<User[]> {
+  async findBy資源名(担当資源名: 資源名): Promise<ユーザー[]> {
     return Array.from(this.usersById.values()).filter(
-      (user) => user.rolesByStockGroup[stockGroupName] !== undefined
+      (user) => user.担当資源情報リスト[担当資源名] !== undefined
     );
   }
 
-  async getCurrentUser(): Promise<AuthenticatedUser | null> {
+  async getCurrentユーザー(): Promise<認証済ユーザー | null> {
     if (typeof window === "undefined") {
       return null;
     }
 
-    const storedUserId = localStorage.getItem("auth_user_id");
-    if (!storedUserId) {
+    const storedユーザーId = localStorage.getItem("auth_user_id");
+    if (!storedユーザーId) {
       return null;
     }
 
-    const user = this.usersById.get(storedUserId);
-    return user ? toAuthenticatedUser(user) : null;
+    const user = this.usersById.get(storedユーザーId);
+    return user ? to認証済ユーザー(user) : null;
   }
 
   async logout(): Promise<void> {
@@ -140,7 +140,7 @@ export class InMemoryUserRepository implements UserRepository {
     localStorage.removeItem("auth_user_id");
   }
 
-  onAuthStateChange(_callback: (user: AuthenticatedUser | null) => void): () => void {
+  onAuthStateChange(_callback: (user: 認証済ユーザー | null) => void): () => void {
     // For in-memory repository, we don't have real-time auth state changes
     // We'll check on initialization and after login/logout
     // Return a no-op unsubscribe function

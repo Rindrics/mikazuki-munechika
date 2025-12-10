@@ -2,35 +2,35 @@
 
 import { calculateAbc, SaveAssessmentResultService } from "@/application";
 import {
-  AcceptableBiologicalCatch,
-  CatchData,
-  BiologicalData,
-  StockGroupName,
-  createStockGroup,
-  createFisheryStock,
+  ABC算定結果,
+  漁獲量データ,
+  生物学的データ,
+  資源名,
+  create資源情報,
+  create資源評価,
 } from "@/domain";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
 
 export async function calculateAbcAction(
-  stockGroupName: StockGroupName,
+  stockGroupName: 資源名,
   catchDataValue: string,
   biologicalDataValue: string
-): Promise<AcceptableBiologicalCatch> {
-  const stockGroup = createStockGroup(stockGroupName);
-  const stock = createFisheryStock(stockGroup);
+): Promise<ABC算定結果> {
+  const stockGroup = create資源情報(stockGroupName);
+  const stock = create資源評価(stockGroup);
 
-  const catchData: CatchData = { value: catchDataValue };
-  const biologicalData: BiologicalData = { value: biologicalDataValue };
+  const catchData: 漁獲量データ = { value: catchDataValue };
+  const biologicalData: 生物学的データ = { value: biologicalDataValue };
 
   return calculateAbc(stock, catchData, biologicalData);
 }
 
 export async function saveAssessmentResultAction(
-  stockGroupName: StockGroupName,
-  result: AcceptableBiologicalCatch
+  stockGroupName: 資源名,
+  result: ABC算定結果
 ): Promise<void> {
-  const stockGroup = createStockGroup(stockGroupName);
-  const stock = createFisheryStock(stockGroup);
+  const stockGroup = create資源情報(stockGroupName);
+  const stock = create資源評価(stockGroup);
 
   const repository = createAssessmentResultRepository();
   const service = new SaveAssessmentResultService(repository);

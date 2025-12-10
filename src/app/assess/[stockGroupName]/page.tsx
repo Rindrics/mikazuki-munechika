@@ -2,10 +2,10 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import {
-  getStockGroupRoleAssignments,
-  ROLES,
-  StockGroupName,
-  AcceptableBiologicalCatch,
+  get担当資源情報s,
+  ロールs,
+  資源名,
+  ABC算定結果,
 } from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
@@ -13,18 +13,18 @@ import Link from "next/link";
 import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
 
 interface AssessmentPageProps {
-  params: Promise<{ stockGroupName: string }>;
+  params: Promise<{ 資源名: string }>;
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { stockGroupName: encodedName } = use(params);
-  const stockGroupName = decodeURIComponent(encodedName) as StockGroupName;
+  const { 資源名: encodedName } = use(params);
+  const stockGroupName = decodeURIComponent(encodedName) as 資源名;
 
   const { user, isLoading } = useAuth();
 
-  const [catchDataValue, setCatchDataValue] = useState("");
-  const [biologicalDataValue, setBiologicalDataValue] = useState("");
-  const [calculationResult, setCalculationResult] = useState<AcceptableBiologicalCatch | null>(
+  const [catchDataValue, set漁獲量データValue] = useState("");
+  const [biologicalDataValue, set生物学的データValue] = useState("");
+  const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(
     null
   );
   const [isCalculating, setIsCalculating] = useState(false);
@@ -78,10 +78,10 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }
 
   // Check if user has permission for this stock group
-  const assignments = getStockGroupRoleAssignments(user);
-  const assignment = assignments.find(({ stockGroupName: name }) => name === stockGroupName);
+  const assignments = get担当資源情報s(user);
+  const assignment = assignments.find(({ 担当資源名 }) => 担当資源名 === stockGroupName);
   const hasPermission =
-  assignment && (assignment.role === ROLES.主担当 || assignment.role === ROLES.副担当);
+  assignment && (assignment.ロール === ロールs.主担当 || assignment.ロール === ロールs.副担当);
 
   if (!hasPermission) {
     return (
@@ -106,7 +106,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
       <h1 className="mb-2">{stockGroupName}</h1>
       <p className="text-secondary mb-8">
-        担当: <span className="font-medium">{assignment?.role}</span>
+        担当: <span className="font-medium">{assignment?.ロール}</span>
       </p>
 
       <section className="mb-8">
@@ -121,7 +121,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               id="catchData"
               type="text"
               value={catchDataValue}
-              onChange={(e) => setCatchDataValue(e.target.value)}
+              onChange={(e) => set漁獲量データValue(e.target.value)}
               placeholder="漁獲データを入力"
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
@@ -135,7 +135,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               id="biologicalData"
               type="text"
               value={biologicalDataValue}
-              onChange={(e) => setBiologicalDataValue(e.target.value)}
+              onChange={(e) => set生物学的データValue(e.target.value)}
               placeholder="生物学的データを入力"
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
