@@ -20,7 +20,9 @@
     "maintenance:enable": "tsx scripts/toggle-maintenance-mode.ts enable",
     "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable",
     "docs:generate": "typedoc",
-    "docs:generate-watch": "typedoc --watch"
+    "docs:generate-watch": "typedoc --watch",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -48,6 +50,7 @@
     "tsx": "^4.21.0",
     "typedoc": "^0.28.15",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0"
+    "typescript-eslint": "^8.49.0",
+    "vitest": "^4.0.15"
   }
 }
