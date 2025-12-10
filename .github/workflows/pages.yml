@@ -182,3 +182,4 @@ jobs:
           destination_dir: docs
           keep_files: true
           force_orphan: false
+          enable_jekyll: false
