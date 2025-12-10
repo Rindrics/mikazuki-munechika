@@ -106,7 +106,7 @@ function create資源情報Object(
   name: 資源名,
   呼称: string,
   系群名: string,
-  資源タイプ: 資源タイプ,
+  資源タイプ: 資源タイプ
 ): 資源情報 {
   return {
     呼称,

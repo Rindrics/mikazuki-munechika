@@ -22,7 +22,12 @@ export default function ResultPanel({ stock, result }: ResultPanelProps) {
       </div>
       <div className="mb-4">
         <strong>評価方法の参考資料:</strong>{" "}
-        <a href={stock.対象.参考文献URL} target="_blank" rel="noopener noreferrer" className="underline">
+        <a
+          href={stock.対象.参考文献URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
           リンク
         </a>
       </div>

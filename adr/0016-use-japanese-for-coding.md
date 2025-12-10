@@ -29,14 +29,14 @@ Write domain code in Japanese to prioritize communication with stakeholders.
 
 ### Scope
 
-| Layer | Language | Rationale |
-|-------|----------|-----------|
-| Domain models | Japanese | Core business concepts |
-| Domain constants | Japanese | Domain terminology |
-| Application services | Japanese | Business logic |
-| Infrastructure | Mixed | Technical + domain concerns |
-| UI components | Mixed | React/Next.js conventions + Japanese labels |
-| External APIs | English | Interoperability |
+| Layer                | Language | Rationale                                   |
+| -------------------- | -------- | ------------------------------------------- |
+| Domain models        | Japanese | Core business concepts                      |
+| Domain constants     | Japanese | Domain terminology                          |
+| Application services | Japanese | Business logic                              |
+| Infrastructure       | Mixed    | Technical + domain concerns                 |
+| UI components        | Mixed    | React/Next.js conventions + Japanese labels |
+| External APIs        | English  | Interoperability                            |
 
 ### Examples
 
@@ -67,6 +67,7 @@ export function get担当資源情報s(user: ユーザー): 担当資源情報[]
 ### SQL Compatibility
 
 Japanese strings work in SQL as:
+
 - **String values**: `role IN ('主担当', '副担当', '管理者')` ✅
 - **Quoted identifiers**: `CREATE POLICY "主担当 users can..."` ✅
 - **Reserved words**: `PRIMARY KEY`, `SELECT`, etc. must remain in English ✅

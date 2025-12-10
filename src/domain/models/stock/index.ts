@@ -3,7 +3,7 @@ import { 資源タイプ, 資源名s } from "../../constants";
 
 /**
  * 評価対象資源の名前（呼称 + 系群名）
- *  
+ *
  * @example
  * ```typescript
  * const name: 資源名 = "マイワシ太平洋系群";

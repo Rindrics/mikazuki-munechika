@@ -5,7 +5,7 @@ export type ロール = (typeof ロールs)[keyof typeof ロールs];
 
 /**
  * ある資源に対するロール割当て情報を表す
- * 
+ *
  * @example
  * ```typescript
  * const assignment: 担当資源情報 = {

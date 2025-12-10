@@ -58,4 +58,3 @@ export interface StockGroupRoleAssignment {
 
 - ADR 0003: User Role Design
 - ADR 0007: User Roles by Stock Group Name
-

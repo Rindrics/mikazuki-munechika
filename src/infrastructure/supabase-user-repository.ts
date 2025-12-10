@@ -83,7 +83,10 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
       return null;
     }
 
-    const user = await this.buildユーザーFromAuthユーザー(session.user.id, session.user.email || "");
+    const user = await this.buildユーザーFromAuthユーザー(
+      session.user.id,
+      session.user.email || ""
+    );
     return user ? to認証済ユーザー(user) : null;
   }
 
@@ -96,7 +99,10 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
       data: { subscription },
     } = this.supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const user = await this.buildユーザーFromAuthユーザー(session.user.id, session.user.email || "");
+        const user = await this.buildユーザーFromAuthユーザー(
+          session.user.id,
+          session.user.email || ""
+        );
         callback(user ? to認証済ユーザー(user) : null);
       } else {
         callback(null);
@@ -167,7 +173,10 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
     return users;
   }
 
-  private async buildユーザーFromAuthユーザー(userId: string, email: string): Promise<ユーザー | undefined> {
+  private async buildユーザーFromAuthユーザー(
+    userId: string,
+    email: string
+  ): Promise<ユーザー | undefined> {
     // Get all roles for this user with stock group names
     const { data: userRoles, error: userRolesError } = await this.supabase
       .from("user_stock_group_roles")
@@ -197,8 +206,7 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
         const stockGroups = userRole.stock_groups;
         if (Array.isArray(stockGroups) && stockGroups.length > 0) {
           const 担当資源名 = stockGroups[0].name as 資源名;
-          const role = userRole.role as ロール
-          ;
+          const role = userRole.role as ロール;
           担当資源情報リスト[担当資源名] = role;
         } else if (stockGroups && typeof stockGroups === "object" && "name" in stockGroups) {
           const 担当資源名 = (stockGroups as { name: string }).name as 資源名;

@@ -1,12 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import {
-  get担当資源情報s,
-  ロールs,
-  資源名,
-  ABC算定結果,
-} from "@/domain";
+import { get担当資源情報s, ロールs, 資源名, ABC算定結果 } from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
@@ -24,9 +19,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   const [catchDataValue, set漁獲量データValue] = useState("");
   const [biologicalDataValue, set生物学的データValue] = useState("");
-  const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(
-    null
-  );
+  const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -81,7 +74,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const assignments = get担当資源情報s(user);
   const assignment = assignments.find(({ 担当資源名 }) => 担当資源名 === stockGroupName);
   const hasPermission =
-  assignment && (assignment.ロール === ロールs.主担当 || assignment.ロール === ロールs.副担当);
+    assignment && (assignment.ロール === ロールs.主担当 || assignment.ロール === ロールs.副担当);
 
   if (!hasPermission) {
     return (
