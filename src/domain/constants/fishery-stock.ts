@@ -4,7 +4,13 @@
  * - 2系: 再生産関係を利用しない将来予測の結果を利用
  * - 3系: 漁獲量変動の経験的解析結果を利用
  */
-export type StockType = 1 | 2 | 3;
+export const STOCK_TYPES = {
+  TYPE_1: 1,
+  TYPE_2: 2,
+  TYPE_3: 3,
+} as const;
+
+export type StockType = (typeof STOCK_TYPES)[keyof typeof STOCK_TYPES];
 
 /**
  * 海域名（name:string）と資源タイプ（type:StockType）を保持する型
