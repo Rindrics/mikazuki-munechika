@@ -18,6 +18,7 @@
   "includeVersion": true,
   "exclude": [".next/**/*", "scripts/**/*", "**/*.test.ts", "**/*.spec.ts"],
   "skipErrorChecking": true,
+  "sort": ["source-order"],
   "navigationLinks": {
     "GitHub": "https://github.com/Rindrics/mikazuki-munechika"
   }

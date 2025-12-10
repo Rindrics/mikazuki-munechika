@@ -1,28 +1,33 @@
-import { FisheryStock, AcceptableBiologicalCatch } from "@/domain";
+import { 資源評価, ABC算定結果 } from "@/domain";
 
 interface ResultPanelProps {
-  stock: FisheryStock;
-  result: AcceptableBiologicalCatch | undefined;
+  stock: 資源評価;
+  result: ABC算定結果 | undefined;
 }
 
 export default function ResultPanel({ stock, result }: ResultPanelProps) {
   let abundance: string | undefined;
   try {
-    abundance = stock.abundance;
+    abundance = stock.資源量;
   } catch {
     abundance = undefined;
   }
 
   return (
     <section className="border rounded-lg p-6">
-      <h2 className="mb-2">{stock.name}</h2>
+      <h2 className="mb-2">{stock.対象.fullName()}</h2>
       <div className="mb-2">
         <strong>資源量:</strong>{" "}
         {abundance ? abundance : <span className="text-gray-500 italic">データ未登録</span>}
       </div>
       <div className="mb-4">
         <strong>評価方法の参考資料:</strong>{" "}
-        <a href={stock.reference} target="_blank" rel="noopener noreferrer" className="underline">
+        <a
+          href={stock.対象.参考文献URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
           リンク
         </a>
       </div>

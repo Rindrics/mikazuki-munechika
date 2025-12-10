@@ -1,25 +1,33 @@
-import { USER_ROLES } from "../../constants";
-import { StockGroupName } from "../stock";
+import { ロールs } from "../../constants";
+import { 資源名 } from "../stock";
 
-export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+export type ロール = (typeof ロールs)[keyof typeof ロールs];
 
 /**
- * ユーザーの系群別ロール
+ * ある資源に対するロール割当て情報を表す
+ *
+ * @example
+ * ```typescript
+ * const assignment: 担当資源情報 = {
+ *   担当資源名: 資源名.マイワシ太平洋,
+ *   ロール: ロールs.主担当,
+ * };
+ * ```
  */
-export interface UserStockGroupRole {
-  stockGroupName: StockGroupName;
-  role: UserRole;
+export interface 担当資源情報 {
+  担当資源名: 資源名;
+  ロール: ロール;
 }
 
 /**
  * ユーザー
  *
- * ユーザーは系群ごとに異なるロールを持つことができる。
+ * ユーザーは系群ごとに異なるロールsを持つことができる。
  */
-export interface User {
+export interface ユーザー {
   id: string;
-  email: string;
-  rolesByStockGroup: Partial<Record<StockGroupName, UserRole>>;
+  メールアドレス: string;
+  担当資源情報リスト: Partial<Record<資源名, ロール>>;
 }
 
 declare const __authenticated: unique symbol;
@@ -27,6 +35,6 @@ declare const __authenticated: unique symbol;
 /**
  * 認証済みユーザー
  */
-export type AuthenticatedUser = User & {
+export type 認証済ユーザー = ユーザー & {
   readonly [__authenticated]: true;
 };

@@ -28,8 +28,8 @@ CREATE POLICY "Authenticated users can read assessment results"
   FOR SELECT
   USING (auth.role() = 'authenticated');
 
--- Users with PRIMARY or SECONDARY role for the stock can insert
-CREATE POLICY "Primary or secondary users can insert assessment results"
+-- Users with PRIMARY or 副担当 role for the stock can insert
+CREATE POLICY "主担当 or 副担当 users can insert assessment results"
   ON public.assessment_results
   FOR INSERT
   WITH CHECK (

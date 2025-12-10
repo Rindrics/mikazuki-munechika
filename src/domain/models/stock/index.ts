@@ -1,44 +1,46 @@
-import { CatchData, BiologicalData, AcceptableBiologicalCatch } from "../../data";
-import { STOCK_GROUPS, StockType } from "../../constants";
-
-export type StockGroupName =
-  (typeof STOCK_GROUPS)[keyof typeof STOCK_GROUPS]["call_name"] extends string
-    ? `${(typeof STOCK_GROUPS)[keyof typeof STOCK_GROUPS]["call_name"]}${string}`
-    : never;
+import { 漁獲量データ, 生物学的データ, ABC算定結果 } from "../../data";
+import { 資源タイプ, 資源名s } from "../../constants";
 
 /**
- * 評価対象資源
+ * 評価対象資源の名前（呼称 + 系群名）
  *
  * @example
  * ```typescript
- * const stockGroup: StockGroup = createStockGroup(STOCK_GROUP_NAMES.MAIWASHI_PACIFIC);
- * stockGroup.call_name // "マイワシ"
- * stockGroup.region    // "太平洋系群"
- * stockGroup.type      // 1
+ * const name: 資源名 = "マイワシ太平洋系群";
+ * ```
+ */
+export type 資源名 = (typeof 資源名s)[keyof typeof 資源名s];
+
+/**
+ * 資源の情報を保持
+ *
+ * @example
+ * ```typescript
+ * const stockGroup: 資源情報 = create資源情報(資源名.マイワシ太平洋);
+ * stockGroup.呼称 // "マイワシ"
+ * stockGroup.系群名    // "太平洋系群"
+ * stockGroup.資源タイプ      // 1
  * stockGroup.toDisplayString() // "マイワシ 太平洋系群"
  * stockGroup.toDisplayString((c, r) => `<span>${c}</span><span>${r}</span>`)
  * ```
  */
-export interface StockGroup {
-  readonly name: StockGroupName;
-  readonly call_name: string;
-  readonly region: string;
-  readonly type: StockType;
-  equals(other: StockGroup): boolean;
+export interface 資源情報 {
+  readonly 呼称: string;
+  readonly 系群名: string;
+  readonly 資源タイプ: 資源タイプ;
+  readonly 参考文献URL: string;
+  equals(other: 資源情報): boolean;
   toString(): string;
-  toDisplayString(formatter?: (callName: string, region: string) => string): string;
+  toDisplayString(formatter?: (呼称: string, 系群名: string) => string): string;
+  fullName(): 資源名;
 }
 
 /**
- * 水産資源
- *
- * 資源評価の対象となる水産資源を表すインターフェース。
+ * 資源評価の状態を保持
  */
-export interface FisheryStock {
-  readonly stockGroup: StockGroup;
-  readonly name: string;
-  readonly reference: string;
-  readonly abundance: string;
-  estimateAbundance(catchData: CatchData, biologicalData: BiologicalData): FisheryStock;
-  assess(): AcceptableBiologicalCatch;
+export interface 資源評価 {
+  readonly 対象: 資源情報;
+  readonly 資源量: string;
+  資源量推定(catchData: 漁獲量データ, biologicalData: 生物学的データ): 資源評価;
+  ABC算定(): ABC算定結果;
 }

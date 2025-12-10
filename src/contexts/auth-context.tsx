@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
-import { AuthenticatedUser, UserRepository } from "@/domain";
-import { createUserRepository } from "@/infrastructure";
+import { 認証済ユーザー, ユーザーRepository } from "@/domain";
+import { createユーザーRepository } from "@/infrastructure";
 import { logger } from "@/utils/logger";
 
 interface AuthContextType {
-  user: AuthenticatedUser | null;
+  user: 認証済ユーザー | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -15,22 +15,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [user, setユーザー] = useState<認証済ユーザー | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const userRepository = useMemo<UserRepository>(() => createUserRepository(), []);
+  const userRepository = useMemo<ユーザーRepository>(() => createユーザーRepository(), []);
 
   useEffect(() => {
     const initializeAuth = async () => {
       // Get current user from repository
-      const currentUser = await userRepository.getCurrentUser();
-      setUser(currentUser);
+      const currentユーザー = await userRepository.getCurrentユーザー();
+      setユーザー(currentユーザー);
       setIsLoading(false);
 
       // Subscribe to auth state changes
       // onAuthStateChange() call itself subscribes to changes
       // and returns an unsubscribe function for cleanup
-      const unsubscribe = userRepository.onAuthStateChange((newUser) => {
-        setUser(newUser);
+      const unsubscribe = userRepository.onAuthStateChange((newユーザー) => {
+        setユーザー(newユーザー);
       });
 
       // Return cleanup function to unsubscribe when component unmounts
@@ -45,14 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       // do not use withLogger here to avoid logging the email-password pair
-      const authenticatedUser = await userRepository.authenticate(email, password);
-      if (!authenticatedUser) {
+      const authenticatedユーザー = await userRepository.authenticate(email, password);
+      if (!authenticatedユーザー) {
         logger.debug("Login failed: invalid credentials", { email });
         return false;
       }
-      logger.setContext({ userId: authenticatedUser.id });
+      logger.setContext({ userId: authenticatedユーザー.id });
       logger.info("Login successful", { email });
-      setUser(authenticatedUser);
+      setユーザー(authenticatedユーザー);
       return true;
     } catch (error) {
       logger.error("Login failed", { email }, error as Error);
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await userRepository.logout();
       logger.setContext({ userId: undefined });
       logger.info("Logout successful", userId ? { userId } : undefined);
-      setUser(null);
+      setユーザー(null);
     } catch (error) {
       logger.error("Logout failed", userId ? { userId } : undefined, error as Error);
       throw error;

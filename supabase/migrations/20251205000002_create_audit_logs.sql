@@ -29,8 +29,8 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(create
 -- Enable Row Level Security
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Only administrators can read audit logs
-CREATE POLICY "Only administrators can read audit logs"
+-- Only 管理者 can read audit logs
+CREATE POLICY "Only 管理者 can read audit logs"
   ON public.audit_logs
   FOR SELECT
   USING (

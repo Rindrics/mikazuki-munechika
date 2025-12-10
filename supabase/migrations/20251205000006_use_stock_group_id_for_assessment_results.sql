@@ -2,7 +2,7 @@
 -- This ensures referential integrity and allows stock group name changes without breaking relations
 
 -- Step 1: Drop old RLS policy that depends on stock_name (must be done before dropping column)
-DROP POLICY IF EXISTS "Primary or secondary users can insert assessment results" ON public.assessment_results;
+DROP POLICY IF EXISTS "主担当 or 副担当 users can insert assessment results" ON public.assessment_results;
 
 -- Step 2: Add stock_group_id column
 ALTER TABLE public.assessment_results
@@ -27,7 +27,7 @@ ALTER TABLE public.assessment_results
 CREATE INDEX IF NOT EXISTS idx_assessment_results_stock_group_id ON public.assessment_results(stock_group_id);
 
 -- Step 7: Create new RLS policy using stock_group_id (simpler and more robust)
-CREATE POLICY "Primary or secondary users can insert assessment results"
+CREATE POLICY "主担当 or 副担当 users can insert assessment results"
   ON public.assessment_results
   FOR INSERT
   WITH CHECK (
