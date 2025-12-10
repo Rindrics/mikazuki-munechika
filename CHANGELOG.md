@@ -4,6 +4,7 @@
 - Improve styling by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/52
 - Correct color of button text by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/53
 - Deploy pages on release by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/66
+- Adjust deploy dir by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/67
 
 ## [v0.2.0](https://github.com/Rindrics/mikazuki-munechika/compare/v0.1.0...v0.2.0) - 2025-12-09
 - Manage Vercel envvar using Terraform by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/48
