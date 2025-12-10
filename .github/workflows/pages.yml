@@ -129,6 +129,8 @@ jobs:
         uses: rajyan/preview-pages@v1
         with:
           source-dir: ${{ env.WORKDIR }}_site
+          target-dir: docs
+          configured-dir: docs
           pr-comment: sticky
 
   deploy:
