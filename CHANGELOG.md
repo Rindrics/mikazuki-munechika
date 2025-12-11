@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.2.10](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.9...v0.2.10) - 2025-12-11
+- Add model 文献リスト by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/80
+- Call pages.yml from release.yml by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/88
+- Add `workflow_call` trigger by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/89
+- Add required permissions by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/90
+
 ## [v0.2.9](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.8...v0.2.9) - 2025-12-11
 - See trigger event by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/86
 
