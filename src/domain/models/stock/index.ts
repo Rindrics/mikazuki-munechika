@@ -50,3 +50,11 @@ export interface 資源評価 {
  * 資源評価の作業ステータスを管理する型
  */
 export type 評価ステータス = "未着手" | "作業中" | "内部査読中" | "外部査読中" | "再検討中" | "受理済み";
+
+interface ステータス変化イベント {
+  readonly 変化前: 評価ステータス;
+  readonly 変化後: 評価ステータス;
+  readonly 変化理由: string;
+  readonly 日時: Date;
+  readonly 操作者: 認証済ユーザー;
+}
