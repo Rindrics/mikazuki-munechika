@@ -9,7 +9,7 @@ import {
   type ロール,
 } from "./models";
 import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
-import { type 資源タイプ, 資源グループs, 参考文献URLs } from "./constants";
+import { 資源グループs } from "./constants";
 import { logger } from "../utils/logger";
 
 export function to認証済ユーザー(user: ユーザー): 認証済ユーザー {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { create資源情報, create資源評価 } from "./helpers";
-import { 資源名s, 資源タイプs } from "./constants";
+import { 資源名s, 資源タイプs, type 資源タイプ } from "./constants";
 import { type 資源情報 } from "./models";
 
 describe("create資源情報", () => {
@@ -102,7 +102,7 @@ describe("create資源評価", () => {
     const invalid資源情報 = {
       呼称: "テスト",
       系群名: "テスト系群",
-      資源タイプ: 99 as any, // 無効な資源タイプ
+      資源タイプ: 99 as unknown as 資源タイプ,
       equals: () => false,
       toString: () => "テスト",
       toDisplayString: () => "テスト",
