@@ -7,6 +7,8 @@ import {
   資源情報,
   資源評価,
   type ロール,
+  type 文献情報,
+  文献リスト,
 } from "./models";
 import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
 import { 資源グループs } from "./constants";
@@ -142,6 +144,19 @@ function createStock(stockGroup: 資源情報, config: StockConfig): 資源評�
         throw new Error("Abundance has not been estimated. Call 資源量推定() first.");
       }
       return config.ABC算定(abundance);
+    },
+  };
+}
+
+export function create文献リスト(初期文献情報: 文献情報[] = []): 文献リスト {
+  const 文献一覧 = [...初期文献情報];
+
+  return {
+    文献追加(文献: 文献情報) {
+      文献一覧.push(文献);
+    },
+    文献一覧(): readonly 文献情報[] {
+      return 文献一覧;
     },
   };
 }
