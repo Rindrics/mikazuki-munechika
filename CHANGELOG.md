@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.14](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.13...v0.2.14) - 2025-12-11
+- Test application services by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/104
+
 ## [v0.2.13](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.12...v0.2.13) - 2025-12-11
 - Call pages.yaml from job level by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/102
 
