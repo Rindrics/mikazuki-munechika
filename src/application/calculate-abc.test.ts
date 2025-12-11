@@ -81,11 +81,7 @@ describe("ABC算定", () => {
       ABC算定: vi.fn(),
     };
 
-    const result = ABC算定(
-      mockStock,
-      { value: "catch data" },
-      { value: "biological data" }
-    );
+    const result = ABC算定(mockStock, { value: "catch data" }, { value: "biological data" });
 
     expect(result.value).toBe(expectedValue);
   });
