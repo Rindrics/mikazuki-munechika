@@ -43,6 +43,7 @@ jobs:
               - 'src/application/**'
               - 'typedoc.json'
               - '.github/workflows/pages.yml'
+              - 'package.json'
 
   ci:
     if: github.event_name == 'pull_request' && needs.changes.outputs.changed == 'true'
