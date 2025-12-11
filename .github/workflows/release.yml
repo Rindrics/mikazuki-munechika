@@ -9,8 +9,6 @@ permissions:
   contents: write
   pull-requests: write
   issues: read
-  id-token: write
-  pages: write
 
 jobs:
   ci:
@@ -19,8 +17,3 @@ jobs:
   tagpr:
     needs: ci
     uses: ./.github/workflows/tagpr.yml
-
-  deploy-pages:
-    needs: tagpr
-    if: needs.tagpr.outputs.tag != ''
-    uses: ./.github/workflows/pages.yml
