@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.12](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.11...v0.2.12) - 2025-12-11
+- Correct condition by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/98
+- Test calculateAbc() by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/99
+- Update tagpr by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/100
+
 ## [v0.2.11](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.10...v0.2.11) - 2025-12-11
 - Call pages.yml from tagpr.yml by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/92
 - Correct workflow by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/93
