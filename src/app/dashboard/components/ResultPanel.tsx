@@ -15,21 +15,10 @@ export default function ResultPanel({ stock, result }: ResultPanelProps) {
 
   return (
     <section className="border rounded-lg p-6">
-      <h2 className="mb-2">{stock.対象.fullName()}</h2>
+      <h2 className="mb-2">{stock.対象.toString()}</h2>
       <div className="mb-2">
         <strong>資源量:</strong>{" "}
         {abundance ? abundance : <span className="text-gray-500 italic">データ未登録</span>}
-      </div>
-      <div className="mb-4">
-        <strong>評価方法の参考資料:</strong>{" "}
-        <a
-          href={stock.対象.参考文献URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline"
-        >
-          リンク
-        </a>
       </div>
       <div className="p-4 rounded border">
         <strong className="block mb-2">評価結果:</strong>

@@ -42,7 +42,7 @@ export class GetAssessmentResultsService {
     try {
       const results = await Promise.all(
         stocks.map(async (stock) => {
-          const result = await this.repository.findByStockName(stock.対象.fullName());
+          const result = await this.repository.findByStockName(stock.対象.toString());
           return { stock, result };
         })
       );

@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { create資源情報 } from "./helpers";
-import { 資源名s } from "./constants";
+import { create資源情報, create資源評価 } from "./helpers";
+import { 資源名s, 資源タイプs } from "./constants";
+import { type 資源情報 } from "./models";
 
 describe("create資源情報", () => {
   it("creates a 資源情報 for a valid name", () => {
     const stockGroup = create資源情報(資源名s.マイワシ太平洋);
 
-    expect(stockGroup.fullName()).toBe("マイワシ太平洋系群");
+    expect(stockGroup.toString()).toBe("マイワシ太平洋系群");
     expect(stockGroup.呼称).toBe("マイワシ");
     expect(stockGroup.系群名).toBe("太平洋系群");
     expect(stockGroup.資源タイプ).toBe(1);
@@ -17,13 +18,13 @@ describe("create資源情報", () => {
   });
 
   it("throws an error for an unknown name", () => {
-    expect(() => create資源情報("存在しない系群")).toThrow("Unknown stock group name");
+    expect(() => create資源情報("存在しない系群")).toThrow("不正な資源名: 存在しない系群");
   });
 
   it("trims whitespace from name", () => {
     const stockGroup = create資源情報("  マイワシ太平洋系群  ");
 
-    expect(stockGroup.fullName()).toBe("マイワシ太平洋系群");
+    expect(stockGroup.toString()).toBe("マイワシ太平洋系群");
   });
 
   describe("資源情報 methods", () => {
@@ -62,5 +63,51 @@ describe("create資源情報", () => {
 
       expect(result).toBe("<span>マイワシ</span><span>太平洋系群</span>");
     });
+  });
+});
+
+describe("create資源評価", () => {
+  describe("validな資源情報を指定した場合には期待通りの資源評価を返す", () => {
+    it("1系資源", () => {
+      const stockGroup = create資源情報(資源名s.マイワシ太平洋);
+      const stock = create資源評価(stockGroup);
+      expect(stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定().value).toBe(
+        'Simulated WITH recruitment using its abundance "estimated using 100 and 100"'
+      );
+      expect(stock.対象.資源タイプ).toBe(資源タイプs["1系"]);
+    });
+
+    it("2系資源", () => {
+      const stockGroup = create資源情報(資源名s.ズワイガニオホーツク);
+      const stock = create資源評価(stockGroup);
+
+      expect(stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定().value).toBe(
+        'Simulated WITHOUT recruitment using its abundance "estimated using 100 and 100"'
+      );
+      expect(stock.対象.資源タイプ).toBe(資源タイプs["2系"]);
+    });
+
+    it("3系資源", () => {
+      const stockGroup = create資源情報(資源名s.マチ類);
+      const stock = create資源評価(stockGroup);
+
+      expect(stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定().value).toBe(
+        'ABC estimated DIRECTLY using its abundance "estimated using 100 and 100"'
+      );
+      expect(stock.対象.資源タイプ).toBe(資源タイプs["3系"]);
+    });
+  });
+
+  it("不正な資源情報を指定した場合にはエラーを返す", () => {
+    const invalid資源情報 = {
+      呼称: "テスト",
+      系群名: "テスト系群",
+      資源タイプ: 99 as any, // 無効な資源タイプ
+      equals: () => false,
+      toString: () => "テスト",
+      toDisplayString: () => "テスト",
+    } as unknown as 資源情報;
+
+    expect(() => create資源評価(invalid資源情報)).toThrow("不正な資源情報");
   });
 });

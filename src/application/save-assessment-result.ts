@@ -32,13 +32,13 @@ export class SaveAssessmentResultService {
    * ```
    */
   async execute(stock: 資源評価, result: ABC算定結果): Promise<void> {
-    logger.debug("execute called", { stockName: stock.対象.fullName(), resultValue: result.value });
+    logger.debug("execute called", { stockName: stock.対象, resultValue: result.value });
 
     try {
-      await this.repository.save(stock.対象.fullName(), result);
-      logger.debug("execute completed", { stockName: stock.対象.fullName() });
+      await this.repository.save(stock.対象.toString(), result);
+      logger.debug("execute completed", { stockName: stock.対象 });
     } catch (error) {
-      logger.error("execute failed", { stockName: stock.対象.fullName() }, error as Error);
+      logger.error("execute failed", { stockName: stock.対象 }, error as Error);
       throw error;
     }
   }

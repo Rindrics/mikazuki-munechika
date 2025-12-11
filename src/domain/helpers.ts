@@ -3,6 +3,7 @@ import {
   ユーザー,
   担当資源情報,
   type 資源名,
+  type 資源グループ呼称,
   資源情報,
   資源評価,
   type ロール,
@@ -36,22 +37,36 @@ export function create資源情報(name: 資源名 | string): 資源情報 {
       const fullName = `${stockData.呼称}${regionInfo.系群名}`;
       logger.debug("create資源情報", { fullName });
       if (fullName === trimmedName) {
-        return create資源情報Object(
-          fullName as 資源名,
-          stockData.呼称,
-          regionInfo.系群名,
-          regionInfo.資源タイプ
-        );
+        const 呼称 = stockData.呼称 as 資源グループ呼称;
+        const 系群名 = regionInfo.系群名;
+        const 資源タイプ = regionInfo.資源タイプ;
+        return {
+          呼称,
+          系群名,
+          資源タイプ,
+          equals(other: 資源情報): boolean {
+            return fullName === other.toString();
+          },
+          toString(): string {
+            return fullName;
+          },
+          toDisplayString(formatter?: (呼称: string, 系群名: string) => string): string {
+            if (formatter) {
+              return formatter(呼称, 系群名);
+            }
+            return 系群名 ? `${呼称} ${系群名}` : 呼称;
+          },
+        };
       }
     }
   }
 
-  throw new Error(`Unknown stock group name: ${trimmedName}`);
+  throw new Error(`不正な資源名: ${trimmedName}`);
 }
 
 function createType1Stock(stockGroup: 資源情報): 資源評価 {
   return createStock(stockGroup, {
-    reference: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
+    資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
     ABC算定: (abundance) => ({
       value: `Simulated WITH recruitment using its abundance "${abundance}"`,
     }),
@@ -60,7 +75,7 @@ function createType1Stock(stockGroup: 資源情報): 資源評価 {
 
 function createType2Stock(stockGroup: 資源情報): 資源評価 {
   return createStock(stockGroup, {
-    reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
+    資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
       value: `Simulated WITHOUT recruitment using its abundance "${abundance}"`,
     }),
@@ -69,7 +84,7 @@ function createType2Stock(stockGroup: 資源情報): 資源評価 {
 
 function createType3Stock(stockGroup: 資源情報): 資源評価 {
   return createStock(stockGroup, {
-    reference: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
+    資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
       value: `ABC estimated DIRECTLY using its abundance "${abundance}"`,
     }),
@@ -98,42 +113,13 @@ export function create資源評価(stockGroup: 資源情報): 資源評価 {
     case 3:
       return createType3Stock(stockGroup);
     default:
-      throw new Error(`Unknown stock type: ${stockGroup.資源タイプ}`);
+      throw new Error(`不正な資源情報: ${stockGroup.資源タイプ}`);
   }
 }
 
-function create資源情報Object(
-  name: 資源名,
-  呼称: string,
-  系群名: string,
-  資源タイプ: 資源タイプ
-): 資源情報 {
-  return {
-    呼称,
-    系群名,
-    資源タイプ,
-    参考文献URL: 参考文献URLs[資源タイプ],
-    equals(other: 資源情報): boolean {
-      return name === other.fullName();
-    },
-    toString(): string {
-      return name;
-    },
-    toDisplayString(formatter?: (呼称: string, 系群名: string) => string): string {
-      if (formatter) {
-        return formatter(呼称, 系群名);
-      }
-      return 系群名 ? `${呼称} ${系群名}` : 呼称;
-    },
-    fullName(): 資源名 {
-      return name;
-    },
-  };
-}
-
 interface StockConfig {
-  reference: string;
-  ABC算定: (abundance: string) => ABC算定結果;
+  資源量推定方法の参照URL: string;
+  ABC算定: (資源量: string) => ABC算定結果;
 }
 
 function createStock(stockGroup: 資源情報, config: StockConfig): 資源評価 {
