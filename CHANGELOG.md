@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.13](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.12...v0.2.13) - 2025-12-11
+- Call pages.yaml from job level by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/102
+
 ## [v0.2.12](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.11...v0.2.12) - 2025-12-11
 - Correct condition by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/98
 - Test calculateAbc() by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/99
