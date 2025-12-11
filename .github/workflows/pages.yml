@@ -31,6 +31,12 @@ jobs:
     outputs:
       changed: ${{ steps.filter.outputs.changed }}
     steps:
+      - name: Debug event
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event action: ${{ github.event.action }}"
+          echo "Ref: ${{ github.ref }}"
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
