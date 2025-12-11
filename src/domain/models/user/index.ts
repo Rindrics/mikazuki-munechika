@@ -1,4 +1,4 @@
-import { ロールs } from "../../constants";
+import { ロールs, 主担当ロール, 副担当ロール } from "../../constants";
 import { 資源名 } from "../stock";
 
 export type ロール = (typeof ロールs)[keyof typeof ロールs];
@@ -29,6 +29,20 @@ export interface ユーザー {
   メールアドレス: string;
   担当資源情報リスト: Partial<Record<資源名, ロール>>;
 }
+
+/**
+ * 主担当者を表す型
+ */
+export type 主担当者 = 認証済ユーザー & {
+  readonly 担当資源情報リスト: Record<資源名, typeof 主担当ロール>;
+};
+
+/**
+ * 副担当者を表す型
+ */
+export type 副担当者 = 認証済ユーザー & {
+  readonly 担当資源情報リスト: Record<資源名, typeof 副担当ロール>;
+};
 
 declare const __authenticated: unique symbol;
 
