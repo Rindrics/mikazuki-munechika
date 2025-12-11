@@ -1,4 +1,15 @@
-# release.yml
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
 jobs:
   ci:
     uses: ./.github/workflows/_ci.yml
