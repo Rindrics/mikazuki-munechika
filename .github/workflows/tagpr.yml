@@ -32,14 +32,5 @@ jobs:
   deploy:
     needs: tagpr
     if: needs.tagpr.outputs.tagpr-tag != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: read
-      id-token: write
-      pages: write
-    steps:
-      - name: Deploy GitHub pages
-        if: needs.tagpr.outputs.tag != ''
-        uses: ./.github/workflows/pages.yml
+    uses: ./.github/workflows/pages.yml
+    secrets: inherit
