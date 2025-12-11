@@ -7,12 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  release:
-    types:
-      - published
-      - created
-      - edited
-      - released
   workflow_dispatch:
   workflow_call:
 
@@ -145,46 +139,25 @@ jobs:
           configured-dir: docs
           pr-comment: sticky
 
+      - name: Upload build artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-site
+          path: ${{ env.WORKDIR }}_site
+
   deploy:
-    if: github.event_name == 'workflow_call'
+    needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       WORKDIR: docs/
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          version: 10
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "pnpm"
-
-      - name: Install Node dependencies
-        run: pnpm install
-
-      - name: Generate TypeDoc references
-        run: pnpm run docs:generate
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-          bundler-cache: true
-
-      - name: Install Ruby dependencies
-        working-directory: ${{ env.WORKDIR }}
-        run: make install-pages-ruby
-
-      - name: Build Jekyll site
-        working-directory: ${{ env.WORKDIR }}
-        run: make build-pages BASEURL=""
+          name: pages-site
+          path: ${{ env.WORKDIR }}_site
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
