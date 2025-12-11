@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.6](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.5...v0.2.6) - 2025-12-11
+- Add `package.json` on watch target by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/79
+
 ## [v0.2.5](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.4...v0.2.5) - 2025-12-11
 - Add tests for models by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/76
 
