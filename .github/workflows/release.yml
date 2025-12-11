@@ -9,6 +9,8 @@ permissions:
   contents: write
   pull-requests: write
   issues: read
+  id-token: write
+  pages: write
 
 jobs:
   ci:
