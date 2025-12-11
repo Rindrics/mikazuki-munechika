@@ -40,7 +40,13 @@ export interface 資源情報 {
  */
 export interface 資源評価 {
   readonly 対象: 資源情報;
+  readonly 作業ステータス: 評価ステータス;
   readonly 資源量: string;
   資源量推定(catchData: 漁獲量データ, biologicalData: 生物学的データ): 資源評価;
   ABC算定(): ABC算定結果;
 }
+
+/**
+ * 資源評価の作業ステータスを管理する型
+ */
+export type 評価ステータス = "未着手" | "作業中" | "内部査読中" | "外部査読中" | "再検討中" | "受理済み";
