@@ -145,7 +145,7 @@ jobs:
           pr-comment: sticky
 
   deploy:
-    if: github.event_name == 'release'
+    if: github.event_name == 'workflow_call'
     runs-on: ubuntu-latest
     env:
       WORKDIR: docs/

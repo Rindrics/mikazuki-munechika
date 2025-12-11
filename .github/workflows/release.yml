@@ -1,15 +1,4 @@
-name: Release
-
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
-  pull-requests: write
-  issues: read
-
+# release.yml
 jobs:
   ci:
     uses: ./.github/workflows/_ci.yml
@@ -17,3 +6,8 @@ jobs:
   tagpr:
     needs: ci
     uses: ./.github/workflows/tagpr.yml
+
+  deploy-pages:
+    needs: tagpr
+    if: needs.tagpr.outputs.tag != ''
+    uses: ./.github/workflows/pages.yml
