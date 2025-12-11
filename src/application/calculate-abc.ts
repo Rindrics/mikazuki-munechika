@@ -29,7 +29,7 @@ export function calculateAbc(
   catchData: 漁獲量データ,
   biologicalData: 生物学的データ
 ): ABC算定結果 {
-  logger.debug("calculateAbc called", { stockName: stock.対象.fullName() });
+  logger.debug("calculateAbc called", { stockName: stock.対象 });
 
   const result = stock.資源量推定(catchData, biologicalData).ABC算定();
 
