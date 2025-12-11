@@ -41,6 +41,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy GitHub pages
-        needs: tagpr
         if: needs.tagpr.outputs.tag != ''
         uses: ./.github/workflows/pages.yml
