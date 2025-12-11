@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.5](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.4...v0.2.5) - 2025-12-11
+- Add tests for models by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/76
+
 ## [v0.2.4](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.3...v0.2.4) - 2025-12-10
 - Revert "Avoid second Jekyll building on deploy" by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/74
 
