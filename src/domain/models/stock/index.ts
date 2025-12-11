@@ -11,7 +11,7 @@ import { 資源タイプ, 資源名s, 資源グループ呼称s } from "../../co
  */
 export type 資源名 = (typeof 資源名s)[keyof typeof 資源名s];
 
-export type 資源グループ呼称 = (typeof 資源グループ呼称s)[number];
+export type 資源グループ呼称 = (typeof 資源グループ呼称s)[keyof typeof 資源グループ呼称s];
 
 /**
  * 資源の情報を保持
