@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { GetAssessmentResultsService } from "./get-assessment-results";
 import type { AssessmentResultRepository, 資源評価, ABC算定結果 } from "@/domain";
 
