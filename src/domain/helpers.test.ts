@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { create資源情報, create資源評価 } from "./helpers";
+import { create資源情報, create資源評価, create文献リスト } from "./helpers";
 import { 資源名s, 資源タイプs, type 資源タイプ } from "./constants";
 import { type 資源情報 } from "./models";
 
@@ -109,5 +109,43 @@ describe("create資源評価", () => {
     } as unknown as 資源情報;
 
     expect(() => create資源評価(invalid資源情報)).toThrow("不正な資源情報");
+  });
+});
+
+describe("create文献リスト", () => {
+  it("文献リストを作成できる", () => {
+    const 文献リスト = create文献リスト();
+    expect(文献リスト.文献一覧()).toEqual([]);
+  });
+
+  it("文献リストに文献を追加できる", () => {
+    const 文献リスト = create文献リスト();
+    expect(文献リスト.文献一覧()).toEqual([]);
+
+    文献リスト.文献追加({
+      著者: ["テスト"],
+      出版年: 2025,
+      タイトル: "テスト",
+      出版者: "テスト",
+      ページ数: "123",
+      メモ: "テスト",
+      タグ: ["テスト"],
+      関連する資源タイプ: [資源タイプs["1系"]],
+      関連する資源呼称: ["マイワシ"],
+    });
+
+    expect(文献リスト.文献一覧()).toEqual([
+      {
+        著者: ["テスト"],
+        出版年: 2025,
+        タイトル: "テスト",
+        出版者: "テスト",
+        ページ数: "123",
+        メモ: "テスト",
+        タグ: ["テスト"],
+        関連する資源タイプ: [資源タイプs["1系"]],
+        関連する資源呼称: ["マイワシ"],
+      },
+    ]);
   });
 });
