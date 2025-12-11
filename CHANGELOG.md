@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.8](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.7...v0.2.8) - 2025-12-11
+- Watch released event by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/84
+
 ## [v0.2.7](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.6...v0.2.7) - 2025-12-11
 - Watch other release event types by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/82
 
