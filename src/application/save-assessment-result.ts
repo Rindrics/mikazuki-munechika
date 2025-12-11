@@ -27,7 +27,7 @@ export class SaveAssessmentResultService {
    * @example
    * ```typescript
    * const service = new SaveAssessmentResultService(repository);
-   * const abc = calculateAbc(stock, catchData, biologicalData);
+   * const abc = ABC算定(stock, catchData, biologicalData);
    * await service.execute(stock, abc);
    * ```
    */

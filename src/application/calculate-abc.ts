@@ -20,19 +20,19 @@ import { logger } from "@/utils/logger";
  * @example
  * ```typescript
  * const stock = createType1Stock(create資源情報(資源名.マイワシ太平洋));
- * const abc = calculateAbc(stock, catchData, biologicalData);
+ * const abc = ABC算定(stock, catchData, biologicalData);
  * console.log(abc.value);
  * ```
  */
-export function calculateAbc(
+export function ABC算定(
   stock: 資源評価,
   catchData: 漁獲量データ,
   biologicalData: 生物学的データ
 ): ABC算定結果 {
-  logger.debug("calculateAbc called", { stockName: stock.対象 });
+  logger.debug("ABC算定 called", { stockName: stock.対象 });
 
   const result = stock.資源量推定(catchData, biologicalData).ABC算定();
 
-  logger.debug("calculateAbc completed", { result: result.value });
+  logger.debug("ABC算定 completed", { result: result.value });
   return result;
 }
