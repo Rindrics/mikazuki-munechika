@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.7](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.6...v0.2.7) - 2025-12-11
+- Watch other release event types by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/82
+
 ## [v0.2.6](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.5...v0.2.6) - 2025-12-11
 - Add `package.json` on watch target by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/79
 
