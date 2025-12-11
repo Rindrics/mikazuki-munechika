@@ -12,6 +12,7 @@ on:
       - published
       - created
       - edited
+      - released
   workflow_dispatch:
 
 permissions:
