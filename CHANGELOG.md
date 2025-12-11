@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.2.11](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.10...v0.2.11) - 2025-12-11
+- Call pages.yml from tagpr.yml by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/92
+- Correct workflow by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/93
+- Remove bad `needs` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/94
+- Add permissions by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/95
+- Add permissions by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/96
+
 ## [v0.2.10](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.9...v0.2.10) - 2025-12-11
 - Add model 文献リスト by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/80
 - Call pages.yml from release.yml by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/88
