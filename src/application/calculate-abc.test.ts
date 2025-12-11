@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { calculateAbc } from "./calculate-abc";
+import { ABC算定 } from "./calculate-abc";
 import type { 資源評価, ABC算定結果, 漁獲量データ, 生物学的データ } from "@/domain";
 
-describe("calculateAbc", () => {
+describe("ABC算定", () => {
   it("calls 資源量推定 and ABC算定 on the stock and returns the result", () => {
     const mockABC算定結果: ABC算定結果 = { value: "test ABC result" };
 
@@ -42,7 +42,7 @@ describe("calculateAbc", () => {
     const catchData: 漁獲量データ = { value: "100" };
     const biologicalData: 生物学的データ = { value: "200" };
 
-    const result = calculateAbc(mockStock, catchData, biologicalData);
+    const result = ABC算定(mockStock, catchData, biologicalData);
 
     expect(mock資源量推定).toHaveBeenCalledWith(catchData, biologicalData);
     expect(mockABC算定).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe("calculateAbc", () => {
       ABC算定: vi.fn(),
     };
 
-    const result = calculateAbc(
+    const result = ABC算定(
       mockStock,
       { value: "catch data" },
       { value: "biological data" }

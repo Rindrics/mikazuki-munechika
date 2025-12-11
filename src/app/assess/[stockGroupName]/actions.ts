@@ -1,6 +1,6 @@
 "use server";
 
-import { calculateAbc, SaveAssessmentResultService } from "@/application";
+import { ABC算定, SaveAssessmentResultService } from "@/application";
 import {
   ABC算定結果,
   漁獲量データ,
@@ -22,7 +22,7 @@ export async function calculateAbcAction(
   const catchData: 漁獲量データ = { value: catchDataValue };
   const biologicalData: 生物学的データ = { value: biologicalDataValue };
 
-  return calculateAbc(stock, catchData, biologicalData);
+  return ABC算定(stock, catchData, biologicalData);
 }
 
 export async function saveAssessmentResultAction(
