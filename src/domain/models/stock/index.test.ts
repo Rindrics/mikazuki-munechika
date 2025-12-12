@@ -46,7 +46,6 @@ describe("作業着手", () => {
 
   it("作業着手イベントを正しく生成する", () => {
     // Arrange
-    const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create未着手の資源評価();
     const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
       [資源名s.マイワシ太平洋]: ロールs.主担当,
@@ -67,7 +66,6 @@ describe("作業着手", () => {
 
   it("作業着手イベントのtoStringが正しく動作する", () => {
     // Arrange
-    const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create未着手の資源評価();
     const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
       [資源名s.マイワシ太平洋]: ロールs.主担当,
@@ -86,7 +84,6 @@ describe("作業着手", () => {
 
   it("immutableな操作", () => {
     // Arrange
-    const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create未着手の資源評価();
     const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
       [資源名s.マイワシ太平洋]: ロールs.主担当,
