@@ -1,7 +1,7 @@
 import { 資源名s, 資源タイプs, ロールs } from "../../constants";
 import { create資源情報, create資源評価 } from "../../helpers";
-import { 作業着手 } from "./index";
-import { create評価担当者, create資源評価管理者, to認証済評価担当者, 主担当者, 評価担当者, 資源評価管理者 } from "../user";
+import { 作業着手, 内部査読依頼 } from "./index";
+import { create評価担当者, to認証済評価担当者, 主担当者 } from "../user";
 import { describe, it, expect } from "vitest";
 
 describe("資源情報", () => {
@@ -107,35 +107,18 @@ describe("作業着手", () => {
 
   it.each([
     {
-      name: "未認証の主担当者",
-      createUser: () => create評価担当者("user-1", "未認証主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }),
-      expectError: "未認証のユーザーは作業着手できません",
-    },
-    {
-      name: "未認証の副担当者",
-      createUser: () => create評価担当者("user-2", "未認証副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 }),
-      expectError: "未認証のユーザーは作業着手できません",
-    },
-    {
       name: "認証済みの副担当者",
-      createUser: () => to認証済評価担当者(create評価担当者("user-3", "認証済副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 })),
-      expectError: "主担当者のみが作業着手できます",
+      createUser: () => to認証済評価担当者(create評価担当者("user-1", "認証済副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 })),
     },
     {
-      name: "未認証の管理者",
-      createUser: () => create資源評価管理者("user-4", "認証済管理者", "test@example.com"),
-      expectError: "未認証のユーザーは作業着手できません",
+      name: "担当資源がないユーザー",
+      createUser: () => to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
     },
-    {
-      name: "認証済みの管理者",
-      createUser: () => to認証済評価担当者(create評価担当者("user-5", "認証済管理者", "test@example.com")),
-      expectError: "主担当者のみが作業着手できます",
-    },
-  ])("$name は作業着手できない", ({ createUser, expectError }) => {
+  ])("$name は作業着手できない（主担当者のみ）", ({ createUser }) => {
     const 未着手の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
     const user = createUser();
 
-    expect(() => 作業着手(未着手の資源評価, new Date(), user)).toThrow(expectError);
+    expect(() => 作業着手(未着手の資源評価, new Date(), user)).toThrow("主担当者のみが操作できます");
   });
 
   it("認証済みの主担当者のみが作業着手できる", () => {
@@ -145,5 +128,55 @@ describe("作業着手", () => {
     );
 
     expect(() => 作業着手(未着手の資源評価, new Date(), 認証済み主担当者)).not.toThrow();
+  });
+});
+
+describe("内部査読依頼", () => {
+  it("資源評価のステータスを「作業中」から「内部査読中」に変更する", () => {
+    const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 内部査読待ち資源評価 } = 内部査読依頼(作業中の資源評価, 日時, 認証済み主担当者);
+    expect(内部査読待ち資源評価.作業ステータス).toBe("内部査読中");
+    expect(内部査読待ち資源評価.対象).toEqual(作業中の資源評価.対象);
+  });
+
+  it("内部査読依頼イベントを正しく生成する", () => {
+    const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 内部査読依頼済み } = 内部査読依頼(作業中の資源評価, 日時, 認証済み主担当者);
+    expect(内部査読依頼済み.変化前).toBe("作業中");
+    expect(内部査読依頼済み.変化後).toBe("内部査読中");
+    expect(内部査読依頼済み.変化理由).toBe("内部査読依頼");
+    expect(内部査読依頼済み.日時).toEqual(日時);
+    expect(内部査読依頼済み.操作者).toBe(認証済み主担当者);
+  });
+
+  it.each([
+    {
+      name: "認証済みの副担当者",
+      createUser: () => to認証済評価担当者(create評価担当者("user-1", "認証済副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 })),
+      expectedError: "主担当者のみが操作できます",
+    },
+    {
+      name: "担当資源がないユーザー",
+      createUser: () => to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
+      expectedError: "主担当者のみが操作できます",
+    },
+  ])("$name は内部査読依頼できない（主担当者のみ）", ({ createUser }) => {
+    const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const user = createUser();
+
+    expect(() => 内部査読依頼(作業中の資源評価, new Date(), user)).toThrow("主担当者のみが操作できます");
+  });
+
+  it("認証済みの主担当者のみが内部査読依頼できる", () => {
+    const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+
+    expect(() => 内部査読依頼(作業中の資源評価, new Date(), 認証済み主担当者)).not.toThrow();
   });
 });
