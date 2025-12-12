@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.2.15](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.14...v0.2.15) - 2025-12-12
+- Run deploy after build by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/106
+- Configure Dependabot by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/111
+- Configure tagpr to avoid conflict with Dependabot behavior by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/118
+- Use `pnpm` in `docs/` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/119
+- Correct lockfile extension by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/120
+- Decrease open pull requests limit to 2 by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/121
+- Bump next from 16.0.7 to 16.0.10 in the npm_and_yarn group across 1 directory by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/110
+- Bump eslint-config-next from 16.0.6 to 16.0.10 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/114
+- Bump next from 16.0.7 to 16.0.10 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/115
+- Bump tailwindcss from 4.1.17 to 4.1.18 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/117
+- Bump @supabase/supabase-js from 2.86.0 to 2.87.1 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/116
+- Bump supabase from 2.65.5 to 2.67.0 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/113
+
 ## [v0.2.14](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.13...v0.2.14) - 2025-12-11
 - Test application services by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/104
 
