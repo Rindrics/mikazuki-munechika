@@ -1,7 +1,13 @@
 import { 資源名s, 資源タイプs, ロールs } from "../../constants";
 import { create資源情報, create資源評価 } from "../../helpers";
 import { 作業着手, 内部査読依頼, 外部公開 } from "./index";
-import { create評価担当者, create資源評価管理者, to認証済評価担当者, 主担当者, to認証済資源評価管理者 } from "../user";
+import {
+  create評価担当者,
+  create資源評価管理者,
+  to認証済評価担当者,
+  主担当者,
+  to認証済資源評価管理者,
+} from "../user";
 import { describe, it, expect } from "vitest";
 
 describe("資源情報", () => {
@@ -19,21 +25,14 @@ describe("作業着手", () => {
     // Arrange
     const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create資源評価(資源情報);
-    const 主担当者 = create評価担当者(
-      "user-1",
-      "マイワシ太郎",
-      "maiwashi-taro@example.com",
-      { [資源名s.マイワシ太平洋]: ロールs.主担当 }
-    );
+    const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
+    });
     const 認証済み主担当者 = to認証済評価担当者(主担当者) as 主担当者;
     const 着手日時 = new Date("2025-01-01T09:00:00Z");
 
     // Act
-    const { 進行中資源評価 } = 作業着手(
-      未着手の資源評価,
-      着手日時,
-      認証済み主担当者
-    );
+    const { 進行中資源評価 } = 作業着手(未着手の資源評価, 着手日時, 認証済み主担当者);
 
     // Assert
     expect(進行中資源評価.作業ステータス).toBe("作業中");
@@ -44,12 +43,9 @@ describe("作業着手", () => {
     // Arrange
     const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create資源評価(資源情報);
-    const 主担当者 = create評価担当者(
-      "user-1",
-      "マイワシ太郎",
-      "maiwashi-taro@example.com",
-      { [資源名s.マイワシ太平洋]: ロールs.主担当 }
-    );
+    const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
+    });
     const 認証済み主担当者 = to認証済評価担当者(主担当者) as 主担当者;
     const 着手日時 = new Date("2025-01-01T09:00:00Z");
 
@@ -68,12 +64,9 @@ describe("作業着手", () => {
     // Arrange
     const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create資源評価(資源情報);
-    const 主担当者 = create評価担当者(
-      "user-1",
-      "マイワシ太郎",
-      "maiwashi-taro@example.com",
-      { [資源名s.マイワシ太平洋]: ロールs.主担当 }
-    );
+    const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
+    });
     const 認証済み主担当者 = to認証済評価担当者(主担当者) as 主担当者;
     const 着手日時 = new Date("2025-01-01T09:00:00Z");
 
@@ -90,12 +83,9 @@ describe("作業着手", () => {
     // Arrange
     const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
     const 未着手の資源評価 = create資源評価(資源情報);
-    const 主担当者 = create評価担当者(
-      "user-1",
-      "マイワシ太郎",
-      "maiwashi-taro@example.com",
-      { [資源名s.マイワシ太平洋]: ロールs.主担当 }
-    );
+    const 主担当者 = create評価担当者("user-1", "マイワシ太郎", "maiwashi-taro@example.com", {
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
+    });
     const 認証済み主担当者 = to認証済評価担当者(主担当者) as 主担当者;
 
     // Act
@@ -108,23 +98,33 @@ describe("作業着手", () => {
   it.each([
     {
       name: "認証済みの副担当者",
-      createUser: () => to認証済評価担当者(create評価担当者("user-1", "認証済副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 })),
+      createUser: () =>
+        to認証済評価担当者(
+          create評価担当者("user-1", "認証済副担当", "test@example.com", {
+            [資源名s.マイワシ太平洋]: ロールs.副担当,
+          })
+        ),
     },
     {
       name: "担当資源がないユーザー",
-      createUser: () => to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
+      createUser: () =>
+        to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
     },
   ])("$name は作業着手できない（主担当者のみ）", ({ createUser }) => {
     const 未着手の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
     const user = createUser();
 
-    expect(() => 作業着手(未着手の資源評価, new Date(), user)).toThrow("主担当者のみが操作できます");
+    expect(() => 作業着手(未着手の資源評価, new Date(), user)).toThrow(
+      "主担当者のみが操作できます"
+    );
   });
 
   it("認証済みの主担当者のみが作業着手できる", () => {
     const 未着手の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
     const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 })
+      create評価担当者("user-1", "認証済主担当", "test@example.com", {
+        [資源名s.マイワシ太平洋]: ロールs.主担当,
+      })
     );
 
     expect(() => 作業着手(未着手の資源評価, new Date(), 認証済み主担当者)).not.toThrow();
@@ -134,7 +134,11 @@ describe("作業着手", () => {
 describe("内部査読依頼", () => {
   it("資源評価のステータスを「作業中」から「内部査読中」に変更する", () => {
     const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+    const 認証済み主担当者 = to認証済評価担当者(
+      create評価担当者("user-1", "認証済主担当", "test@example.com", {
+        [資源名s.マイワシ太平洋]: ロールs.主担当,
+      })
+    );
     const 日時 = new Date("2025-01-01T09:00:00Z");
 
     const { 内部査読待ち資源評価 } = 内部査読依頼(作業中の資源評価, 日時, 認証済み主担当者);
@@ -144,7 +148,11 @@ describe("内部査読依頼", () => {
 
   it("内部査読依頼イベントを正しく生成する", () => {
     const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+    const 認証済み主担当者 = to認証済評価担当者(
+      create評価担当者("user-1", "認証済主担当", "test@example.com", {
+        [資源名s.マイワシ太平洋]: ロールs.主担当,
+      })
+    );
     const 日時 = new Date("2025-01-01T09:00:00Z");
 
     const { 内部査読依頼済み } = 内部査読依頼(作業中の資源評価, 日時, 認証済み主担当者);
@@ -158,24 +166,36 @@ describe("内部査読依頼", () => {
   it.each([
     {
       name: "認証済みの副担当者",
-      createUser: () => to認証済評価担当者(create評価担当者("user-1", "認証済副担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.副担当 })),
+      createUser: () =>
+        to認証済評価担当者(
+          create評価担当者("user-1", "認証済副担当", "test@example.com", {
+            [資源名s.マイワシ太平洋]: ロールs.副担当,
+          })
+        ),
       expectedError: "主担当者のみが操作できます",
     },
     {
       name: "担当資源がないユーザー",
-      createUser: () => to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
+      createUser: () =>
+        to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
       expectedError: "主担当者のみが操作できます",
     },
   ])("$name は内部査読依頼できない（主担当者のみ）", ({ createUser }) => {
     const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
     const user = createUser();
 
-    expect(() => 内部査読依頼(作業中の資源評価, new Date(), user)).toThrow("主担当者のみが操作できます");
+    expect(() => 内部査読依頼(作業中の資源評価, new Date(), user)).toThrow(
+      "主担当者のみが操作できます"
+    );
   });
 
   it("認証済みの主担当者のみが内部査読依頼できる", () => {
     const 作業中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
+    const 認証済み主担当者 = to認証済評価担当者(
+      create評価担当者("user-1", "認証済主担当", "test@example.com", {
+        [資源名s.マイワシ太平洋]: ロールs.主担当,
+      })
+    );
 
     expect(() => 内部査読依頼(作業中の資源評価, new Date(), 認証済み主担当者)).not.toThrow();
   });
@@ -184,7 +204,9 @@ describe("内部査読依頼", () => {
 describe("外部公開", () => {
   it("資源評価のステータスを「内部査読中」から「外部査読中」に変更する", () => {
     const 内部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み資源評価管理者 = to認証済資源評価管理者(create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com"));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(
+      create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
+    );
     const 日時 = new Date("2025-01-01T09:00:00Z");
 
     const { 外部査読中資源評価 } = 外部公開(内部査読中の資源評価, 日時, 認証済み資源評価管理者);
@@ -194,7 +216,9 @@ describe("外部公開", () => {
 
   it("外部公開イベントを正しく生成する", () => {
     const 内部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み資源評価管理者 = to認証済資源評価管理者(create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com"));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(
+      create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
+    );
     const 日時 = new Date("2025-01-01T09:00:00Z");
 
     const { 外部公開済み } = 外部公開(内部査読中の資源評価, 日時, 認証済み資源評価管理者);

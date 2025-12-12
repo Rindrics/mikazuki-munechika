@@ -1,7 +1,13 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { has資源アクセス権限, 認証済評価担当者, 資源評価管理者, 資源名, ABC算定結果 } from "@/domain";
+import {
+  has資源アクセス権限,
+  認証済評価担当者,
+  資源評価管理者,
+  資源名,
+  ABC算定結果,
+} from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
@@ -99,10 +105,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
       <h1 className="mb-2">{stockGroupName}</h1>
       <p className="text-secondary mb-8">
-        権限: <span className="font-medium">
+        権限:{" "}
+        <span className="font-medium">
           {(user as 認証済評価担当者 | 資源評価管理者).種別 === "資源評価管理者"
             ? "管理者"
-            : (user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当"}
+            : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
         </span>
       </p>
 

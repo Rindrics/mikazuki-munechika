@@ -4,7 +4,7 @@ import type { AssessmentResultRepository, 資源評価, ABC算定結果 } from "
 
 describe("GetAssessmentResultsService", () => {
   const createMockStock = (name: string): 資源評価 => ({
-   作業ステータス: "未着手",
+    作業ステータス: "未着手",
     対象: {
       呼称: "マイワシ",
       系群名: "テスト系群",

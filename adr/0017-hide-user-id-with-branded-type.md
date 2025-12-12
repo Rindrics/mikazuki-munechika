@@ -22,10 +22,10 @@ Use TypeScript's branded type pattern to mark the ID field with an unexported sy
 
 ```typescript
 // user/factory.ts
-declare const __userId: unique symbol;  // Not exported
+declare const __userId: unique symbol; // Not exported
 
 export interface ユーザー {
-  readonly [__userId]: string;  // Visible in type, but inaccessible
+  readonly [__userId]: string; // Visible in type, but inaccessible
   氏名: 氏名;
   メールアドレス: string;
   担当資源情報リスト: Partial<Record<資源名, ロール>>;
@@ -174,13 +174,13 @@ export function getUserId(user: ユーザー): string | undefined {
 
 ## Comparison Summary
 
-| Aspect | Branded Type | WeakMap |
-|--------|--------------|---------|
-| ID visible in type | Yes | **No** |
-| Runtime overhead | None | Minimal |
-| Type-level ID tracking | Yes | No |
-| Complete encapsulation | No | **Yes** |
-| Serialization | Automatic | Explicit |
+| Aspect                 | Branded Type | WeakMap  |
+| ---------------------- | ------------ | -------- |
+| ID visible in type     | Yes          | **No**   |
+| Runtime overhead       | None         | Minimal  |
+| Type-level ID tracking | Yes          | No       |
+| Complete encapsulation | No           | **Yes**  |
+| Serialization          | Automatic    | Explicit |
 
 ## Related ADRs
 
