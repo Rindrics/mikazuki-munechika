@@ -1,54 +1,11 @@
-import { ロールs, 主担当ロール, 副担当ロール } from "../../constants";
-import { 資源名 } from "../stock";
-
-export type ロール = (typeof ロールs)[keyof typeof ロールs];
-
 /**
- * ある資源に対するロール割当て情報を表す
+ * User domain model
  *
- * @example
- * ```typescript
- * const assignment: 担当資源情報 = {
- *   担当資源名: 資源名.マイワシ太平洋,
- *   ロール: ロールs.主担当,
- * };
- * ```
- */
-export interface 担当資源情報 {
-  担当資源名: 資源名;
-  ロール: ロール;
-}
-
-/**
- * ユーザー
+ * - types.ts: Base type definitions (ユーザー, 評価担当者, etc.)
+ * - factory.ts: Factory functions + branded types (認証済ユーザー, etc.)
  *
- * ユーザーは系群ごとに異なるロールsを持つことができる。
+ * User IDs are hidden using WeakMap pattern.
+ * @see ADR 0017 for design rationale
  */
-export interface ユーザー {
-  id: string;
-  メールアドレス: string;
-  担当資源情報リスト: Partial<Record<資源名, ロール>>;
-}
-
-/**
- * 主担当者を表す型
- */
-export type 主担当者 = 認証済ユーザー & {
-  readonly 担当資源情報リスト: Record<資源名, typeof 主担当ロール>;
-};
-
-/**
- * 副担当者を表す型
- */
-export type 副担当者 = 認証済ユーザー & {
-  readonly 担当資源情報リスト: Record<資源名, typeof 副担当ロール>;
-};
-
-declare const __authenticated: unique symbol;
-
-/**
- * 認証済みユーザー
- */
-export type 認証済ユーザー = ユーザー & {
-  readonly [__authenticated]: true;
-};
+export * from "./types";
+export * from "./factory";

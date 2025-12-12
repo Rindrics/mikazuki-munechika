@@ -57,4 +57,29 @@ interface ステータス変化イベント {
   readonly 変化理由: string;
   readonly 日時: Date;
   readonly 操作者: 認証済ユーザー;
+  toString(): string;
+}
+
+/**
+ * 「未着手 → 作業中」のステータス変化を表す型
+ */
+const 作業着手イベント定義 = {
+  変化前: "未着手",
+  変化後: "作業中",
+  変化理由: "作業着手",
+} as const;
+
+type 作業着手した = ステータス変化イベント & typeof 作業着手イベント定義 & {
+  readonly 操作者: 主担当者;
+};
+
+function 作業着手(日時: Date, 操作者: 主担当者): 作業着手した {
+  return {
+    ...作業着手イベント定義,
+    日時,
+    操作者,
+    toString() {
+      return `${this.変化前} → ${this.変化後} by ${this.操作者.氏名} at ${this.日時.toISOString()}`;
+    },
+  };
 }

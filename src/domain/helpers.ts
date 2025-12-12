@@ -128,6 +128,7 @@ function createStock(stockGroup: 資源情報, config: StockConfig): 資源評�
   let abundance: string | undefined;
 
   return {
+    作業ステータス: "未着手",
     対象: stockGroup,
     get 資源量() {
       if (abundance === undefined) {
