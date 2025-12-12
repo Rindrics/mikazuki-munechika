@@ -1,7 +1,7 @@
 import { 資源名s, 資源タイプs, ロールs } from "../../constants";
 import { create資源情報, create資源評価 } from "../../helpers";
-import { 作業着手, 内部査読依頼 } from "./index";
-import { create評価担当者, to認証済評価担当者, 主担当者 } from "../user";
+import { 作業着手, 内部査読依頼, 外部公開 } from "./index";
+import { create評価担当者, create資源評価管理者, to認証済評価担当者, 主担当者, to認証済資源評価管理者 } from "../user";
 import { describe, it, expect } from "vitest";
 
 describe("資源情報", () => {
@@ -178,5 +178,30 @@ describe("内部査読依頼", () => {
     const 認証済み主担当者 = to認証済評価担当者(create評価担当者("user-1", "認証済主担当", "test@example.com", { [資源名s.マイワシ太平洋]: ロールs.主担当 }));
 
     expect(() => 内部査読依頼(作業中の資源評価, new Date(), 認証済み主担当者)).not.toThrow();
+  });
+});
+
+describe("外部公開", () => {
+  it("資源評価のステータスを「内部査読中」から「外部査読中」に変更する", () => {
+    const 内部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com"));
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 外部査読中資源評価 } = 外部公開(内部査読中の資源評価, 日時, 認証済み資源評価管理者);
+    expect(外部査読中資源評価.作業ステータス).toBe("外部査読中");
+    expect(外部査読中資源評価.対象).toEqual(内部査読中の資源評価.対象);
+  });
+
+  it("外部公開イベントを正しく生成する", () => {
+    const 内部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com"));
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 外部公開済み } = 外部公開(内部査読中の資源評価, 日時, 認証済み資源評価管理者);
+    expect(外部公開済み.変化前).toBe("内部査読中");
+    expect(外部公開済み.変化後).toBe("外部査読中");
+    expect(外部公開済み.変化理由).toBe("外部公開");
+    expect(外部公開済み.日時).toEqual(日時);
+    expect(外部公開済み.操作者).toBe(認証済み資源評価管理者);
   });
 });

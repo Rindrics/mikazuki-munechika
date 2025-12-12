@@ -6,6 +6,7 @@ import type {
   資源評価管理者,
   認証済ユーザー,
   認証済評価担当者,
+  認証済資源評価管理者,
   担当資源情報,
   ロール,
   氏名,
@@ -16,7 +17,7 @@ import type {
  * This WeakMap is not exported, keeping user IDs completely hidden from external code.
  * IDs are stored here at runtime and retrieved only through getUserId().
  *
- * @see ADR 0017 for design rationale
+ * @see ADR 0017 for des  ign rationale
  */
 const userIds = new WeakMap<ユーザー, string>();
 
@@ -112,6 +113,17 @@ export function to認証済ユーザー(user: ユーザー): 認証済ユーザ�
 export function to認証済評価担当者(user: 評価担当者): 認証済評価担当者 {
   authenticatedUsers.add(user);
   return user as 認証済評価担当者;
+}
+
+/**
+ * Convert an assessment manager to an authenticated assessment manager.
+ *
+ * @param 未認証の資源評価管理者 - The assessment manager to authenticate
+ * @returns The authenticated assessment manager
+ */
+export function to認証済資源評価管理者(未認証の資源評価管理者: 資源評価管理者): 認証済資源評価管理者 {
+  authenticatedUsers.add(未認証の資源評価管理者);
+  return 未認証の資源評価管理者 as 認証済資源評価管理者;
 }
 
 /**

@@ -76,6 +76,13 @@ export type 認証済評価担当者 = 評価担当者 & {
 };
 
 /**
+ * 認証済み資源評価管理者
+ */
+export type 認証済資源評価管理者 = 資源評価管理者 & {
+  readonly [__authenticated]: true;
+};
+
+/**
  * 主担当者を表す型
  */
 export type 主担当者 = 認証済評価担当者 & {
