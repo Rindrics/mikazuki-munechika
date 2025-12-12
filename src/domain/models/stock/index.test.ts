@@ -1,6 +1,6 @@
 import { 資源名s, 資源タイプs, ロールs } from "../../constants";
 import { create資源情報, create資源評価 } from "../../helpers";
-import { 作業着手, 内部査読依頼, 外部公開 } from "./index";
+import { 作業着手, 内部査読依頼, 外部公開, 再検討依頼 } from "./index";
 import {
   create評価担当者,
   create資源評価管理者,
@@ -227,5 +227,34 @@ describe("外部公開", () => {
     expect(外部公開済み.変化理由).toBe("外部公開");
     expect(外部公開済み.日時).toEqual(日時);
     expect(外部公開済み.操作者).toBe(認証済み資源評価管理者);
+  });
+});
+
+describe("再検討依頼", () => {
+  it("資源評価のステータスを「外部査読中」から「再検討中」に変更する", () => {
+    const 外部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(
+      create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
+    );
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 再検討待ち資源評価 } = 再検討依頼(外部査読中の資源評価, 日時, 認証済み資源評価管理者);
+    expect(再検討待ち資源評価.作業ステータス).toBe("再検討中");
+    expect(再検討待ち資源評価.対象).toEqual(外部査読中の資源評価.対象);
+  });
+
+  it("再検討依頼イベントを正しく生成する", () => {
+    const 外部査読中の資源評価 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
+    const 認証済み資源評価管理者 = to認証済資源評価管理者(
+      create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
+    );
+    const 日時 = new Date("2025-01-01T09:00:00Z");
+
+    const { 再検討依頼済み } = 再検討依頼(外部査読中の資源評価, 日時, 認証済み資源評価管理者);
+    expect(再検討依頼済み.変化前).toBe("外部査読中");
+    expect(再検討依頼済み.変化後).toBe("再検討中");
+    expect(再検討依頼済み.変化理由).toBe("再検討依頼");
+    expect(再検討依頼済み.日時).toEqual(日時);
+    expect(再検討依頼済み.操作者).toBe(認証済み資源評価管理者);
   });
 });
