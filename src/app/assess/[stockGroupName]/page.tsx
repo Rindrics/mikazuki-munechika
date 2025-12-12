@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { get担当資源情報s, ロールs, 資源名, ABC算定結果 } from "@/domain";
+import { has資源アクセス権限, 認証済評価担当者, 資源評価管理者, 資源名, ABC算定結果 } from "@/domain";
 import ErrorCard from "@/components/error-card";
 import { use, useState } from "react";
 import Link from "next/link";
@@ -71,10 +71,10 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }
 
   // Check if user has permission for this stock group
-  const assignments = get担当資源情報s(user);
-  const assignment = assignments.find(({ 担当資源名 }) => 担当資源名 === stockGroupName);
-  const hasPermission =
-    assignment && (assignment.ロール === ロールs.主担当 || assignment.ロール === ロールs.副担当);
+  const hasPermission = has資源アクセス権限(
+    user as 認証済評価担当者 | 資源評価管理者,
+    stockGroupName
+  );
 
   if (!hasPermission) {
     return (
@@ -99,7 +99,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
       <h1 className="mb-2">{stockGroupName}</h1>
       <p className="text-secondary mb-8">
-        担当: <span className="font-medium">{assignment?.ロール}</span>
+        権限: <span className="font-medium">
+          {(user as 認証済評価担当者 | 資源評価管理者).種別 === "資源評価管理者"
+            ? "管理者"
+            : (user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当"}
+        </span>
       </p>
 
       <section className="mb-8">

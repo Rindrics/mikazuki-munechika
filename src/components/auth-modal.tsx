@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { get担当資源情報s } from "@/domain";
+import { get評価可能資源s, 認証済評価担当者, 資源評価管理者, 資源名s } from "@/domain";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -58,7 +58,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <div className="text-sm text-gray-600">
                 <strong>ロール:</strong>
                 <ul className="list-disc list-inside mt-1 ml-4">
-                  {get担当資源情報s(user).map((role, index) => (
+                  {get評価可能資源s(
+                    user as 認証済評価担当者 | 資源評価管理者,
+                    Object.values(資源名s)
+                  ).map((role, index) => (
                     <li key={index}>
                       {role.担当資源名} - {role.ロール}
                     </li>

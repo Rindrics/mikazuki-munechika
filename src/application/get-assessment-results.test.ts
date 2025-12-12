@@ -15,7 +15,7 @@ describe("GetAssessmentResultsService", () => {
     },
     資源量: "",
     資源量推定: vi.fn(),
-    ABC算定: vi.fn(),
+    ABC算定: vi.fn().mockReturnValue({ value: "ABC result" }),
   });
 
   const createMockRepository = (

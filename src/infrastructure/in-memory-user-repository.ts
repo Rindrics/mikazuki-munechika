@@ -1,8 +1,11 @@
 import {
   ユーザーRepository,
   ユーザー,
+  評価担当者,
   認証済ユーザー,
   to認証済ユーザー,
+  create評価担当者,
+  getUserId,
   資源名s,
   ロールs,
 } from "@/domain";
@@ -57,19 +60,23 @@ const INITIAL_USER_DATA = [
 ] as const;
 
 export class InMemoryユーザーRepository implements ユーザーRepository {
-  private usersById: Map<string, ユーザー> = new Map();
-  private usersByEmail: Map<string, ユーザー> = new Map();
+  private usersById: Map<string, 評価担当者> = new Map();
+  private usersByEmail: Map<string, 評価担当者> = new Map();
   private passwordsByEmail: Map<string, string> = new Map();
 
   constructor() {
-    // Initialize with default users
+    // Initialize with default users using factory function
     for (const userData of INITIAL_USER_DATA) {
-      const user: ユーザー = {
-        id: userData.id,
-        メールアドレス: userData.email,
-        担当資源情報リスト: userData.rolesByStockGroup,
-      };
-      this.usersById.set(user.id, user);
+      const user = create評価担当者(
+        userData.id,
+        "", // 氏名 (not used in preview)
+        userData.email,
+        userData.rolesByStockGroup
+      );
+      const userId = getUserId(user);
+      if (userId) {
+        this.usersById.set(userId, user);
+      }
       this.usersByEmail.set(user.メールアドレス, user);
       this.passwordsByEmail.set(user.メールアドレス, userData.password);
     }
@@ -92,11 +99,12 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
       }
 
       // Store user ID in localStorage for session persistence
-      if (typeof window !== "undefined") {
-        localStorage.setItem("auth_user_id", user.id);
+      const userId = getUserId(user);
+      if (typeof window !== "undefined" && userId) {
+        localStorage.setItem("auth_user_id", userId);
       }
 
-      logger.debug("authenticate completed", { userId: user.id, email });
+      logger.debug("authenticate completed", { userId, email });
       return to認証済ユーザー(user);
     } catch (error) {
       logger.error("authenticate failed", { email }, error as Error);

@@ -1,12 +1,8 @@
 import {
-  認証済ユーザー,
-  ユーザー,
-  担当資源情報,
   type 資源名,
   type 資源グループ呼称,
   資源情報,
   資源評価,
-  type ロール,
   type 文献情報,
   文献リスト,
 } from "./models";
@@ -14,18 +10,8 @@ import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./da
 import { 資源グループs } from "./constants";
 import { logger } from "../utils/logger";
 
-export function to認証済ユーザー(user: ユーザー): 認証済ユーザー {
-  return user as 認証済ユーザー;
-}
-
-export function get担当資源情報s(user: ユーザー): 担当資源情報[] {
-  return Object.entries(user.担当資源情報リスト)
-    .filter(([_, role]) => role !== undefined)
-    .map(([担当資源名, ロール]) => ({
-      担当資源名: 担当資源名 as 資源名,
-      ロール: ロール as ロール,
-    }));
-}
+// Re-export user factory functions for backward compatibility
+export { to認証済ユーザー, get担当資源情報s } from "./models/user/factory";
 
 export function create資源情報(name: 資源名 | string): 資源情報 {
   const trimmedName = typeof name === "string" ? name.trim() : name;

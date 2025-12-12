@@ -1,5 +1,6 @@
 import { 漁獲量データ, 生物学的データ, ABC算定結果 } from "../../data";
 import { 資源タイプ, 資源名s, 資源グループ呼称s } from "../../constants";
+import { 認証済ユーザー, 主担当者 } from "../user";
 
 /**
  * 評価対象資源の名前（呼称 + 系群名）
