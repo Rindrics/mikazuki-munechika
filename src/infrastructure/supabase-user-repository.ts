@@ -2,7 +2,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import {
   ユーザーRepository,
   ユーザー,
-  評価担当者,
   認証済ユーザー,
   to認証済ユーザー,
   create評価担当者,
