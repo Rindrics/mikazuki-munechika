@@ -71,7 +71,7 @@ jobs:
         with:
           node-version: "20"
           cache: "pnpm"
-          cache-dependency-path: ${{ env.WORKDIR }}pnpm-lock.json
+          cache-dependency-path: ${{ env.WORKDIR }}pnpm-lock.yaml
 
       - name: Install dependencies
         working-directory: ${{ env.WORKDIR }}
