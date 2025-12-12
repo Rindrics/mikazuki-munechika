@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "pnpm"
-    directory: "/"  # app code
+    directory: "/" # app code
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -16,7 +16,7 @@ updates:
       - "dependencies"
 
   - package-ecosystem: "bundler"
-    directory: "/docs"  # for GitHub Pages
+    directory: "/docs" # for GitHub Pages
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
