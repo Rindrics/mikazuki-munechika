@@ -21,6 +21,12 @@ import type {
 const userIds = new WeakMap<ユーザー, string>();
 
 /**
+ * Private storage for authenticated users.
+ * Only users that have been authenticated through to認証済ユーザー/to認証済評価担当者 are tracked here.
+ */
+const authenticatedUsers = new WeakSet<ユーザー>();
+
+/**
  * Create a new user with the given ID.
  * The ID is stored in a private WeakMap and is not accessible from external code.
  *
@@ -93,6 +99,7 @@ export function getUserId(user: ユーザー): string | undefined {
  * @returns The authenticated user
  */
 export function to認証済ユーザー(user: ユーザー): 認証済ユーザー {
+  authenticatedUsers.add(user);
   return user as 認証済ユーザー;
 }
 
@@ -103,7 +110,18 @@ export function to認証済ユーザー(user: ユーザー): 認証済ユーザ�
  * @returns The authenticated assessment staff
  */
 export function to認証済評価担当者(user: 評価担当者): 認証済評価担当者 {
+  authenticatedUsers.add(user);
   return user as 認証済評価担当者;
+}
+
+/**
+ * Check if a user is authenticated.
+ *
+ * @param user - The user to check
+ * @returns true if the user has been authenticated
+ */
+export function is認証済(user: ユーザー): boolean {
+  return authenticatedUsers.has(user);
 }
 
 /**
