@@ -89,7 +89,7 @@ The primary goal is complete encapsulation - the domain model interface should n
 
 WeakMap is a **JavaScript built-in object** for in-memory key-value storage, not an external database or persistence layer. The actual data flow is:
 
-```
+```text
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   Supabase DB   │────▶│    WeakMap      │────▶│  Domain Layer   │
 │ (Persistence)   │     │ (Runtime only)  │     │ (ID invisible)  │
