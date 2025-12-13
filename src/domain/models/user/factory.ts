@@ -185,7 +185,7 @@ export function has資源アクセス権限(
  * @returns Array of stock assignment information
  */
 export function get評価可能資源s(
-  user: 認証済評価担当者 | 資源評価管理者,
+  user: 認証済評価担当者 | 認証済資源評価管理者,
   全資源名s: 資源名[]
 ): 担当資源情報[] {
   switch (user.種別) {
@@ -207,7 +207,7 @@ export function get評価可能資源s(
  * @returns Array of accessible stock information
  */
 export function get閲覧可能資源情報s(
-  user: 認証済評価担当者 | 資源評価管理者,
+  user: 認証済評価担当者 | 認証済資源評価管理者,
   全資源情報: 資源情報[]
 ): 資源情報[] {
   switch (user.種別) {
