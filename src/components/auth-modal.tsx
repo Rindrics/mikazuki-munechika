@@ -9,7 +9,9 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-function getロール表示リスト(user: 認証済評価担当者 | 認証済資源評価管理者): { key: string; label: string }[] {
+function getロール表示リスト(
+  user: 認証済評価担当者 | 認証済資源評価管理者
+): { key: string; label: string }[] {
   if (user.種別 === "評価担当者") {
     return get担当資源情報s(user).map((info) => ({
       key: info.担当資源名,
@@ -68,9 +70,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <div className="text-sm text-gray-600">
                 <strong>ロール:</strong>
                 <ul className="list-disc list-inside mt-1 ml-4">
-                  {getロール表示リスト(user as 認証済評価担当者 | 認証済資源評価管理者).map(({ key, label }) => (
-                    <li key={key}>{label}</li>
-                  ))}
+                  {getロール表示リスト(user as 認証済評価担当者 | 認証済資源評価管理者).map(
+                    ({ key, label }) => (
+                      <li key={key}>{label}</li>
+                    )
+                  )}
                 </ul>
               </div>
             </div>
