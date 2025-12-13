@@ -12,6 +12,14 @@ import {
 import { logger } from "@/utils/logger";
 import { 資源名 } from "@/domain/models/stock";
 
+function encodeForStorage(value: string): string {
+  return btoa(value);
+}
+
+function decodeFromStorage(encoded: string): string {
+  return atob(encoded);
+}
+
 // ユーザー data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
 const INITIAL_USER_DATA = [
@@ -98,10 +106,10 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
         return null;
       }
 
-      // Store user ID in localStorage for session persistence
+      // Store encoded user ID in localStorage for session persistence
       const userId = getUserId(user);
       if (typeof window !== "undefined" && userId) {
-        localStorage.setItem("auth_user_id", userId);
+        localStorage.setItem("auth_user_id", encodeForStorage(userId));
       }
 
       logger.debug("authenticate completed", { userId, email });
@@ -131,12 +139,13 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
       return null;
     }
 
-    const storedユーザーId = localStorage.getItem("auth_user_id");
-    if (!storedユーザーId) {
+    const encodedUserId = localStorage.getItem("auth_user_id");
+    if (!encodedUserId) {
       return null;
     }
 
-    const user = this.usersById.get(storedユーザーId);
+    const userId = decodeFromStorage(encodedUserId);
+    const user = this.usersById.get(userId);
     return user ? to認証済ユーザー(user) : null;
   }
 
