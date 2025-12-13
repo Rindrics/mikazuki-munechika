@@ -28,6 +28,7 @@ class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
 
 describe("SaveAssessmentResultService", () => {
   const createMockStock = (name: string): 資源評価 => ({
+    作業ステータス: "未着手",
     対象: {
       呼称: "マイワシ",
       系群名: "テスト系群",

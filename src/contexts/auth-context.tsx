@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
-import { 認証済ユーザー, ユーザーRepository } from "@/domain";
+import { 認証済ユーザー, ユーザーRepository, getUserId } from "@/domain";
 import { createユーザーRepository } from "@/infrastructure";
 import { logger } from "@/utils/logger";
 
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logger.debug("Login failed: invalid credentials", { email });
         return false;
       }
-      logger.setContext({ userId: authenticatedユーザー.id });
+      logger.setContext({ userId: getUserId(authenticatedユーザー) });
       logger.info("Login successful", { email });
       setユーザー(authenticatedユーザー);
       return true;
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const userId = user?.id;
+    const userId = user ? getUserId(user) : undefined;
     logger.debug("Logout attempt", userId ? { userId } : undefined);
 
     try {
