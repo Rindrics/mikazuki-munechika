@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/auth-context";
 import {
   has資源アクセス権限,
   認証済評価担当者,
-  資源評価管理者,
+  認証済資源評価管理者,
   資源名,
   ABC算定結果,
 } from "@/domain";
@@ -78,7 +78,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Check if user has permission for this stock group
   const hasPermission = has資源アクセス権限(
-    user as 認証済評価担当者 | 資源評価管理者,
+    user as 認証済評価担当者 | 認証済資源評価管理者,
     stockGroupName
   );
 
@@ -107,7 +107,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       <p className="text-secondary mb-8">
         権限:{" "}
         <span className="font-medium">
-          {(user as 認証済評価担当者 | 資源評価管理者).種別 === "資源評価管理者"
+          {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
             ? "管理者"
             : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
         </span>

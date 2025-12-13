@@ -144,12 +144,20 @@ export function is認証済(user: ユーザー): boolean {
 }
 
 /**
+ * Exhaustiveness guard for switch statements.
+ * Ensures all cases are handled at compile time.
+ */
+function assertNever(value: never): never {
+  throw new Error(`Unhandled user type: ${JSON.stringify(value)}`);
+}
+
+/**
  * Get the list of assigned stocks for an assessment staff member.
  *
- * @param user - The assessment staff to get assigned stocks for
+ * @param user - The authenticated assessment staff to get assigned stocks for
  * @returns Array of stock assignment information
  */
-export function get担当資源情報s(user: 評価担当者): 担当資源情報[] {
+export function get担当資源情報s(user: 認証済評価担当者): 担当資源情報[] {
   return Object.entries(user.担当資源情報リスト)
     .filter(([_, role]) => role !== undefined)
     .map(([担当資源名, ロール]) => ({
@@ -161,12 +169,12 @@ export function get担当資源情報s(user: 評価担当者): 担当資源情�
 /**
  * Check if a user has access permission for a specific stock.
  *
- * @param user - The authenticated user (評価担当者 or 資源評価管理者)
+ * @param user - The authenticated user (認証済評価担当者 or 認証済資源評価管理者)
  * @param 対象資源名 - The stock name to check access for
  * @returns true if user has access permission
  */
 export function has資源アクセス権限(
-  user: 認証済評価担当者 | 資源評価管理者,
+  user: 認証済評価担当者 | 認証済資源評価管理者,
   対象資源名: 資源名
 ): boolean {
   switch (user.種別) {
@@ -174,13 +182,15 @@ export function has資源アクセス権限(
       return 対象資源名 in user.担当資源情報リスト;
     case "資源評価管理者":
       return true;
+    default:
+      return assertNever(user);
   }
 }
 
 /**
  * Get the list of assessable stocks with role information.
  *
- * @param user - The authenticated user (評価担当者 or 資源評価管理者)
+ * @param user - The authenticated user (認証済評価担当者 or 認証済資源評価管理者)
  * @param 全資源名s - All available stock names (required for 管理者)
  * @returns Array of stock assignment information
  */
@@ -196,13 +206,15 @@ export function get評価可能資源s(
         担当資源名: 資源名,
         ロール: 管理者ロール,
       }));
+    default:
+      return assertNever(user);
   }
 }
 
 /**
  * Get the list of accessible stock information for a user.
  *
- * @param user - The authenticated user (評価担当者 or 資源評価管理者)
+ * @param user - The authenticated user (認証済評価担当者 or 認証済資源評価管理者)
  * @param 全資源情報 - All available stock information
  * @returns Array of accessible stock information
  */
@@ -217,5 +229,7 @@ export function get閲覧可能資源情報s(
       );
     case "資源評価管理者":
       return 全資源情報;
+    default:
+      return assertNever(user);
   }
 }
