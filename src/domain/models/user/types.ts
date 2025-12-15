@@ -86,12 +86,12 @@ export type 認証済資源評価管理者 = 資源評価管理者 & {
  * 主担当者を表す型
  */
 export type 主担当者 = 認証済評価担当者 & {
-  readonly 担当資源情報リスト: Record<資源名, typeof 主担当ロール>;
+  readonly 担当資源情報リスト: Partial<Record<資源名, typeof 主担当ロール>>;
 };
 
 /**
  * 副担当者を表す型
  */
 export type 副担当者 = 認証済評価担当者 & {
-  readonly 担当資源情報リスト: Record<資源名, typeof 副担当ロール>;
+  readonly 担当資源情報リスト: Partial<Record<資源名, typeof 副担当ロール>>;
 };
