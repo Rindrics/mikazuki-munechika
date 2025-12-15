@@ -144,7 +144,15 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
       return null;
     }
 
-    const userId = decodeFromStorage(encodedUserId);
+    let userId: string;
+    try {
+      userId = decodeFromStorage(encodedUserId);
+    } catch {
+      // Remove corrupt data from localStorage
+      localStorage.removeItem("auth_user_id");
+      return null;
+    }
+
     const user = this.usersById.get(userId);
     return user ? to認証済ユーザー(user) : null;
   }
