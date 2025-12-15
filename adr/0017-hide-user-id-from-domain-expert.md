@@ -79,6 +79,11 @@ export function createユーザー(id: string, ...): ユーザー {
 - **No type-level distinction**: Cannot distinguish "user with ID" from "user without ID" at compile time
 - **Serialization requires explicit handling**: ID won't appear in `JSON.stringify()`
 
+> **Note on Object Identity and Security:**
+>
+> - `ユーザー` objects must not be deep-cloned or JSON-serialized and revived, because the WeakMap mapping is tied to object identity.
+> - WeakMap "hiding" is encapsulation against accidental coupling, not a security mechanism.
+
 ## Decision
 
 Use **WeakMap pattern** (Option 2) for hiding user IDs.
@@ -120,6 +125,17 @@ await supabase.from("users").update({...}).eq("id", id);
 - **WeakMap role**: Runtime mechanism to hide IDs from domain layer code
 - **WeakMap is ephemeral**: Data is lost on server restart/page reload (this is fine - we reload from DB)
 
+### Authentication is Delegated to Supabase
+
+User authentication is handled by Supabase (as decided in [ADR 0002](./0002-use-supabase-for-authentication.md)), not by this WeakMap pattern. The responsibilities are clearly separated:
+
+| Concern                                    | Responsibility                                       |
+| ------------------------------------------ | ---------------------------------------------------- |
+| **Authentication** (identity verification) | Supabase (session management, password verification) |
+| **ID Encapsulation** (hiding from domain)  | WeakMap pattern                                      |
+
+The WeakMap pattern only encapsulates the ID to keep the domain interface clean. It does not participate in verifying user identity - that is fully delegated to Supabase's authentication system.
+
 ### Implementation
 
 ```typescript
@@ -150,6 +166,8 @@ export function getUserId(user: ユーザー): string | undefined {
   return userIds.get(user);
 }
 ```
+
+> **Important:** The WeakMap mapping is tied to object identity. Do not deep-clone or JSON-serialize/revive `ユーザー` objects, as this will break the ID association. This encapsulation protects against accidental coupling, not against malicious access.
 
 ## Consequences
 
