@@ -16,11 +16,11 @@ import Link from "next/link";
 import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
 
 interface AssessmentPageProps {
-  params: Promise<{ 資源名: string }>;
+  params: Promise<{ stockGroupName: string }>;
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { 資源名: encodedName } = use(params);
+  const { stockGroupName: encodedName } = use(params);
   const stockGroupName = decodeURIComponent(encodedName) as 資源名;
 
   const { user, isLoading } = useAuth();
