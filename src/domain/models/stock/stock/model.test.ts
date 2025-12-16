@@ -18,6 +18,42 @@ import {
 import { describe, it, expect } from "vitest";
 import type { 主担当者, 副担当者 } from "../../user";
 
+// Shared test helpers
+const create未着手の資源評価 = () => {
+  return create資源評価(create資源情報(資源名s.マイワシ太平洋));
+};
+
+const create認証済み主担当者 = () => {
+  return to認証済評価担当者(
+    create評価担当者("user-1", "認証済主担当", "test@example.com", {
+      [資源名s.マイワシ太平洋]: ロールs.主担当,
+    })
+  ) as 主担当者;
+};
+
+const create作業中の資源評価 = () => {
+  const 未着手 = create未着手の資源評価();
+  const 認証済み主担当者 = create認証済み主担当者();
+  const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
+  return 進行中資源評価;
+};
+
+const create内部査読中の資源評価 = () => {
+  const 進行中資源評価 = create作業中の資源評価();
+  const 認証済み主担当者 = create認証済み主担当者();
+  const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
+  return 内部査読待ち資源評価;
+};
+
+const create外部査読中の資源評価 = () => {
+  const 内部査読中 = create内部査読中の資源評価();
+  const 認証済み管理者 = to認証済資源評価管理者(
+    create資源評価管理者("admin-1", "管理者", "admin@example.com")
+  );
+  const { 外部査読中資源評価 } = 外部公開(内部査読中, new Date(), 認証済み管理者);
+  return 外部査読中資源評価;
+};
+
 describe("資源情報", () => {
   it("期待通りの情報を保持している", () => {
     const maiwashiPacific = create資源情報(資源名s.マイワシ太平洋);
@@ -29,11 +65,6 @@ describe("資源情報", () => {
 });
 
 describe("作業着手", () => {
-  const create未着手の資源評価 = () => {
-    const 資源情報 = create資源情報(資源名s.マイワシ太平洋);
-    return create資源評価(資源情報);
-  };
-
   it("資源評価のステータスを「未着手」から「作業中」に変更する", () => {
     // Arrange
     const 未着手の資源評価 = create未着手の資源評価();
@@ -141,17 +172,6 @@ describe("作業着手", () => {
 });
 
 describe("内部査読依頼", () => {
-  const create作業中の資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    return 進行中資源評価;
-  };
-
   it("資源評価のステータスを「作業中」から「内部査読中」に変更する", () => {
     const 作業中の資源評価 = create作業中の資源評価();
     const 認証済み主担当者 = to認証済評価担当者(
@@ -221,18 +241,6 @@ describe("内部査読依頼", () => {
 });
 
 describe("内部査読依頼取り消し", () => {
-  const create内部査読中の資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
-    return 内部査読待ち資源評価;
-  };
-
   it("資源評価のステータスを「内部査読中」から「作業中」に変更する", () => {
     const 内部査読中の資源評価 = create内部査読中の資源評価();
     const 認証済み主担当者 = to認証済評価担当者(
@@ -307,19 +315,6 @@ describe("内部査読依頼取り消し", () => {
 });
 
 describe("外部公開", () => {
-  // Helper to create 内部査読中資源評価 (requires 作業着手 -> 内部査読依頼)
-  const create内部査読中の資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
-    return 内部査読待ち資源評価;
-  };
-
   it("資源評価のステータスを「内部査読中」から「外部査読中」に変更する", () => {
     const 内部査読中の資源評価 = create内部査読中の資源評価();
     const 認証済み資源評価管理者 = to認証済資源評価管理者(
@@ -349,30 +344,9 @@ describe("外部公開", () => {
 });
 
 describe("再検討依頼", () => {
-  const create内部査読中資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
-    return 内部査読待ち資源評価;
-  };
-
-  const create外部査読中資源評価 = () => {
-    const 内部査読中 = create内部査読中資源評価();
-    const 認証済み管理者 = to認証済資源評価管理者(
-      create資源評価管理者("admin-1", "管理者", "admin@example.com")
-    );
-    const { 外部査読中資源評価 } = 外部公開(内部査読中, new Date(), 認証済み管理者);
-    return 外部査読中資源評価;
-  };
-
   describe("外部査読中からの再検討依頼", () => {
     it("資源評価のステータスを「外部査読中」から「再検討中」に変更する", () => {
-      const 外部査読中の資源評価 = create外部査読中資源評価();
+      const 外部査読中の資源評価 = create外部査読中の資源評価();
       const 認証済み資源評価管理者 = to認証済資源評価管理者(
         create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
       );
@@ -384,7 +358,7 @@ describe("再検討依頼", () => {
     });
 
     it("再検討依頼イベントを正しく生成する", () => {
-      const 外部査読中の資源評価 = create外部査読中資源評価();
+      const 外部査読中の資源評価 = create外部査読中の資源評価();
       const 認証済み資源評価管理者 = to認証済資源評価管理者(
         create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
       );
@@ -399,7 +373,7 @@ describe("再検討依頼", () => {
     });
 
     it("副担当者は外部査読中の資源評価に再検討依頼できない", () => {
-      const 外部査読中の資源評価 = create外部査読中資源評価();
+      const 外部査読中の資源評価 = create外部査読中の資源評価();
       const 認証済み副担当者 = to認証済評価担当者(
         create評価担当者("user-2", "認証済副担当", "test@example.com", {
           [資源名s.マイワシ太平洋]: ロールs.副担当,
@@ -415,7 +389,7 @@ describe("再検討依頼", () => {
 
   describe("内部査読中からの再検討依頼", () => {
     it("資源評価管理者は内部査読中の資源評価に再検討依頼できる", () => {
-      const 内部査読中の資源評価 = create内部査読中資源評価();
+      const 内部査読中の資源評価 = create内部査読中の資源評価();
       const 認証済み資源評価管理者 = to認証済資源評価管理者(
         create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
       );
@@ -426,7 +400,7 @@ describe("再検討依頼", () => {
     });
 
     it("副担当者は内部査読中の資源評価に再検討依頼できる", () => {
-      const 内部査読中の資源評価 = create内部査読中資源評価();
+      const 内部査読中の資源評価 = create内部査読中の資源評価();
       const 認証済み副担当者 = to認証済評価担当者(
         create評価担当者("user-2", "認証済副担当", "test@example.com", {
           [資源名s.マイワシ太平洋]: ロールs.副担当,
@@ -441,26 +415,6 @@ describe("再検討依頼", () => {
 });
 
 describe("受理", () => {
-  const create内部査読中の資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
-    return 内部査読待ち資源評価;
-  };
-  const create外部査読中の資源評価 = () => {
-    const 内部査読中の資源評価 = create内部査読中の資源評価();
-    const 認証済み資源評価管理者 = to認証済資源評価管理者(
-      create資源評価管理者("user-1", "認証済資源評価管理者", "test@example.com")
-    );
-    const 日時 = new Date("2025-01-01T09:00:00Z");
-    const { 外部査読中資源評価 } = 外部公開(内部査読中の資源評価, 日時, 認証済み資源評価管理者);
-    return 外部査読中資源評価;
-  };
   it("内部査読中の資源評価を受理する", () => {
     const 内部査読中の資源評価 = create内部査読中の資源評価();
     const 認証済み資源評価管理者 = to認証済資源評価管理者(
@@ -494,39 +448,20 @@ describe("受理", () => {
 
 describe("受理取り消し", () => {
   const create内部査読受理済みの資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
+    const 内部査読中 = create内部査読中の資源評価();
     const 認証済み資源評価管理者 = to認証済資源評価管理者(
       create資源評価管理者("admin-1", "管理者", "admin@example.com")
     );
-    const { 受理済み資源評価 } = 受理(内部査読待ち資源評価, new Date(), 認証済み資源評価管理者);
+    const { 受理済み資源評価 } = 受理(内部査読中, new Date(), 認証済み資源評価管理者);
     return 受理済み資源評価;
   };
 
   const create外部査読受理済みの資源評価 = () => {
-    const 未着手 = create資源評価(create資源情報(資源名s.マイワシ太平洋));
-    const 認証済み主担当者 = to認証済評価担当者(
-      create評価担当者("user-1", "認証済主担当", "test@example.com", {
-        [資源名s.マイワシ太平洋]: ロールs.主担当,
-      })
-    ) as 主担当者;
-    const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-    const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
+    const 外部査読中 = create外部査読中の資源評価();
     const 認証済み資源評価管理者 = to認証済資源評価管理者(
       create資源評価管理者("admin-1", "管理者", "admin@example.com")
     );
-    const { 外部査読中資源評価 } = 外部公開(
-      内部査読待ち資源評価,
-      new Date(),
-      認証済み資源評価管理者
-    );
-    const { 受理済み資源評価 } = 受理(外部査読中資源評価, new Date(), 認証済み資源評価管理者);
+    const { 受理済み資源評価 } = 受理(外部査読中, new Date(), 認証済み資源評価管理者);
     return 受理済み資源評価;
   };
 
