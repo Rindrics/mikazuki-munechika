@@ -21,62 +21,17 @@ import {
 } from "../../user";
 import { describe, it, expect } from "vitest";
 import type { 主担当者, 副担当者 } from "../../user";
-
-// Shared test helpers
-const create未着手の資源評価 = () => {
-  return create資源評価(create資源情報(資源名s.マイワシ太平洋));
-};
-
-const create認証済み主担当者 = () => {
-  return to認証済評価担当者(
-    create評価担当者("user-1", "認証済主担当", "test@example.com", {
-      [資源名s.マイワシ太平洋]: ロールs.主担当,
-    })
-  ) as 主担当者;
-};
-
-const create作業中の資源評価 = () => {
-  const 未着手 = create未着手の資源評価();
-  const 認証済み主担当者 = create認証済み主担当者();
-  const { 進行中資源評価 } = 作業着手(未着手, new Date(), 認証済み主担当者);
-  return 進行中資源評価;
-};
-
-const create内部査読中の資源評価 = () => {
-  const 進行中資源評価 = create作業中の資源評価();
-  const 認証済み主担当者 = create認証済み主担当者();
-  const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
-  return 内部査読待ち資源評価;
-};
-
-const create外部査読中の資源評価 = () => {
-  const 内部査読中 = create内部査読中の資源評価();
-  const 認証済み管理者 = to認証済資源評価管理者(
-    create資源評価管理者("admin-1", "管理者", "admin@example.com")
-  );
-  const { 外部査読中資源評価 } = 外部公開(内部査読中, new Date(), 認証済み管理者);
-  return 外部査読中資源評価;
-};
-
-const create再検討中の資源評価_内部査読中から = () => {
-  const 内部査読中 = create内部査読中の資源評価();
-  const 認証済み副担当者 = to認証済評価担当者(
-    create評価担当者("user-2", "副担当", "sub@example.com", {
-      [資源名s.マイワシ太平洋]: ロールs.副担当,
-    })
-  ) as 副担当者;
-  const { 再検討待ち資源評価 } = 再検討依頼(内部査読中, new Date(), 認証済み副担当者);
-  return 再検討待ち資源評価;
-};
-
-const create再検討中の資源評価_外部査読中から = () => {
-  const 外部査読中 = create外部査読中の資源評価();
-  const 認証済み管理者 = to認証済資源評価管理者(
-    create資源評価管理者("admin-1", "管理者", "admin@example.com")
-  );
-  const { 再検討待ち資源評価 } = 再検討依頼(外部査読中, new Date(), 認証済み管理者);
-  return 再検討待ち資源評価;
-};
+import {
+  create未着手の資源評価,
+  create認証済み主担当者,
+  create認証済み副担当者,
+  create認証済み資源評価管理者,
+  create作業中の資源評価,
+  create内部査読中の資源評価,
+  create外部査読中の資源評価,
+  create再検討中の資源評価_内部査読中から,
+  create再検討中の資源評価_外部査読中から,
+} from "@/test-helpers";
 
 describe("作業着手", () => {
   it("資源評価のステータスを「未着手」から「作業中」に変更する", () => {
