@@ -207,7 +207,6 @@ describe("内部査読依頼", () => {
       name: "担当資源がないユーザー",
       createUser: () =>
         to認証済評価担当者(create評価担当者("user-2", "無担当ユーザー", "test@example.com", {})),
-      expectedError: "主担当者のみが操作できます",
     },
   ])("$name は内部査読依頼できない（主担当者のみ）", ({ createUser }) => {
     const 作業中の資源評価 = create作業中の資源評価();
