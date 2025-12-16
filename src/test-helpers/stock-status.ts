@@ -3,13 +3,7 @@
  */
 import { 資源名s, ロールs } from "@/domain/constants";
 import { create資源情報, create資源評価 } from "@/domain/helpers";
-import {
-  作業着手,
-  内部査読依頼,
-  外部公開,
-  再検討依頼,
-  受理,
-} from "@/domain/models/stock/status";
+import { 作業着手, 内部査読依頼, 外部公開, 再検討依頼, 受理 } from "@/domain/models/stock/status";
 import {
   create評価担当者,
   create資源評価管理者,

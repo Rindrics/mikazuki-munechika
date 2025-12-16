@@ -1,5 +1,4 @@
 import { 資源名s, ロールs } from "../../../constants";
-import { create資源情報, create資源評価 } from "../../../helpers";
 import {
   作業着手,
   内部査読依頼,
@@ -22,9 +21,6 @@ import { describe, it, expect } from "vitest";
 import type { 主担当者, 副担当者 } from "../../user";
 import {
   create未着手の資源評価,
-  create認証済み主担当者,
-  create認証済み副担当者,
-  create認証済み資源評価管理者,
   create作業中の資源評価,
   create内部査読中の資源評価,
   create外部査読中の資源評価,
