@@ -10,7 +10,7 @@ import type {
   担当資源情報,
   ロール,
   氏名,
-} from "./types";
+} from "./model";
 
 /**
  * Private storage for user IDs.
