@@ -7,13 +7,20 @@ import {
   認証済資源評価管理者,
   資源名,
   ABC算定結果,
+  is主担当者,
 } from "@/domain";
 import type { 評価ステータス } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import { StatusPanel } from "@/components/organisms";
+import { StatusChangeButton } from "@/components/molecules";
 import { use, useState } from "react";
 import Link from "next/link";
-import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
+import {
+  calculateAbcAction,
+  saveAssessmentResultAction,
+  requestInternalReviewAction,
+  cancelInternalReviewAction,
+} from "./actions";
 
 interface AssessmentPageProps {
   params: Promise<{ stockGroupName: string }>;
@@ -33,7 +40,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   // TODO: Fetch status from repository
-  const [currentStatus] = useState<評価ステータス>("作業中");
+  const [currentStatus, setCurrentStatus] = useState<評価ステータス>("作業中");
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -99,6 +106,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     );
   }
 
+  // Check if user is primary assignee for status change buttons
+  const isPrimaryAssignee =
+    (user as 認証済評価担当者).種別 === "評価担当者" &&
+    is主担当者(user as 認証済評価担当者, stockGroupName);
+
   return (
     <main className="p-8 max-w-3xl mx-auto">
       <div className="mb-4">
@@ -107,17 +119,54 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         </Link>
       </div>
 
-      <h1 className="mb-2">{stockGroupName}</h1>
-      <p className="text-secondary mb-4">
-        権限:{" "}
-        <span className="font-medium">
-          {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
-            ? "管理者"
-            : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
-        </span>
-      </p>
+      {/* Sticky header: Title + Status + Actions */}
+      <div className="sticky top-0 bg-background dark:bg-background-dark py-4 -mx-8 px-8 z-10 border-b border-secondary-light dark:border-secondary-dark mb-8">
+        <h1 className="mb-1">{stockGroupName}</h1>
+        <p className="text-secondary text-sm mb-3">
+          権限:{" "}
+          <span className="font-medium">
+            {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
+              ? "管理者"
+              : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
+          </span>
+        </p>
 
-      <StatusPanel status={currentStatus} stockName={stockGroupName} className="mb-8" />
+        <StatusPanel status={currentStatus}>
+            {/* Status change buttons for primary assignee */}
+            {isPrimaryAssignee && (
+              <>
+                {currentStatus === "作業中" && (
+                  <StatusChangeButton
+                    label="内部査読を依頼"
+                    confirmTitle="内部査読を依頼しますか？"
+                    confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
+                    variant="primary"
+                    onAction={async () => {
+                      const result = await requestInternalReviewAction(stockGroupName);
+                      if (result.success) {
+                        setCurrentStatus(result.newStatus);
+                      }
+                    }}
+                  />
+                )}
+                {currentStatus === "内部査読中" && (
+                  <StatusChangeButton
+                    label="内部査読依頼を取り消す"
+                    confirmTitle="内部査読依頼を取り消しますか？"
+                    confirmMessage="取り消すと、ステータスが「作業中」に戻ります。"
+                    variant="secondary"
+                    onAction={async () => {
+                      const result = await cancelInternalReviewAction(stockGroupName);
+                      if (result.success) {
+                        setCurrentStatus(result.newStatus);
+                      }
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </StatusPanel>
+      </div>
 
       <section className="mb-8">
         <h2 className="mb-4">パラメータ入力</h2>
