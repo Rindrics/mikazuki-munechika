@@ -17,7 +17,7 @@ import type {
  * This WeakMap is not exported, keeping user IDs completely hidden from external code.
  * IDs are stored here at runtime and retrieved only through getUserId().
  *
- * @see ADR 0017 for des  ign rationale
+ * See ADR 0017 for design rationale.
  */
 const userIds = new WeakMap<ユーザー, string>();
 
