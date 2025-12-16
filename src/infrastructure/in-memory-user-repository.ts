@@ -82,9 +82,13 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
         userData.rolesByStockGroup
       );
       const userId = getUserId(user);
-      if (userId) {
-        this.usersById.set(userId, user);
+      if (!userId) {
+        logger.error("Failed to get user ID - possible bug in factory", {
+          email: userData.email,
+        });
+        continue;
       }
+      this.usersById.set(userId, user);
       this.usersByEmail.set(user.メールアドレス, user);
       this.passwordsByEmail.set(user.メールアドレス, userData.password);
     }
@@ -108,7 +112,11 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
 
       // Store encoded user ID in localStorage for session persistence
       const userId = getUserId(user);
-      if (typeof window !== "undefined" && userId) {
+      if (!userId) {
+        logger.warn("authenticate: session persistence skipped - missing userId", {
+          email,
+        });
+      } else if (typeof window !== "undefined") {
         localStorage.setItem("auth_user_id", encodeForStorage(userId));
       }
 
