@@ -1,15 +1,9 @@
 import { 資源名s, 資源タイプs, ロールs } from "../../../constants";
 import { create資源情報, create資源評価 } from "../../../helpers";
-import { 作業着手, 内部査読依頼, 外部公開, 再検討依頼, 受理 } from "./model";
-import {
-  create評価担当者,
-  create資源評価管理者,
-  to認証済評価担当者,
-  主担当者,
-  副担当者,
-  to認証済資源評価管理者,
-} from "../../user";
+import { 作業着手, 内部査読依頼, 外部公開, 再検討依頼, 受理 } from "../status";
+import { create評価担当者, create資源評価管理者, to認証済評価担当者, to認証済資源評価管理者 } from "../../user";
 import { describe, it, expect } from "vitest";
+import type { 主担当者, 副担当者 } from "../../user";
 
 describe("資源情報", () => {
   it("期待通りの情報を保持している", () => {

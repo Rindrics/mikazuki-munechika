@@ -1,1 +1,2 @@
-export * from "./stock/model";
+export * from "./stock";
+export * from "./status";
