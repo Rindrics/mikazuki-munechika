@@ -5,8 +5,8 @@ import type { 認証済資源評価管理者 } from "../../user";
 import type { 副担当者 } from "../../user";
 import type { 認証済評価担当者 } from "../../user";
 import type { 資源名 } from "../stock";
-import { require主担当者, is主担当者 } from "../stock";
-import { is資源評価管理者 } from "../stock";
+import { require主担当者, is資源評価管理者 } from "../../user";
+
 /**
  * 資源評価の作業ステータスを管理する型
  */

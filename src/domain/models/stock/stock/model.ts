@@ -52,17 +52,3 @@ export interface 資源評価<TStatus extends 評価ステータス = 評価ス�
   資源量推定(catchData: 漁獲量データ, biologicalData: 生物学的データ): 資源評価<TStatus>;
   ABC算定(): ABC算定結果;
 }
-
-export function is主担当者(user: 認証済評価担当者, 対象資源名: 資源名): user is 主担当者 {
-  return user.担当資源情報リスト[対象資源名] === ロールs.主担当;
-}
-
-export function require主担当者(操作者: 認証済評価担当者, 対象資源名: 資源名): asserts 操作者 is 主担当者 {
-  if (!is主担当者(操作者, 対象資源名)) {
-    throw new Error("主担当者のみが操作できます");
-  }
-}
-
-export function is資源評価管理者(操作者: 認証済資源評価管理者 | 副担当者): 操作者 is 認証済資源評価管理者 {
-  return 操作者.種別 === "資源評価管理者";
-}
