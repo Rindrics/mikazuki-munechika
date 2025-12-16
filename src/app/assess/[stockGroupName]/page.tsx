@@ -21,6 +21,7 @@ import {
   requestInternalReviewAction,
   cancelInternalReviewAction,
   getAssessmentStatusAction,
+  startWorkAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -43,20 +44,36 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
   const [isStatusLoading, setIsStatusLoading] = useState(true);
 
-  // Fetch initial status from server
+  // Check if user is primary assignee for this stock
+  const isPrimaryAssignee =
+    user &&
+    (user as 認証済評価担当者).種別 === "評価担当者" &&
+    is主担当者(user as 認証済評価担当者, stockGroupName);
+
+  // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
-    const fetchStatus = async () => {
+    const fetchAndMaybeStartWork = async () => {
       try {
-        const status = await getAssessmentStatusAction(stockGroupName);
-        setCurrentStatus(status);
+        // For primary assignees, auto-start work (changes "未着手" to "作業中")
+        if (isPrimaryAssignee) {
+          const result = await startWorkAction(stockGroupName);
+          setCurrentStatus(result.newStatus);
+        } else {
+          const status = await getAssessmentStatusAction(stockGroupName);
+          setCurrentStatus(status);
+        }
       } catch (error) {
-        console.error("Failed to fetch status:", error);
+        console.error("Failed to fetch/update status:", error);
       } finally {
         setIsStatusLoading(false);
       }
     };
-    fetchStatus();
-  }, [stockGroupName]);
+
+    // Only run when user is loaded
+    if (!isLoading && user) {
+      fetchAndMaybeStartWork();
+    }
+  }, [stockGroupName, isPrimaryAssignee, isLoading, user]);
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -121,11 +138,6 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       </main>
     );
   }
-
-  // Check if user is primary assignee for status change buttons
-  const isPrimaryAssignee =
-    (user as 認証済評価担当者).種別 === "評価担当者" &&
-    is主担当者(user as 認証済評価担当者, stockGroupName);
 
   return (
     <main className="p-8 max-w-3xl mx-auto">

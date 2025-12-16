@@ -76,6 +76,47 @@ export async function getAssessmentStatusAction(
 }
 
 /**
+ * Start work on an assessment (primary assignee only)
+ * Changes status from "未着手" to "作業中"
+ */
+export async function startWorkAction(
+  stockGroupName: 資源名
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+
+  // Only update if status is "未着手"
+  if (currentAssessment && currentAssessment.ステータス !== "未着手") {
+    // Already started, just return the current status
+    return { success: true, newStatus: currentAssessment.ステータス };
+  }
+
+  // Update status to "作業中"
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "作業中",
+  });
+
+  logger.info("作業開始", { stockGroupName, userId: user.id });
+
+  return { success: true, newStatus: "作業中" };
+}
+
+/**
  * Request internal review for an assessment
  * Changes status from "作業中" to "内部査読中"
  */
