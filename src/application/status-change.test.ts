@@ -182,7 +182,7 @@ describe("受理取り消しユースケース", () => {
 
       const result = 内部査読受理取り消しユースケース(内部査読受理済み, 管理者);
 
-      expect(result.内部査読中資源評価!.作業ステータス).toBe("内部査読中");
+      expect(result.査読中資源評価.作業ステータス).toBe("内部査読中");
       expect(result.受理取り消し済み.変化前).toBe("外部公開可能");
       expect(result.受理取り消し済み.変化後).toBe("内部査読中");
     });
@@ -195,7 +195,7 @@ describe("受理取り消しユースケース", () => {
 
       const result = 外部査読受理取り消しユースケース(外部査読受理済み, 管理者);
 
-      expect(result.外部査読中資源評価!.作業ステータス).toBe("外部査読中");
+      expect(result.査読中資源評価.作業ステータス).toBe("外部査読中");
       expect(result.受理取り消し済み.変化前).toBe("外部査読受理済み");
       expect(result.受理取り消し済み.変化後).toBe("外部査読中");
     });

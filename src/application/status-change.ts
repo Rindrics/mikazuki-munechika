@@ -270,7 +270,7 @@ export function 内部査読受理取り消しユースケース(
   const result = 受理取り消し(対象資源評価, new Date(), 操作者);
 
   logger.info("内部査読受理取り消し完了", {
-    資源名: result.内部査読中資源評価!.対象.toString(),
+    資源名: result.査読中資源評価.対象.toString(),
     イベント: result.受理取り消し済み.toString(),
   });
 
@@ -293,7 +293,7 @@ export function 外部査読受理取り消しユースケース(
   const result = 受理取り消し(対象資源評価, new Date(), 操作者);
 
   logger.info("外部査読受理取り消し完了", {
-    資源名: result.外部査読中資源評価!.対象.toString(),
+    資源名: result.査読中資源評価.対象.toString(),
     イベント: result.受理取り消し済み.toString(),
   });
 
