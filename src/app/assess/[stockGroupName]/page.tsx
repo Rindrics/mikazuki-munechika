@@ -8,7 +8,9 @@ import {
   資源名,
   ABC算定結果,
 } from "@/domain";
+import type { 評価ステータス } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
+import { StatusPanel } from "@/components/organisms";
 import { use, useState } from "react";
 import Link from "next/link";
 import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
@@ -30,6 +32,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // TODO: Fetch status from repository
+  const [currentStatus] = useState<評価ステータス>("作業中");
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -104,7 +108,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       </div>
 
       <h1 className="mb-2">{stockGroupName}</h1>
-      <p className="text-secondary mb-8">
+      <p className="text-secondary mb-4">
         権限:{" "}
         <span className="font-medium">
           {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
@@ -112,6 +116,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
             : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
         </span>
       </p>
+
+      <StatusPanel status={currentStatus} stockName={stockGroupName} className="mb-8" />
 
       <section className="mb-8">
         <h2 className="mb-4">パラメータ入力</h2>
