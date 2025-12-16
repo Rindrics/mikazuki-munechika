@@ -183,9 +183,7 @@ export function 再検討依頼取り消しユースケース(
 
   // Validate operator role matches the origin status requirements
   if (元ステータス === "外部査読中" && !is資源評価管理者(操作者)) {
-    throw new Error(
-      "外部査読中からの再検討依頼取り消しは資源評価管理者のみが操作できます"
-    );
+    throw new Error("外部査読中からの再検討依頼取り消しは資源評価管理者のみが操作できます");
   }
 
   const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者);
