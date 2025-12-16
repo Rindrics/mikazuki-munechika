@@ -8,13 +8,7 @@ import {
   to認証済資源評価管理者,
 } from "@/domain/models/user";
 import type { 主担当者, 副担当者 } from "@/domain/models/user";
-import {
-  作業着手,
-  内部査読依頼,
-  外部公開,
-  再検討依頼,
-  受理,
-} from "@/domain/models/stock/status";
+import { 作業着手, 内部査読依頼, 外部公開, 再検討依頼, 受理 } from "@/domain/models/stock/status";
 import {
   評価開始ユースケース,
   内部査読依頼ユースケース,
@@ -53,9 +47,7 @@ const create認証済み副担当者 = () => {
 };
 
 const create認証済み資源評価管理者 = () => {
-  return to認証済資源評価管理者(
-    create資源評価管理者("admin-1", "管理者", "admin@example.com")
-  );
+  return to認証済資源評価管理者(create資源評価管理者("admin-1", "管理者", "admin@example.com"));
 };
 
 const create作業中の資源評価 = () => {
@@ -286,13 +278,22 @@ describe("新年度評価開始ユースケース", () => {
 
     const result = 新年度評価開始ユースケース(年度);
 
+    expect(result.年度).toBe(年度);
     const 全資源名 = Object.values(資源名s);
-    expect(result.size).toBe(全資源名.length);
+    expect(result.評価一覧.size).toBe(全資源名.length);
 
     for (const 資源名 of 全資源名) {
-      const 評価 = result.get(資源名);
+      const 評価 = result.評価一覧.get(資源名);
       expect(評価).toBeDefined();
       expect(評価!.作業ステータス).toBe("未着手");
     }
+  });
+
+  it("toString()で初期化結果を文字列化できる", () => {
+    const 年度 = 2025;
+
+    const result = 新年度評価開始ユースケース(年度);
+
+    expect(result.toString()).toBe("2025年度 資源評価初期化完了（4件）");
   });
 });

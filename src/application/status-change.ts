@@ -14,32 +14,27 @@ import {
   再検討依頼取り消し外部査読中へ,
   受理,
   受理取り消し,
-  新年度評価初期化,
-  type 未着手資源評価,
   type 進行中資源評価,
   type 内部査読中資源評価,
   type 外部査読中資源評価,
   type 内部査読受理済み資源評価,
   type 外部査読受理済み資源評価,
   type 再検討中資源評価,
-  type 年度,
 } from "@/domain/models/stock/status";
-import type {
-  認証済評価担当者,
-  認証済資源評価管理者,
-  副担当者,
-} from "@/domain/models/user";
-import type { 資源名 } from "@/domain/models/stock/stock";
+import {
+  新年度評価初期化,
+  type 未着手資源評価,
+  type 年度,
+  type 資源名,
+} from "@/domain/models/stock/stock";
+import type { 認証済評価担当者, 認証済資源評価管理者, 副担当者 } from "@/domain/models/user";
 import { logger } from "@/utils/logger";
 
 /**
  * 評価開始ユースケース
  * 未着手の資源評価を作業中に変更する
  */
-export function 評価開始ユースケース(
-  対象資源評価: 未着手資源評価,
-  操作者: 認証済評価担当者
-) {
+export function 評価開始ユースケース(対象資源評価: 未着手資源評価, 操作者: 認証済評価担当者) {
   logger.debug("評価開始ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
@@ -59,10 +54,7 @@ export function 評価開始ユースケース(
  * 内部査読依頼ユースケース
  * 作業中の資源評価を内部査読中に変更する
  */
-export function 内部査読依頼ユースケース(
-  対象資源評価: 進行中資源評価,
-  操作者: 認証済評価担当者
-) {
+export function 内部査読依頼ユースケース(対象資源評価: 進行中資源評価, 操作者: 認証済評価担当者) {
   logger.debug("内部査読依頼ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
@@ -312,14 +304,15 @@ export function 外部査読受理取り消しユースケース(
  * 新年度評価開始ユースケース
  * 新年度のすべての資源評価を未着手状態で初期化する
  */
-export function 新年度評価開始ユースケース(年度: 年度): Map<資源名, 未着手資源評価> {
+export function 新年度評価開始ユースケース(年度: 年度) {
   logger.debug("新年度評価開始ユースケース called", { 年度 });
 
   const result = 新年度評価初期化(年度);
 
+  const 初期化された資源名一覧: 資源名[] = [...result.評価一覧.keys()];
   logger.info("新年度評価開始完了", {
-    年度,
-    資源数: result.size,
+    message: result.toString(),
+    資源名一覧: 初期化された資源名一覧,
   });
 
   return result;

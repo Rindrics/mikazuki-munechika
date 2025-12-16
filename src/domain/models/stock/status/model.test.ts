@@ -12,6 +12,7 @@ import {
   受理,
   受理取り消し,
 } from "./model";
+import { 新年度評価初期化 } from "../stock";
 import {
   create評価担当者,
   create資源評価管理者,
@@ -662,5 +663,41 @@ describe("再検討依頼取り消し", () => {
       expect(再検討依頼取り消し済み.日時).toEqual(日時);
       expect(再検討依頼取り消し済み.操作者).toBe(認証済み資源評価管理者);
     });
+  });
+});
+
+describe("新年度評価初期化", () => {
+  it("すべての資源に対して未着手の資源評価を作成する", () => {
+    const 年度 = 2025;
+    const result = 新年度評価初期化(年度);
+
+    // Check that all resources are initialized
+    expect(result.年度).toBe(年度);
+    const 全資源名 = Object.values(資源名s);
+    expect(result.評価一覧.size).toBe(全資源名.length);
+
+    for (const 資源名 of 全資源名) {
+      const 評価 = result.評価一覧.get(資源名);
+      expect(評価).toBeDefined();
+      expect(評価!.作業ステータス).toBe("未着手");
+      expect(評価!.対象.toString()).toBe(資源名);
+    }
+  });
+
+  it("各資源評価は正しい資源情報を持つ", () => {
+    const 年度 = 2025;
+    const result = 新年度評価初期化(年度);
+
+    const マイワシ評価 = result.評価一覧.get(資源名s.マイワシ太平洋);
+    expect(マイワシ評価).toBeDefined();
+    expect(マイワシ評価!.対象.呼称).toBe("マイワシ");
+    expect(マイワシ評価!.対象.系群名).toBe("太平洋系群");
+  });
+
+  it("toString()で初期化結果を文字列化できる", () => {
+    const 年度 = 2025;
+    const result = 新年度評価初期化(年度);
+
+    expect(result.toString()).toBe("2025年度 資源評価初期化完了（4件）");
   });
 });

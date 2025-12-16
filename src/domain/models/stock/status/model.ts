@@ -1,10 +1,9 @@
-import type { 資源評価 } from "../stock";
+import type { 資源評価, 資源名, 未着手資源評価 } from "../stock";
 import type { 認証済ユーザー } from "../../user";
 import type { 主担当者 } from "../../user";
 import type { 認証済資源評価管理者 } from "../../user";
 import type { 副担当者 } from "../../user";
 import type { 認証済評価担当者 } from "../../user";
-import type { 資源名 } from "../stock";
 import { require主担当者, is資源評価管理者 } from "../../user";
 
 /**
@@ -22,7 +21,7 @@ export type 評価ステータス =
 /**
  * Status-specific assessment types
  */
-export type 未着手資源評価 = 資源評価<"未着手">;
+// 未着手資源評価 is exported from ../stock/model.ts
 // - 作業着手() ->
 export type 進行中資源評価 = 資源評価<"作業中">;
 // - 内部査読依頼() ->
