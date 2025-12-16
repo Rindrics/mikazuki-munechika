@@ -19,7 +19,6 @@ export type 評価ステータス =
   | "再検討中"
   | "外部査読受理済み";
 
-
 /**
  * Status-specific assessment types
  */
@@ -121,7 +120,7 @@ type 外部査読受理済み = ステータス変化イベント &
     readonly 操作者: 認証済資源評価管理者;
   };
 
-  function ステータス遷移<
+function ステータス遷移<
   TOperator extends 認証済ユーザー,
   TDef extends {
     readonly 変化前: 評価ステータス;
