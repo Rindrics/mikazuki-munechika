@@ -2,7 +2,13 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { useState } from "react";
-import { get担当資源情報s, ロールs } from "@/domain";
+import {
+  get評価可能資源s,
+  認証済評価担当者,
+  認証済資源評価管理者,
+  ロールs,
+  資源名s,
+} from "@/domain";
 import Link from "next/link";
 import AuthModal from "@/components/auth-modal";
 
@@ -37,10 +43,11 @@ export default function AssessPage() {
     );
   }
 
-  // Get stock groups where user is 主担当 or 副担当
-  const userRoles = get担当資源情報s(user);
-  const assessableStocks = userRoles.filter(
-    ({ ロール }) => ロール === ロールs.主担当 || ロール === ロールs.副担当
+  // Get assessable stocks for the user
+  const 全資源名リスト = Object.values(資源名s);
+  const assessableStocks = get評価可能資源s(
+    user as 認証済評価担当者 | 認証済資源評価管理者,
+    全資源名リスト
   );
 
   if (assessableStocks.length === 0) {

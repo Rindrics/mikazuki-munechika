@@ -1,13 +1,24 @@
 import {
   ユーザーRepository,
   ユーザー,
+  評価担当者,
   認証済ユーザー,
   to認証済ユーザー,
+  create評価担当者,
+  getUserId,
   資源名s,
   ロールs,
 } from "@/domain";
 import { logger } from "@/utils/logger";
 import { 資源名 } from "@/domain/models/stock";
+
+function encodeForStorage(value: string): string {
+  return btoa(value);
+}
+
+function decodeFromStorage(encoded: string): string {
+  return atob(encoded);
+}
 
 // ユーザー data with passwords for in-memory repository (used in preview environments)
 // These match the users created by the create-users script (ADR 0003)
@@ -57,19 +68,27 @@ const INITIAL_USER_DATA = [
 ] as const;
 
 export class InMemoryユーザーRepository implements ユーザーRepository {
-  private usersById: Map<string, ユーザー> = new Map();
-  private usersByEmail: Map<string, ユーザー> = new Map();
+  private usersById: Map<string, 評価担当者> = new Map();
+  private usersByEmail: Map<string, 評価担当者> = new Map();
   private passwordsByEmail: Map<string, string> = new Map();
 
   constructor() {
-    // Initialize with default users
+    // Initialize with default users using factory function
     for (const userData of INITIAL_USER_DATA) {
-      const user: ユーザー = {
-        id: userData.id,
-        メールアドレス: userData.email,
-        担当資源情報リスト: userData.rolesByStockGroup,
-      };
-      this.usersById.set(user.id, user);
+      const user = create評価担当者(
+        userData.id,
+        "", // 氏名 (not used in preview)
+        userData.email,
+        userData.rolesByStockGroup
+      );
+      const userId = getUserId(user);
+      if (!userId) {
+        logger.error("Failed to get user ID - possible bug in factory", {
+          email: userData.email,
+        });
+        continue;
+      }
+      this.usersById.set(userId, user);
       this.usersByEmail.set(user.メールアドレス, user);
       this.passwordsByEmail.set(user.メールアドレス, userData.password);
     }
@@ -91,12 +110,17 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
         return null;
       }
 
-      // Store user ID in localStorage for session persistence
-      if (typeof window !== "undefined") {
-        localStorage.setItem("auth_user_id", user.id);
+      // Store encoded user ID in localStorage for session persistence
+      const userId = getUserId(user);
+      if (!userId) {
+        logger.warn("authenticate: session persistence skipped - missing userId", {
+          email,
+        });
+      } else if (typeof window !== "undefined") {
+        localStorage.setItem("auth_user_id", encodeForStorage(userId));
       }
 
-      logger.debug("authenticate completed", { userId: user.id, email });
+      logger.debug("authenticate completed", { userId, email });
       return to認証済ユーザー(user);
     } catch (error) {
       logger.error("authenticate failed", { email }, error as Error);
@@ -123,12 +147,21 @@ export class InMemoryユーザーRepository implements ユーザーRepository {
       return null;
     }
 
-    const storedユーザーId = localStorage.getItem("auth_user_id");
-    if (!storedユーザーId) {
+    const encodedUserId = localStorage.getItem("auth_user_id");
+    if (!encodedUserId) {
       return null;
     }
 
-    const user = this.usersById.get(storedユーザーId);
+    let userId: string;
+    try {
+      userId = decodeFromStorage(encodedUserId);
+    } catch {
+      // Remove corrupt data from localStorage
+      localStorage.removeItem("auth_user_id");
+      return null;
+    }
+
+    const user = this.usersById.get(userId);
     return user ? to認証済ユーザー(user) : null;
   }
 

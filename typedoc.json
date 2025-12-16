@@ -1,7 +1,8 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "src/domain/models/stock/index.ts",
+    "src/domain/models/stock/stock/index.ts",
+    "src/domain/models/stock/status/index.ts",
     "src/domain/models/user/index.ts",
     "src/domain/models/reference/index.ts",
     "src/domain/constants/index.ts",

@@ -4,6 +4,8 @@ import {
   ユーザー,
   認証済ユーザー,
   to認証済ユーザー,
+  create評価担当者,
+  getUserId,
   資源名,
   ロール,
 } from "@/domain";
@@ -66,7 +68,7 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
         return null;
       }
 
-      logger.debug("authenticate completed", { userId: user.id, email });
+      logger.debug("authenticate completed", { userId: getUserId(user), email });
       return to認証済ユーザー(user);
     } catch (error) {
       logger.error("authenticate failed", { email }, error as Error);
@@ -163,11 +165,7 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
           ? currentユーザー.email || ""
           : `user-${userId.substring(0, 8)}`;
 
-      users.push({
-        id: userId,
-        メールアドレス: email,
-        担当資源情報リスト,
-      });
+      users.push(create評価担当者(userId, "", email, 担当資源情報リスト));
     }
 
     return users;
@@ -217,10 +215,6 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
     }
 
     logger.debug("completed", { userId, email, 担当資源情報リスト });
-    return {
-      id: userId,
-      メールアドレス: email,
-      担当資源情報リスト,
-    };
+    return create評価担当者(userId, "", email, 担当資源情報リスト);
   }
 }

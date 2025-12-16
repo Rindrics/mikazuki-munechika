@@ -1,12 +1,8 @@
 import {
-  認証済ユーザー,
-  ユーザー,
-  担当資源情報,
   type 資源名,
   type 資源グループ呼称,
   資源情報,
-  資源評価,
-  type ロール,
+  type 未着手資源評価,
   type 文献情報,
   文献リスト,
 } from "./models";
@@ -14,18 +10,8 @@ import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./da
 import { 資源グループs } from "./constants";
 import { logger } from "../utils/logger";
 
-export function to認証済ユーザー(user: ユーザー): 認証済ユーザー {
-  return user as 認証済ユーザー;
-}
-
-export function get担当資源情報s(user: ユーザー): 担当資源情報[] {
-  return Object.entries(user.担当資源情報リスト)
-    .filter(([_, role]) => role !== undefined)
-    .map(([担当資源名, ロール]) => ({
-      担当資源名: 担当資源名 as 資源名,
-      ロール: ロール as ロール,
-    }));
-}
+// Re-export user factory functions for backward compatibility
+export { to認証済ユーザー, get担当資源情報s } from "./models/user/factory";
 
 export function create資源情報(name: 資源名 | string): 資源情報 {
   const trimmedName = typeof name === "string" ? name.trim() : name;
@@ -66,7 +52,7 @@ export function create資源情報(name: 資源名 | string): 資源情報 {
   throw new Error(`不正な資源名: ${trimmedName}`);
 }
 
-function createType1Stock(stockGroup: 資源情報): 資源評価 {
+function createType1Stock(stockGroup: 資源情報): 未着手資源評価 {
   return createStock(stockGroup, {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
     ABC算定: (abundance) => ({
@@ -75,7 +61,7 @@ function createType1Stock(stockGroup: 資源情報): 資源評価 {
   });
 }
 
-function createType2Stock(stockGroup: 資源情報): 資源評価 {
+function createType2Stock(stockGroup: 資源情報): 未着手資源評価 {
   return createStock(stockGroup, {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
@@ -84,7 +70,7 @@ function createType2Stock(stockGroup: 資源情報): 資源評価 {
   });
 }
 
-function createType3Stock(stockGroup: 資源情報): 資源評価 {
+function createType3Stock(stockGroup: 資源情報): 未着手資源評価 {
   return createStock(stockGroup, {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
@@ -106,7 +92,7 @@ function createType3Stock(stockGroup: 資源情報): 資源評価 {
  * const stock = create資源評価(stockGroup); // Creates Type1Stock
  * ```
  */
-export function create資源評価(stockGroup: 資源情報): 資源評価 {
+export function create資源評価(stockGroup: 資源情報): 未着手資源評価 {
   switch (stockGroup.資源タイプ) {
     case 1:
       return createType1Stock(stockGroup);
@@ -124,10 +110,11 @@ interface StockConfig {
   ABC算定: (資源量: string) => ABC算定結果;
 }
 
-function createStock(stockGroup: 資源情報, config: StockConfig): 資源評価 {
+function createStock(stockGroup: 資源情報, config: StockConfig): 未着手資源評価 {
   let abundance: string | undefined;
 
   return {
+    作業ステータス: "未着手",
     対象: stockGroup,
     get 資源量() {
       if (abundance === undefined) {
@@ -135,7 +122,7 @@ function createStock(stockGroup: 資源情報, config: StockConfig): 資源評�
       }
       return abundance;
     },
-    資源量推定(catchData: 漁獲量データ, biologicalData: 生物学的データ): 資源評価 {
+    資源量推定(catchData: 漁獲量データ, biologicalData: 生物学的データ): 未着手資源評価 {
       abundance = `estimated using ${catchData.value} and ${biologicalData.value}`;
       return this;
     },

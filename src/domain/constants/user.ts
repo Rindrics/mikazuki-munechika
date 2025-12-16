@@ -10,3 +10,7 @@ export const ロールs = {
   副担当: "副担当",
   管理者: "管理者",
 } as const;
+
+export const 主担当ロール = ロールs.主担当;
+export const 副担当ロール = ロールs.副担当;
+export const 管理者ロール = ロールs.管理者;
