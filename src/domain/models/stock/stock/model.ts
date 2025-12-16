@@ -19,7 +19,10 @@ export type 資源グループ呼称 = (typeof 資源グループ呼称s)[keyof 
  *
  * @example
  * ```typescript
- * const stockGroup: 資源情報 = create資源情報(資源名.マイワシ太平洋);
+ * import { create資源情報 } from "@/domain/helpers";
+ * import { 資源名s } from "@/domain/constants";
+ *
+ * const stockGroup: 資源情報 = create資源情報(資源名s.マイワシ太平洋);
  * stockGroup.呼称       // "マイワシ"
  * stockGroup.系群名     // "太平洋系群"
  * stockGroup.資源タイプ // 1
