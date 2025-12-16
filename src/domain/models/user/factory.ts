@@ -223,10 +223,10 @@ export function get閲覧可能資源情報s(
   全資源情報: 資源情報[]
 ): 資源情報[] {
   switch (user.種別) {
-    case "評価担当者":
-      return 全資源情報.filter((資源) =>
-        Object.keys(user.担当資源情報リスト).includes(資源.toString())
-      );
+    case "評価担当者": {
+      const 担当資源名Set = new Set(Object.keys(user.担当資源情報リスト));
+      return 全資源情報.filter((資源) => 担当資源名Set.has(資源.toString()));
+    }
     case "資源評価管理者":
       return 全資源情報;
     default:
