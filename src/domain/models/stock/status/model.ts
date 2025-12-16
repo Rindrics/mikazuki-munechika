@@ -317,7 +317,7 @@ export function 外部公開(
 /**
  * Origin status type for reconsideration requests
  */
-export type 再検討起源ステータス = "内部査読中" | "外部査読中";
+export type 再検討前ステータス = "内部査読中" | "外部査読中";
 
 export function 再検討依頼(
   対象資源評価: 内部査読中資源評価 | 外部査読中資源評価,
@@ -326,7 +326,7 @@ export function 再検討依頼(
 ): {
   再検討待ち資源評価: 再検討中資源評価;
   再検討依頼済み: 再検討依頼済み;
-  起源: 再検討起源ステータス;
+  元ステータス: 再検討前ステータス;
 } {
   if (対象資源評価.作業ステータス === "外部査読中") {
     if (!is資源評価管理者(操作者)) {
@@ -338,7 +338,7 @@ export function 再検討依頼(
       操作者,
       外部査読中再検討依頼イベント定義
     );
-    return { 再検討待ち資源評価, 再検討依頼済み, 起源: "外部査読中" };
+    return { 再検討待ち資源評価, 再検討依頼済み, 元ステータス: "外部査読中" };
   }
 
   const { 更新後資源評価: 再検討待ち資源評価, イベント: 再検討依頼済み } = ステータス遷移(
@@ -347,7 +347,7 @@ export function 再検討依頼(
     操作者,
     内部査読中再検討依頼イベント定義
   );
-  return { 再検討待ち資源評価, 再検討依頼済み, 起源: "内部査読中" };
+  return { 再検討待ち資源評価, 再検討依頼済み, 元ステータス: "内部査読中" };
 }
 
 export function 受理(
@@ -441,7 +441,7 @@ export function 外部公開停止(
 /**
  * Cancel a reconsideration request and return to the original review status
  *
- * @param 起源 - The origin status from which reconsideration was requested.
+ * @param 元ステータス - The origin status from which reconsideration was requested.
  *               Must match the actual origin of the reconsideration request.
  * @throws Error if origin is "外部査読中" and operator is not a 資源評価管理者
  */
@@ -449,7 +449,7 @@ export function 再検討依頼取り消し(
   対象資源評価: 再検討中資源評価,
   日時: Date,
   操作者: 認証済資源評価管理者 | 副担当者,
-  起源: "内部査読中"
+  元ステータス: "内部査読中"
 ): {
   査読中資源評価: 内部査読中資源評価;
   再検討依頼取り消し済み: 再検討依頼取り消し内部査読中へ済み;
@@ -458,7 +458,7 @@ export function 再検討依頼取り消し(
   対象資源評価: 再検討中資源評価,
   日時: Date,
   操作者: 認証済資源評価管理者,
-  起源: "外部査読中"
+  元ステータス: "外部査読中"
 ): {
   査読中資源評価: 外部査読中資源評価;
   再検討依頼取り消し済み: 再検討依頼取り消し外部査読中へ済み;
@@ -467,12 +467,12 @@ export function 再検討依頼取り消し(
   対象資源評価: 再検討中資源評価,
   日時: Date,
   操作者: 認証済資源評価管理者 | 副担当者,
-  起源: 再検討起源ステータス
+  元ステータス: 再検討前ステータス
 ): {
   査読中資源評価: 内部査読中資源評価 | 外部査読中資源評価;
   再検討依頼取り消し済み: 再検討依頼取り消し内部査読中へ済み | 再検討依頼取り消し外部査読中へ済み;
 } {
-  if (起源 === "外部査読中") {
+  if (元ステータス === "外部査読中") {
     if (!is資源評価管理者(操作者)) {
       throw new Error("外部査読中からの再検討依頼取り消しは資源評価管理者のみが操作できます");
     }

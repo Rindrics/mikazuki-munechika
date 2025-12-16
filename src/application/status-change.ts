@@ -19,7 +19,7 @@ import {
   type 内部査読受理済み資源評価,
   type 外部査読受理済み資源評価,
   type 再検討中資源評価,
-  type 再検討起源ステータス,
+  type 再検討前ステータス,
 } from "@/domain/models/stock/status";
 import {
   新年度評価初期化,
@@ -210,30 +210,45 @@ export function 再検討依頼取り消し外部査読中へユースケース(
 
 /**
  * 再検討依頼取り消しユースケース（汎用）
- * 再検討中の資源評価を起源のステータスに戻す
+ * 再検討中の資源評価を元のステータスに戻す
  *
- * @param 起源 - 再検討依頼の起源ステータス（内部査読中 or 外部査読中）
+ * @param 元ステータス - 再検討依頼前のステータス（内部査読中 or 外部査読中）
  */
 export function 再検討依頼取り消しユースケース(
   対象資源評価: 再検討中資源評価,
   操作者: 認証済資源評価管理者 | 副担当者,
-  起源: 再検討起源ステータス
+  元ステータス: 再検討前ステータス
 ) {
   logger.debug("再検討依頼取り消しユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
-    起源,
+    元ステータス,
   });
 
-  const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者, 起源);
-
-  logger.info("再検討依頼取り消し完了", {
-    資源名: result.査読中資源評価.対象.toString(),
-    イベント: result.再検討依頼取り消し済み.toString(),
-    戻り先: 起源,
-  });
-
-  return result;
+  // Dispatch to the appropriate overload based on origin
+  if (元ステータス === "内部査読中") {
+    const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者, "内部査読中");
+    logger.info("再検討依頼取り消し完了", {
+      資源名: result.査読中資源評価.対象.toString(),
+      イベント: result.再検討依頼取り消し済み.toString(),
+      戻り先: 元ステータス,
+    });
+    return result;
+  } else {
+    // For external review cancellation, operator must be admin (validated by domain function)
+    const result = 再検討依頼取り消し(
+      対象資源評価,
+      new Date(),
+      操作者 as 認証済資源評価管理者,
+      "外部査読中"
+    );
+    logger.info("再検討依頼取り消し完了", {
+      資源名: result.査読中資源評価.対象.toString(),
+      イベント: result.再検討依頼取り消し済み.toString(),
+      戻り先: 元ステータス,
+    });
+    return result;
+  }
 }
 
 /**
