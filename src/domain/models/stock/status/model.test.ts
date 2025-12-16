@@ -697,7 +697,8 @@ describe("新年度評価初期化", () => {
   it("toString()で初期化結果を文字列化できる", () => {
     const 年度 = 2025;
     const result = 新年度評価初期化(年度);
+    const 資源数 = Object.values(資源名s).length;
 
-    expect(result.toString()).toBe("2025年度 資源評価初期化完了（4件）");
+    expect(result.toString()).toBe(`${年度}年度 資源評価初期化完了（${資源数}件）`);
   });
 });
