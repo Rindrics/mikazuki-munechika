@@ -13,13 +13,14 @@ import type { 評価ステータス } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import { StatusPanel } from "@/components/organisms";
 import { StatusChangeButton } from "@/components/molecules";
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import {
   calculateAbcAction,
   saveAssessmentResultAction,
   requestInternalReviewAction,
   cancelInternalReviewAction,
+  getAssessmentStatusAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -39,8 +40,23 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  // TODO: Fetch status from repository
-  const [currentStatus, setCurrentStatus] = useState<評価ステータス>("作業中");
+  const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
+  const [isStatusLoading, setIsStatusLoading] = useState(true);
+
+  // Fetch initial status from server
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const status = await getAssessmentStatusAction(stockGroupName);
+        setCurrentStatus(status);
+      } catch (error) {
+        console.error("Failed to fetch status:", error);
+      } finally {
+        setIsStatusLoading(false);
+      }
+    };
+    fetchStatus();
+  }, [stockGroupName]);
 
   const handleCalculate = async () => {
     setIsCalculating(true);

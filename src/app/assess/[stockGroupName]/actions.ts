@@ -11,7 +11,18 @@ import {
 } from "@/domain";
 import type { 評価ステータス } from "@/domain/models/stock/status";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
+import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
+import { logger } from "@/utils/logger";
+
+// Get current fiscal year (April-based fiscal year in Japan)
+function getCurrentFiscalYear(): number {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 0-indexed
+  const year = now.getFullYear();
+  // Fiscal year starts in April
+  return month >= 4 ? year : year - 1;
+}
 
 export async function calculateAbcAction(
   stockGroupName: 資源名,
@@ -41,6 +52,30 @@ export async function saveAssessmentResultAction(
 }
 
 /**
+ * Get current assessment status for a stock
+ */
+export async function getAssessmentStatusAction(
+  stockGroupName: 資源名
+): Promise<評価ステータス> {
+  const repository = await create資源評価RepositoryServer();
+  const 年度 = getCurrentFiscalYear();
+
+  const assessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+
+  // If no assessment exists, initialize it as "未着手"
+  if (!assessment) {
+    await repository.save({
+      資源名: stockGroupName,
+      年度,
+      ステータス: "未着手",
+    });
+    return "未着手";
+  }
+
+  return assessment.ステータス;
+}
+
+/**
  * Request internal review for an assessment
  * Changes status from "作業中" to "内部査読中"
  */
@@ -57,10 +92,23 @@ export async function requestInternalReviewAction(
     throw new Error("認証が必要です");
   }
 
-  // TODO: Get current assessment status from repository
-  // TODO: Persist status change to database
-  // For now, just return the new status
-  console.log(`[Action] 内部査読依頼: ${stockGroupName} by ${user.email}`);
+  const repository = await create資源評価RepositoryServer();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (currentAssessment && currentAssessment.ステータス !== "作業中") {
+    throw new Error(`現在のステータスが「作業中」ではありません: ${currentAssessment.ステータス}`);
+  }
+
+  // Update status
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "内部査読中",
+  });
+
+  logger.info("内部査読依頼完了", { stockGroupName, userId: user.id });
 
   return { success: true, newStatus: "内部査読中" };
 }
@@ -82,10 +130,23 @@ export async function cancelInternalReviewAction(
     throw new Error("認証が必要です");
   }
 
-  // TODO: Get current assessment status from repository
-  // TODO: Persist status change to database
-  // For now, just return the new status
-  console.log(`[Action] 内部査読依頼取り消し: ${stockGroupName} by ${user.email}`);
+  const repository = await create資源評価RepositoryServer();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (currentAssessment && currentAssessment.ステータス !== "内部査読中") {
+    throw new Error(`現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`);
+  }
+
+  // Update status
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "作業中",
+  });
+
+  logger.info("内部査読依頼取り消し完了", { stockGroupName, userId: user.id });
 
   return { success: true, newStatus: "作業中" };
 }
