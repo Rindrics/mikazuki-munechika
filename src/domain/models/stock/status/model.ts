@@ -31,7 +31,16 @@ export type 内部査読受理済み資源評価 = 資源評価<"外部公開可
 // - 外部公開() ->
 export type 外部査読中資源評価 = 資源評価<"外部査読中">;
 // - 再検討依頼() ->
-export type 再検討中資源評価 = 資源評価<"再検討中">;
+/**
+ * Origin status type for reconsideration (before reconsideration was requested)
+ */
+export type 再検討前ステータス = "内部査読中" | "外部査読中";
+/**
+ * 再検討中の資源評価は元ステータスを保持する
+ */
+export interface 再検討中資源評価 extends 資源評価<"再検討中"> {
+  readonly 元ステータス: 再検討前ステータス;
+}
 // - 受理() ->
 export type 外部査読受理済み資源評価 = 資源評価<"外部査読受理済み">;
 
@@ -314,11 +323,6 @@ export function 外部公開(
   return { 外部査読中資源評価, 外部公開済み };
 }
 
-/**
- * Origin status type for reconsideration requests
- */
-export type 再検討前ステータス = "内部査読中" | "外部査読中";
-
 export function 再検討依頼(
   対象資源評価: 内部査読中資源評価 | 外部査読中資源評価,
   日時: Date,
@@ -326,28 +330,35 @@ export function 再検討依頼(
 ): {
   再検討待ち資源評価: 再検討中資源評価;
   再検討依頼済み: 再検討依頼済み;
-  元ステータス: 再検討前ステータス;
 } {
   if (対象資源評価.作業ステータス === "外部査読中") {
     if (!is資源評価管理者(操作者)) {
       throw new Error("外部査読中の再検討依頼は資源評価管理者のみが操作できます");
     }
-    const { 更新後資源評価: 再検討待ち資源評価, イベント: 再検討依頼済み } = ステータス遷移(
+    const { 更新後資源評価, イベント: 再検討依頼済み } = ステータス遷移(
       対象資源評価,
       日時,
       操作者,
       外部査読中再検討依頼イベント定義
     );
-    return { 再検討待ち資源評価, 再検討依頼済み, 元ステータス: "外部査読中" };
+    // Add 元ステータス to the assessment for later cancellation
+    const 再検討待ち資源評価: 再検討中資源評価 = Object.assign(更新後資源評価, {
+      元ステータス: "外部査読中" as const,
+    });
+    return { 再検討待ち資源評価, 再検討依頼済み };
   }
 
-  const { 更新後資源評価: 再検討待ち資源評価, イベント: 再検討依頼済み } = ステータス遷移(
+  const { 更新後資源評価, イベント: 再検討依頼済み } = ステータス遷移(
     対象資源評価,
     日時,
     操作者,
     内部査読中再検討依頼イベント定義
   );
-  return { 再検討待ち資源評価, 再検討依頼済み, 元ステータス: "内部査読中" };
+  // Add 元ステータス to the assessment for later cancellation
+  const 再検討待ち資源評価: 再検討中資源評価 = Object.assign(更新後資源評価, {
+    元ステータス: "内部査読中" as const,
+  });
+  return { 再検討待ち資源評価, 再検討依頼済み };
 }
 
 export function 受理(
@@ -441,37 +452,19 @@ export function 外部公開停止(
 /**
  * Cancel a reconsideration request and return to the original review status
  *
- * @param 元ステータス - The origin status from which reconsideration was requested.
- *               Must match the actual origin of the reconsideration request.
+ * The origin status is read from 対象資源評価.元ステータス (set during 再検討依頼)
  * @throws Error if origin is "外部査読中" and operator is not a 資源評価管理者
  */
 export function 再検討依頼取り消し(
   対象資源評価: 再検討中資源評価,
   日時: Date,
-  操作者: 認証済資源評価管理者 | 副担当者,
-  元ステータス: "内部査読中"
-): {
-  査読中資源評価: 内部査読中資源評価;
-  再検討依頼取り消し済み: 再検討依頼取り消し内部査読中へ済み;
-};
-export function 再検討依頼取り消し(
-  対象資源評価: 再検討中資源評価,
-  日時: Date,
-  操作者: 認証済資源評価管理者,
-  元ステータス: "外部査読中"
-): {
-  査読中資源評価: 外部査読中資源評価;
-  再検討依頼取り消し済み: 再検討依頼取り消し外部査読中へ済み;
-};
-export function 再検討依頼取り消し(
-  対象資源評価: 再検討中資源評価,
-  日時: Date,
-  操作者: 認証済資源評価管理者 | 副担当者,
-  元ステータス: 再検討前ステータス
+  操作者: 認証済資源評価管理者 | 副担当者
 ): {
   査読中資源評価: 内部査読中資源評価 | 外部査読中資源評価;
   再検討依頼取り消し済み: 再検討依頼取り消し内部査読中へ済み | 再検討依頼取り消し外部査読中へ済み;
 } {
+  const 元ステータス = 対象資源評価.元ステータス;
+
   if (元ステータス === "外部査読中") {
     if (!is資源評価管理者(操作者)) {
       throw new Error("外部査読中からの再検討依頼取り消しは資源評価管理者のみが操作できます");

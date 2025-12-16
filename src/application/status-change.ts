@@ -19,7 +19,6 @@ import {
   type 内部査読受理済み資源評価,
   type 外部査読受理済み資源評価,
   type 再検討中資源評価,
-  type 再検討前ステータス,
 } from "@/domain/models/stock/status";
 import {
   新年度評価初期化,
@@ -27,6 +26,7 @@ import {
   type 年度,
   type 資源名,
 } from "@/domain/models/stock/stock";
+import { is資源評価管理者 } from "@/domain/models/user";
 import type { 認証済評価担当者, 認証済資源評価管理者, 副担当者 } from "@/domain/models/user";
 import { logger } from "@/utils/logger";
 
@@ -163,92 +163,40 @@ export function 再検討依頼ユースケース(
 }
 
 /**
- * 再検討依頼取り消しユースケース（内部査読中へ）
- * 再検討中の資源評価を内部査読中に戻す
- */
-export function 再検討依頼取り消し内部査読中へユースケース(
-  対象資源評価: 再検討中資源評価,
-  操作者: 認証済資源評価管理者 | 副担当者
-) {
-  logger.debug("再検討依頼取り消し内部査読中へユースケース called", {
-    資源名: 対象資源評価.対象.toString(),
-    操作者: 操作者.氏名,
-  });
-
-  const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者, "内部査読中");
-
-  logger.info("再検討依頼取り消し完了（内部査読中へ）", {
-    資源名: result.査読中資源評価.対象.toString(),
-    イベント: result.再検討依頼取り消し済み.toString(),
-  });
-
-  return result;
-}
-
-/**
- * 再検討依頼取り消しユースケース（外部査読中へ）
- * 再検討中の資源評価を外部査読中に戻す
- */
-export function 再検討依頼取り消し外部査読中へユースケース(
-  対象資源評価: 再検討中資源評価,
-  操作者: 認証済資源評価管理者
-) {
-  logger.debug("再検討依頼取り消し外部査読中へユースケース called", {
-    資源名: 対象資源評価.対象.toString(),
-    操作者: 操作者.氏名,
-  });
-
-  const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者, "外部査読中");
-
-  logger.info("再検討依頼取り消し完了（外部査読中へ）", {
-    資源名: result.査読中資源評価.対象.toString(),
-    イベント: result.再検討依頼取り消し済み.toString(),
-  });
-
-  return result;
-}
-
-/**
- * 再検討依頼取り消しユースケース（汎用）
+ * 再検討依頼取り消しユースケース
  * 再検討中の資源評価を元のステータスに戻す
  *
- * @param 元ステータス - 再検討依頼前のステータス（内部査読中 or 外部査読中）
+ * 元ステータスは対象資源評価.元ステータスから自動的に取得されます
+ * @throws Error if 元ステータス is "外部査読中" and 操作者 is not a 資源評価管理者
  */
 export function 再検討依頼取り消しユースケース(
   対象資源評価: 再検討中資源評価,
-  操作者: 認証済資源評価管理者 | 副担当者,
-  元ステータス: 再検討前ステータス
+  操作者: 認証済資源評価管理者 | 副担当者
 ) {
+  const 元ステータス = 対象資源評価.元ステータス;
+
   logger.debug("再検討依頼取り消しユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
     元ステータス,
   });
 
-  // Dispatch to the appropriate overload based on origin
-  if (元ステータス === "内部査読中") {
-    const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者, "内部査読中");
-    logger.info("再検討依頼取り消し完了", {
-      資源名: result.査読中資源評価.対象.toString(),
-      イベント: result.再検討依頼取り消し済み.toString(),
-      戻り先: 元ステータス,
-    });
-    return result;
-  } else {
-    // For external review cancellation, operator must be admin (validated by domain function)
-    const result = 再検討依頼取り消し(
-      対象資源評価,
-      new Date(),
-      操作者 as 認証済資源評価管理者,
-      "外部査読中"
+  // Validate operator role matches the origin status requirements
+  if (元ステータス === "外部査読中" && !is資源評価管理者(操作者)) {
+    throw new Error(
+      "外部査読中からの再検討依頼取り消しは資源評価管理者のみが操作できます"
     );
-    logger.info("再検討依頼取り消し完了", {
-      資源名: result.査読中資源評価.対象.toString(),
-      イベント: result.再検討依頼取り消し済み.toString(),
-      戻り先: 元ステータス,
-    });
-    return result;
   }
+
+  const result = 再検討依頼取り消し(対象資源評価, new Date(), 操作者);
+
+  logger.info("再検討依頼取り消し完了", {
+    資源名: result.査読中資源評価.対象.toString(),
+    イベント: result.再検討依頼取り消し済み.toString(),
+    戻り先: 元ステータス,
+  });
+
+  return result;
 }
 
 /**
