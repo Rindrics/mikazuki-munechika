@@ -100,6 +100,10 @@ export function is主担当者(user: 認証済評価担当者, 対象資源名: 
   return user.担当資源情報リスト[対象資源名] === ロールs.主担当;
 }
 
+export function is副担当者(user: 認証済評価担当者, 対象資源名: 資源名): user is 副担当者 {
+  return user.担当資源情報リスト[対象資源名] === ロールs.副担当;
+}
+
 export function require主担当者(
   操作者: 認証済評価担当者,
   対象資源名: 資源名

@@ -5,9 +5,11 @@ import {
   認証済ユーザー,
   to認証済ユーザー,
   create評価担当者,
+  create資源評価管理者,
   getUserId,
   資源名,
   ロール,
+  ロールs,
 } from "@/domain";
 import { getSupabaseClient } from "./supabase-client";
 import { logger } from "@/utils/logger";
@@ -195,11 +197,17 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
       return undefined;
     }
 
-    // Build 担当資源情報リスト mapping
+    // Build 担当資源情報リスト mapping and check for admin role
     const 担当資源情報リスト: Partial<Record<資源名, ロール>> = {};
+    let is管理者 = false;
 
     if (userRoles) {
       for (const userRole of userRoles) {
+        // Check if user has admin role
+        if (userRole.role === ロールs.管理者) {
+          is管理者 = true;
+        }
+
         // Handle Supabase JOIN result type
         const stockGroups = userRole.stock_groups;
         if (Array.isArray(stockGroups) && stockGroups.length > 0) {
@@ -214,7 +222,12 @@ export class SupabaseユーザーRepository implements ユーザーRepository {
       }
     }
 
-    logger.debug("completed", { userId, email, 担当資源情報リスト });
+    logger.debug("completed", { userId, email, 担当資源情報リスト, is管理者 });
+
+    // Return 資源評価管理者 if user has admin role, otherwise 評価担当者
+    if (is管理者) {
+      return create資源評価管理者(userId, "", email);
+    }
     return create評価担当者(userId, "", email, 担当資源情報リスト);
   }
 }

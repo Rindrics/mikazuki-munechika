@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { SaveAssessmentResultService } from "./save-assessment-result";
-import type { AssessmentResultRepository, 資源評価, ABC算定結果 } from "@/domain";
+import type { AssessmentResultRepository, ABC算定結果 } from "@/domain";
+import type { 進行中資源評価 } from "@/domain/models/stock/status";
 
 /**
  * In-memory implementation of AssessmentResultRepository for testing
@@ -27,20 +28,22 @@ class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
 }
 
 describe("SaveAssessmentResultService", () => {
-  const createMockStock = (name: string): 資源評価 => ({
-    作業ステータス: "未着手",
-    対象: {
-      呼称: "マイワシ",
-      系群名: "テスト系群",
-      資源タイプ: 1,
-      equals: vi.fn(),
-      toString: () => name,
-      toDisplayString: vi.fn(),
-    },
-    資源量: "",
-    資源量推定: vi.fn(),
-    ABC算定: vi.fn(),
-  });
+  // Create a mock stock with "作業中" status (required for saving)
+  const createMockStock = (name: string): 進行中資源評価 =>
+    ({
+      作業ステータス: "作業中",
+      対象: {
+        呼称: "マイワシ",
+        系群名: "テスト系群",
+        資源タイプ: 1,
+        equals: vi.fn(),
+        toString: () => name,
+        toDisplayString: vi.fn(),
+      },
+      資源量: "",
+      資源量推定: vi.fn(),
+      ABC算定: vi.fn(),
+    }) as 進行中資源評価;
 
   describe("execute", () => {
     it("saves result to repository", async () => {

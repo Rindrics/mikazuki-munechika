@@ -7,18 +7,32 @@ import {
   認証済資源評価管理者,
   資源名,
   ABC算定結果,
+  is主担当者,
+  is副担当者,
 } from "@/domain";
+import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
-import { use, useState } from "react";
+import { StatusPanel } from "@/components/organisms";
+import { StatusChangeButton } from "@/components/molecules";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
-import { calculateAbcAction, saveAssessmentResultAction } from "./actions";
+import {
+  calculateAbcAction,
+  saveAssessmentResultAction,
+  requestInternalReviewAction,
+  cancelInternalReviewAction,
+  getAssessmentStatusAction,
+  startWorkAction,
+  approveInternalReviewAction,
+  publishExternallyAction,
+} from "./actions";
 
 interface AssessmentPageProps {
-  params: Promise<{ 資源名: string }>;
+  params: Promise<{ stockGroupName: string }>;
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { 資源名: encodedName } = use(params);
+  const { stockGroupName: encodedName } = use(params);
   const stockGroupName = decodeURIComponent(encodedName) as 資源名;
 
   const { user, isLoading } = useAuth();
@@ -30,6 +44,49 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
+  const [_isStatusLoading, setIsStatusLoading] = useState(true);
+
+  // Check if user is primary assignee for this stock
+  const isPrimaryAssignee =
+    user &&
+    (user as 認証済評価担当者).種別 === "評価担当者" &&
+    is主担当者(user as 認証済評価担当者, stockGroupName);
+
+  // Check if user is secondary assignee for this stock
+  const isSecondaryAssignee =
+    user &&
+    (user as 認証済評価担当者).種別 === "評価担当者" &&
+    is副担当者(user as 認証済評価担当者, stockGroupName);
+
+  // Check if user is administrator
+  const is管理者 =
+    user && (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
+
+  // Fetch initial status from server and auto-start work for primary assignee
+  useEffect(() => {
+    const fetchAndMaybeStartWork = async () => {
+      try {
+        // For primary assignees, auto-start work (changes "未着手" to "作業中")
+        if (isPrimaryAssignee) {
+          const result = await startWorkAction(stockGroupName);
+          setCurrentStatus(result.newStatus);
+        } else {
+          const status = await getAssessmentStatusAction(stockGroupName);
+          setCurrentStatus(status);
+        }
+      } catch (error) {
+        console.error("Failed to fetch/update status:", error);
+      } finally {
+        setIsStatusLoading(false);
+      }
+    };
+
+    // Only run when user is loaded
+    if (!isLoading && user) {
+      fetchAndMaybeStartWork();
+    }
+  }, [stockGroupName, isPrimaryAssignee, isLoading, user]);
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -103,15 +160,84 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         </Link>
       </div>
 
-      <h1 className="mb-2">{stockGroupName}</h1>
-      <p className="text-secondary mb-8">
-        権限:{" "}
-        <span className="font-medium">
-          {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
-            ? "管理者"
-            : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
-        </span>
-      </p>
+      {/* Sticky header: Title + Status + Actions */}
+      <div className="sticky top-0 bg-background dark:bg-background-dark py-4 -mx-8 px-8 z-10 border-b border-secondary-light dark:border-secondary-dark mb-8">
+        <h1 className="mb-1">{stockGroupName}</h1>
+        <p className="text-secondary text-sm mb-3">
+          権限:{" "}
+          <span className="font-medium">
+            {(user as 認証済評価担当者 | 認証済資源評価管理者).種別 === "資源評価管理者"
+              ? "管理者"
+              : ((user as 認証済評価担当者).担当資源情報リスト[stockGroupName] ?? "担当")}
+          </span>
+        </p>
+
+        <StatusPanel status={currentStatus}>
+          {/* Status change buttons for primary assignee */}
+          {isPrimaryAssignee && (
+            <>
+              {currentStatus === "作業中" && (
+                <StatusChangeButton
+                  label="内部査読を依頼"
+                  confirmTitle="内部査読を依頼しますか？"
+                  confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
+                  variant="primary"
+                  onAction={async () => {
+                    const result = await requestInternalReviewAction(stockGroupName);
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+              {currentStatus === "内部査読中" && (
+                <StatusChangeButton
+                  label="内部査読依頼を取り消す"
+                  confirmTitle="内部査読依頼を取り消しますか？"
+                  confirmMessage="取り消すと、ステータスが「作業中」に戻ります。"
+                  variant="secondary"
+                  onAction={async () => {
+                    const result = await cancelInternalReviewAction(stockGroupName);
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+            </>
+          )}
+          {/* Status change buttons for secondary assignee */}
+          {isSecondaryAssignee && currentStatus === "内部査読中" && (
+            <StatusChangeButton
+              label="承諾する"
+              confirmTitle="内部査読を承諾しますか？"
+              confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+              variant="success"
+              onAction={async () => {
+                const result = await approveInternalReviewAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
+          {/* Status change buttons for administrator */}
+          {is管理者 && currentStatus === "外部公開可能" && (
+            <StatusChangeButton
+              label="外部公開する"
+              confirmTitle="外部公開しますか？"
+              confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
+              variant="primary"
+              onAction={async () => {
+                const result = await publishExternallyAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
+        </StatusPanel>
+      </div>
 
       <section className="mb-8">
         <h2 className="mb-4">パラメータ入力</h2>
@@ -177,7 +303,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         <button
           type="button"
           onClick={handleSave}
-          disabled={!calculationResult || isSaving || isSaved}
+          disabled={!calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)}
           className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
         >
           {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
