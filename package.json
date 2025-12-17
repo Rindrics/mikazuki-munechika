@@ -17,6 +17,7 @@
     "migrate": "supabase db push",
     "migrate:local": "supabase db reset",
     "create-users": "tsx scripts/create-users.ts",
+    "init-assessments": "tsx scripts/initialize-assessments.ts",
     "maintenance:enable": "tsx scripts/toggle-maintenance-mode.ts enable",
     "maintenance:disable": "tsx scripts/toggle-maintenance-mode.ts disable",
     "docs:generate": "typedoc",
