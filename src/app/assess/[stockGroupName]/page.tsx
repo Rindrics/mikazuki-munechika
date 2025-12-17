@@ -24,6 +24,7 @@ import {
   getAssessmentStatusAction,
   startWorkAction,
   approveInternalReviewAction,
+  publishExternallyAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -57,6 +58,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is副担当者(user as 認証済評価担当者, stockGroupName);
+
+  // Check if user is administrator
+  const is管理者 =
+    user &&
+    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
 
   // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
@@ -210,6 +216,21 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 variant="success"
                 onAction={async () => {
                   const result = await approveInternalReviewAction(stockGroupName);
+                  if (result.success) {
+                    setCurrentStatus(result.newStatus);
+                  }
+                }}
+              />
+            )}
+            {/* Status change buttons for administrator */}
+            {is管理者 && currentStatus === "外部公開可能" && (
+              <StatusChangeButton
+                label="外部公開する"
+                confirmTitle="外部公開しますか？"
+                confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
+                variant="primary"
+                onAction={async () => {
+                  const result = await publishExternallyAction(stockGroupName);
                   if (result.success) {
                     setCurrentStatus(result.newStatus);
                   }

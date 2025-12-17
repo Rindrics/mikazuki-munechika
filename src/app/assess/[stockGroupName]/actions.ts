@@ -282,3 +282,54 @@ export async function approveInternalReviewAction(
 
   return { success: true, newStatus: "外部公開可能" };
 }
+
+/**
+ * Publish assessment externally (administrator only)
+ * Changes status from "外部公開可能" to "外部査読中"
+ */
+export async function publishExternallyAction(
+  stockGroupName: 資源名
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (currentAssessment && currentAssessment.ステータス !== "外部公開可能") {
+    throw new Error(`現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`);
+  }
+
+  const beforeStatus = currentAssessment?.ステータス ?? "外部公開可能";
+
+  // Update status
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "外部査読中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "外部査読中",
+    reason: "外部公開",
+  });
+
+  logger.info("外部公開完了", { stockGroupName, userId: user.id });
+
+  return { success: true, newStatus: "外部査読中" };
+}
