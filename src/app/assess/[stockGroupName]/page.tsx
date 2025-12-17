@@ -26,6 +26,7 @@ import {
   startWorkAction,
   approveInternalReviewAction,
   publishExternallyAction,
+  stopExternalPublicationAction,
   getVersionHistoryAction,
   getPublicationHistoryAction,
 } from "./actions";
@@ -307,6 +308,20 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               variant="primary"
               onAction={async () => {
                 const result = await publishExternallyAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
+          {is管理者 && currentStatus === "外部査読中" && (
+            <StatusChangeButton
+              label="公開停止"
+              confirmTitle="外部公開を停止しますか？"
+              confirmMessage="公開停止すると、ステータスが「外部公開可能」に戻ります。"
+              variant="secondary"
+              onAction={async () => {
+                const result = await stopExternalPublicationAction(stockGroupName);
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
                 }
