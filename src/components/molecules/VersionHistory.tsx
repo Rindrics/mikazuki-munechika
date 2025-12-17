@@ -10,11 +10,7 @@ interface PublicationRecord {
 }
 
 // Statuses where the approved version is actually "approved" (not just "under review")
-const 承諾済みステータス: 評価ステータス[] = [
-  "外部公開可能",
-  "外部査読中",
-  "外部査読受理済み",
-];
+const 承諾済みステータス: 評価ステータス[] = ["外部公開可能", "外部査読中", "外部査読受理済み"];
 
 interface VersionHistoryProps {
   versions: VersionedAssessmentResult[];
@@ -51,8 +47,7 @@ export function VersionHistory({
 
   // "承諾済み" label should only show when the status indicates actual approval
   // (not just "under review" which is "内部査読中")
-  const isActuallyApproved =
-    currentStatus && 承諾済みステータス.includes(currentStatus);
+  const isActuallyApproved = currentStatus && 承諾済みステータス.includes(currentStatus);
 
   return (
     <div className={`border rounded-lg ${className}`}>

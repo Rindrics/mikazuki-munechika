@@ -135,7 +135,6 @@ export default function ManagePage() {
           >
             ログイン
           </button>
-          
         </p>
         <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </main>

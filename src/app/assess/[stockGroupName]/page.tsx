@@ -15,11 +15,7 @@ import { type 評価ステータス, can保存評価結果 } from "@/domain/mode
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
-import {
-  StatusChangeButton,
-  VersionHistory,
-  ButtonGroup,
-} from "@/components/molecules";
+import { StatusChangeButton, VersionHistory, ButtonGroup } from "@/components/molecules";
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -269,25 +265,24 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {/* Status change buttons for primary assignee */}
           {isPrimaryAssignee && (
             <>
-              {(currentStatus === "作業中" || currentStatus === "再検討中") &&
-                selectedVersion && (
-                  <StatusChangeButton
-                    label="内部査読を依頼"
-                    confirmTitle="内部査読を依頼しますか？"
-                    confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
-                    variant="primary"
-                    onAction={async () => {
-                      const result = await requestInternalReviewAction(
-                        stockGroupName,
-                        selectedVersion
-                      );
-                      if (result.success) {
-                        setCurrentStatus(result.newStatus);
-                        setApprovedVersion(result.requestedVersion);
-                      }
-                    }}
-                  />
-                )}
+              {(currentStatus === "作業中" || currentStatus === "再検討中") && selectedVersion && (
+                <StatusChangeButton
+                  label="内部査読を依頼"
+                  confirmTitle="内部査読を依頼しますか？"
+                  confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
+                  variant="primary"
+                  onAction={async () => {
+                    const result = await requestInternalReviewAction(
+                      stockGroupName,
+                      selectedVersion
+                    );
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                      setApprovedVersion(result.requestedVersion);
+                    }
+                  }}
+                />
+              )}
               {currentStatus === "内部査読中" && (
                 <StatusChangeButton
                   label="内部査読依頼を取り消す"
@@ -394,89 +389,91 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           <section className="mb-8">
             <h2 className="mb-4">パラメータ入力</h2>
 
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="catchData" className="block mb-2 font-medium">
-              漁獲データ
-            </label>
-            <input
-              id="catchData"
-              type="text"
-              value={catchDataValue}
-              onChange={(e) => set漁獲量データValue(e.target.value)}
-              placeholder="漁獲データを入力"
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="catchData" className="block mb-2 font-medium">
+                  漁獲データ
+                </label>
+                <input
+                  id="catchData"
+                  type="text"
+                  value={catchDataValue}
+                  onChange={(e) => set漁獲量データValue(e.target.value)}
+                  placeholder="漁獲データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="biologicalData" className="block mb-2 font-medium">
-              生物学的データ
-            </label>
-            <input
-              id="biologicalData"
-              type="text"
-              value={biologicalDataValue}
-              onChange={(e) => set生物学的データValue(e.target.value)}
-              placeholder="生物学的データを入力"
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-4">計算・プレビュー</h2>
-
-        <button
-          type="button"
-          onClick={handleCalculate}
-          disabled={!catchDataValue || !biologicalDataValue || isCalculating}
-          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-        >
-          {isCalculating ? "計算中..." : "ABC を計算"}
-        </button>
-
-        <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
-          {calculationResult ? (
-            <div>
-              <p className="font-medium mb-1">計算結果:</p>
-              <p>{calculationResult.value}</p>
+              <div>
+                <label htmlFor="biologicalData" className="block mb-2 font-medium">
+                  生物学的データ
+                </label>
+                <input
+                  id="biologicalData"
+                  type="text"
+                  value={biologicalDataValue}
+                  onChange={(e) => set生物学的データValue(e.target.value)}
+                  placeholder="生物学的データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
-          ) : (
-            <p className="text-secondary italic">計算結果がここに表示されます</p>
-          )}
-        </div>
-      </section>
+          </section>
 
-      <section className="mb-8">
-        <h2 className="mb-4">登録</h2>
+          <section className="mb-8">
+            <h2 className="mb-4">計算・プレビュー</h2>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)}
-          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-        >
-          {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
-        </button>
+            <button
+              type="button"
+              onClick={handleCalculate}
+              disabled={!catchDataValue || !biologicalDataValue || isCalculating}
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+            >
+              {isCalculating ? "計算中..." : "ABC を計算"}
+            </button>
 
-        {isSaved && savedVersion !== null && (
-          <p className="mt-4 text-success font-medium">
-            {isNewVersion
-              ? `評価結果を v${savedVersion} として登録しました。`
-              : `既存バージョン (v${savedVersion}) と同じパラメータです。`}
-          </p>
-        )}
+            <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
+              {calculationResult ? (
+                <div>
+                  <p className="font-medium mb-1">計算結果:</p>
+                  <p>{calculationResult.value}</p>
+                </div>
+              ) : (
+                <p className="text-secondary italic">計算結果がここに表示されます</p>
+              )}
+            </div>
+          </section>
 
-        {saveError && (
-          <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
-            <p className="text-danger-dark font-medium dark:text-foreground-dark">
-              結果の登録に失敗しました
-            </p>
-          </div>
-        )}
-      </section>
+          <section className="mb-8">
+            <h2 className="mb-4">登録</h2>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={
+                !calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)
+              }
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
+            </button>
+
+            {isSaved && savedVersion !== null && (
+              <p className="mt-4 text-success font-medium">
+                {isNewVersion
+                  ? `評価結果を v${savedVersion} として登録しました。`
+                  : `既存バージョン (v${savedVersion}) と同じパラメータです。`}
+              </p>
+            )}
+
+            {saveError && (
+              <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
+                <p className="text-danger-dark font-medium dark:text-foreground-dark">
+                  結果の登録に失敗しました
+                </p>
+              </div>
+            )}
+          </section>
         </div>
 
         {/* Right column: Version history (sticky on large screens) */}

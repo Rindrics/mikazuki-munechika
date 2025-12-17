@@ -287,6 +287,7 @@ CREATE INDEX idx_assessment_publications_lookup
 **Decision: No special handling for race conditions (YAGNI)**
 
 Potential race condition when determining revision number:
+
 - Between reading the last publication and inserting a new record, another request could insert with the same revision number.
 
 **Why we don't handle this:**

@@ -35,9 +35,7 @@ export function ButtonGroup({
   const equalWidthClass = equalWidth ? "[&>*]:flex-1" : "";
 
   return (
-    <div
-      className={`flex ${directionClass} ${gapStyles[gap]} ${equalWidthClass} ${className}`}
-    >
+    <div className={`flex ${directionClass} ${gapStyles[gap]} ${equalWidthClass} ${className}`}>
       {children}
     </div>
   );
