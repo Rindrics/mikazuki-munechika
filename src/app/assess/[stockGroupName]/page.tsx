@@ -13,6 +13,7 @@ import {
 import type { VersionedAssessmentResult } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
+import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
 import {
   StatusChangeButton,
@@ -66,6 +67,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   >([]);
   const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
   const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Load version data into form fields
   const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
@@ -210,7 +212,16 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     return (
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">資源評価</h1>
-        <p className="text-secondary">ログインしてください。</p>
+        <p className="text-secondary">
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="text-primary underline hover:opacity-80"
+          >
+            ログイン
+          </button>
+          してください
+        </p>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </main>
     );
   }
