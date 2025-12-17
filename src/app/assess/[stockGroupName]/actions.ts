@@ -717,33 +717,23 @@ export async function publishExternallyAction(
   const beforeStatus = currentAssessment.ステータス;
   const stockGroupId = await getStockGroupId(supabase, stockGroupName);
 
-  // Get next revision number for this publication
-  // Note: Race conditions are unlikely because:
-  // 1. Single primary assignee per stock
-  // 2. Status check guards against concurrent operations (see ADR 0018)
-  const { data: lastPublication, error: pubError } = await supabase
-    .from("assessment_publications")
-    .select("revision_number")
-    .eq("stock_group_id", stockGroupId)
-    .eq("fiscal_year", 年度)
-    .order("revision_number", { ascending: false })
-    .limit(1)
-    .single();
+  // Atomically insert publication record and get the assigned revision number
+  // This prevents race conditions by using a database function with row-level locking
+  const { data: revisionNumber, error: insertError } = await supabase.rpc(
+    "insert_publication_atomic",
+    {
+      p_stock_group_id: stockGroupId,
+      p_fiscal_year: 年度,
+      p_internal_version: currentAssessment.承諾バージョン,
+    }
+  );
 
-  // revision_number starts at 1 (initial publication) and increments for revisions
-  const revisionNumber = pubError || !lastPublication ? 1 : lastPublication.revision_number + 1;
-
-  // Record the publication
-  const { error: insertError } = await supabase.from("assessment_publications").insert({
-    stock_group_id: stockGroupId,
-    fiscal_year: 年度,
-    internal_version: currentAssessment.承諾バージョン,
-    revision_number: revisionNumber,
-    published_at: new Date().toISOString(),
-  });
-
-  if (insertError) {
-    logger.error("公開履歴の記録に失敗しました", { stockGroupName, 年度 }, insertError);
+  if (insertError || revisionNumber === null) {
+    logger.error(
+      "公開履歴の記録に失敗しました",
+      { stockGroupName, 年度 },
+      insertError ? new Error(insertError.message) : undefined
+    );
     throw new Error("公開履歴の記録に失敗しました");
   }
 

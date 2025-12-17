@@ -284,21 +284,31 @@ CREATE INDEX idx_assessment_publications_lookup
 
 ### Race Condition Considerations
 
-**Decision: No special handling for race conditions (YAGNI)**
+**Decision: Atomic insertion using database function**
 
 Potential race condition when determining revision number:
 
 - Between reading the last publication and inserting a new record, another request could insert with the same revision number.
 
-**Why we don't handle this:**
+**Why handle race conditions despite single primary assignee per stock:**
 
-1. **Single primary assignee per stock**: Each stock has exactly one primary assignee, so concurrent operations on the same stock are rare.
-2. **Administrator-only publication**: External publication requires administrator role, limiting concurrent access.
-3. **Status check as guard**: Before publishing, we check that status is "外部公開可能". After successful publication, status changes to "外部査読中". A second concurrent request would fail this check.
-4. **Double-click protection**: Even if a user double-clicks, the second request fails with "ステータスが「外部公開可能」ではありません" because the first request already changed the status.
-5. **Unique constraint**: The database has `UNIQUE(stock_group_id, fiscal_year, revision_number)` as a final safety net.
+While each stock has exactly one primary assignee (making concurrent operations rare), we still implemented atomic insertion for the following reasons:
 
-If race conditions become a real problem in the future, we can add atomic insertion using a database function with advisory locks.
+1. **Defense in depth**: Even with business-level constraints, database-level protection provides an additional safety layer.
+2. **Administrator operations**: External publication is performed by administrators, not primary assignees. Multiple administrators could theoretically operate on the same stock simultaneously.
+3. **Future-proofing**: As the system scales, assumptions about single operators may change.
+4. **Low implementation cost**: Using a database function with row-level locking is straightforward and has minimal performance impact.
+
+**Implementation:**
+
+The `insert_publication_atomic` database function atomically:
+
+1. Acquires a row-level lock using `FOR UPDATE`
+2. Calculates the next revision number
+3. Inserts the new publication record
+4. Returns the assigned revision number
+
+This ensures uniqueness without relying on client-side logic or retry mechanisms.
 
 ## Implementation Notes
 
