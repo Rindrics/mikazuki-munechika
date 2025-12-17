@@ -37,11 +37,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       {/* Content */}
       <div className="relative z-10 bg-background dark:bg-background-dark rounded-lg shadow-xl max-w-md w-full mx-4">
         {children}

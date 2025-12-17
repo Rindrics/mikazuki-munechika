@@ -47,11 +47,7 @@ export function StatusChangeButton({
 
   return (
     <div className={className}>
-      <Button
-        variant={variant}
-        onClick={() => setIsDialogOpen(true)}
-        disabled={disabled}
-      >
+      <Button variant={variant} onClick={() => setIsDialogOpen(true)} disabled={disabled}>
         {label}
       </Button>
       {error && <p className="mt-2 text-sm text-danger">{error}</p>}

@@ -61,8 +61,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Check if user is administrator
   const is管理者 =
-    user &&
-    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
+    user && (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
 
   // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
@@ -174,70 +173,70 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         </p>
 
         <StatusPanel status={currentStatus}>
-            {/* Status change buttons for primary assignee */}
-            {isPrimaryAssignee && (
-              <>
-                {currentStatus === "作業中" && (
-                  <StatusChangeButton
-                    label="内部査読を依頼"
-                    confirmTitle="内部査読を依頼しますか？"
-                    confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
-                    variant="primary"
-                    onAction={async () => {
-                      const result = await requestInternalReviewAction(stockGroupName);
-                      if (result.success) {
-                        setCurrentStatus(result.newStatus);
-                      }
-                    }}
-                  />
-                )}
-                {currentStatus === "内部査読中" && (
-                  <StatusChangeButton
-                    label="内部査読依頼を取り消す"
-                    confirmTitle="内部査読依頼を取り消しますか？"
-                    confirmMessage="取り消すと、ステータスが「作業中」に戻ります。"
-                    variant="secondary"
-                    onAction={async () => {
-                      const result = await cancelInternalReviewAction(stockGroupName);
-                      if (result.success) {
-                        setCurrentStatus(result.newStatus);
-                      }
-                    }}
-                  />
-                )}
-              </>
-            )}
-            {/* Status change buttons for secondary assignee */}
-            {isSecondaryAssignee && currentStatus === "内部査読中" && (
-              <StatusChangeButton
-                label="承諾する"
-                confirmTitle="内部査読を承諾しますか？"
-                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
-                variant="success"
-                onAction={async () => {
-                  const result = await approveInternalReviewAction(stockGroupName);
-                  if (result.success) {
-                    setCurrentStatus(result.newStatus);
-                  }
-                }}
-              />
-            )}
-            {/* Status change buttons for administrator */}
-            {is管理者 && currentStatus === "外部公開可能" && (
-              <StatusChangeButton
-                label="外部公開する"
-                confirmTitle="外部公開しますか？"
-                confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
-                variant="primary"
-                onAction={async () => {
-                  const result = await publishExternallyAction(stockGroupName);
-                  if (result.success) {
-                    setCurrentStatus(result.newStatus);
-                  }
-                }}
-              />
-            )}
-          </StatusPanel>
+          {/* Status change buttons for primary assignee */}
+          {isPrimaryAssignee && (
+            <>
+              {currentStatus === "作業中" && (
+                <StatusChangeButton
+                  label="内部査読を依頼"
+                  confirmTitle="内部査読を依頼しますか？"
+                  confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
+                  variant="primary"
+                  onAction={async () => {
+                    const result = await requestInternalReviewAction(stockGroupName);
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+              {currentStatus === "内部査読中" && (
+                <StatusChangeButton
+                  label="内部査読依頼を取り消す"
+                  confirmTitle="内部査読依頼を取り消しますか？"
+                  confirmMessage="取り消すと、ステータスが「作業中」に戻ります。"
+                  variant="secondary"
+                  onAction={async () => {
+                    const result = await cancelInternalReviewAction(stockGroupName);
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+            </>
+          )}
+          {/* Status change buttons for secondary assignee */}
+          {isSecondaryAssignee && currentStatus === "内部査読中" && (
+            <StatusChangeButton
+              label="承諾する"
+              confirmTitle="内部査読を承諾しますか？"
+              confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+              variant="success"
+              onAction={async () => {
+                const result = await approveInternalReviewAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
+          {/* Status change buttons for administrator */}
+          {is管理者 && currentStatus === "外部公開可能" && (
+            <StatusChangeButton
+              label="外部公開する"
+              confirmTitle="外部公開しますか？"
+              confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
+              variant="primary"
+              onAction={async () => {
+                const result = await publishExternallyAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
+        </StatusPanel>
       </div>
 
       <section className="mb-8">

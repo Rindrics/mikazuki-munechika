@@ -70,9 +70,7 @@ export async function saveAssessmentResultAction(
 /**
  * Get current assessment status for a stock
  */
-export async function getAssessmentStatusAction(
-  stockGroupName: 資源名
-): Promise<評価ステータス> {
+export async function getAssessmentStatusAction(stockGroupName: 資源名): Promise<評価ステータス> {
   const repository = await create資源評価RepositoryServer();
   const 年度 = getCurrentFiscalYear();
 
@@ -220,7 +218,9 @@ export async function cancelInternalReviewAction(
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
   if (currentAssessment && currentAssessment.ステータス !== "内部査読中") {
-    throw new Error(`現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`);
+    throw new Error(
+      `現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`
+    );
   }
 
   const beforeStatus = currentAssessment?.ステータス ?? "内部査読中";
@@ -271,7 +271,9 @@ export async function approveInternalReviewAction(
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
   if (currentAssessment && currentAssessment.ステータス !== "内部査読中") {
-    throw new Error(`現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`);
+    throw new Error(
+      `現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`
+    );
   }
 
   const beforeStatus = currentAssessment?.ステータス ?? "内部査読中";
@@ -322,7 +324,9 @@ export async function publishExternallyAction(
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
   if (currentAssessment && currentAssessment.ステータス !== "外部公開可能") {
-    throw new Error(`現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`);
+    throw new Error(
+      `現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`
+    );
   }
 
   const beforeStatus = currentAssessment?.ステータス ?? "外部公開可能";

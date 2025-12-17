@@ -27,8 +27,7 @@ export default function Navbar() {
   }, []);
 
   const is資源評価管理者 =
-    user &&
-    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
+    user && (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
 
   return (
     <>

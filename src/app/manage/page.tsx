@@ -47,8 +47,7 @@ export default function ManagePage() {
   }, []);
 
   const is資源評価管理者 =
-    user &&
-    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
+    user && (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
 
   useEffect(() => {
     if (!isLoading && is資源評価管理者) {
@@ -95,9 +94,10 @@ export default function ManagePage() {
   };
 
   // Calculate next year to create (latest year + 1, or current calendar year if no years exist)
-  const nextYearToCreate = fiscalYears.length > 0
-    ? Math.max(...fiscalYears.map((fy) => fy.year)) + 1
-    : new Date().getFullYear();
+  const nextYearToCreate =
+    fiscalYears.length > 0
+      ? Math.max(...fiscalYears.map((fy) => fy.year)) + 1
+      : new Date().getFullYear();
 
   const handleDeleteYear = async () => {
     if (!dialogYear) return;
@@ -157,11 +157,7 @@ export default function ManagePage() {
       {error && (
         <div className="mb-6 p-4 border border-danger rounded-lg bg-danger-light">
           <p className="text-danger-dark">{error}</p>
-          <button
-            type="button"
-            className="mt-2 text-sm underline"
-            onClick={() => setError(null)}
-          >
+          <button type="button" className="mt-2 text-sm underline" onClick={() => setError(null)}>
             閉じる
           </button>
         </div>
@@ -179,19 +175,13 @@ export default function ManagePage() {
               <li
                 key={fy.year}
                 className={`flex items-center justify-between p-4 border rounded-lg ${
-                  currentYear === fy.year
-                    ? "border-primary bg-primary/5"
-                    : ""
+                  currentYear === fy.year ? "border-primary bg-primary/5" : ""
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="font-medium">{fy.year}年度</span>
-                  <span className="text-sm text-secondary">
-                    （{fy.assessmentCount}件の評価）
-                  </span>
-                  {fy.allNotStarted && (
-                    <Badge variant="secondary">すべて未着手</Badge>
-                  )}
+                  <span className="text-sm text-secondary">（{fy.assessmentCount}件の評価）</span>
+                  {fy.allNotStarted && <Badge variant="secondary">すべて未着手</Badge>}
                 </div>
                 <div className="flex gap-2">
                   {currentYear === fy.year ? (

@@ -29,20 +29,21 @@ class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
 
 describe("SaveAssessmentResultService", () => {
   // Create a mock stock with "作業中" status (required for saving)
-  const createMockStock = (name: string): 進行中資源評価 => ({
-    作業ステータス: "作業中",
-    対象: {
-      呼称: "マイワシ",
-      系群名: "テスト系群",
-      資源タイプ: 1,
-      equals: vi.fn(),
-      toString: () => name,
-      toDisplayString: vi.fn(),
-    },
-    資源量: "",
-    資源量推定: vi.fn(),
-    ABC算定: vi.fn(),
-  } as 進行中資源評価);
+  const createMockStock = (name: string): 進行中資源評価 =>
+    ({
+      作業ステータス: "作業中",
+      対象: {
+        呼称: "マイワシ",
+        系群名: "テスト系群",
+        資源タイプ: 1,
+        equals: vi.fn(),
+        toString: () => name,
+        toDisplayString: vi.fn(),
+      },
+      資源量: "",
+      資源量推定: vi.fn(),
+      ABC算定: vi.fn(),
+    }) as 進行中資源評価;
 
   describe("execute", () => {
     it("saves result to repository", async () => {

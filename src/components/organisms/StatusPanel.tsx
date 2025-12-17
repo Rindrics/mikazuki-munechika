@@ -13,9 +13,13 @@ interface StatusPanelProps {
  */
 export function StatusPanel({ status, children, className = "" }: StatusPanelProps) {
   return (
-    <section className={`p-4 border rounded-lg bg-secondary-light dark:bg-secondary-dark ${className}`}>
+    <section
+      className={`p-4 border rounded-lg bg-secondary-light dark:bg-secondary-dark ${className}`}
+    >
       <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-secondary whitespace-nowrap">評価ステータス:</span>
+        <span className="text-sm font-medium text-secondary whitespace-nowrap">
+          評価ステータス:
+        </span>
         <StatusBadge status={status} />
         {children && <div className="ml-auto">{children}</div>}
       </div>
