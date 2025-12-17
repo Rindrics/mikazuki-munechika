@@ -10,7 +10,7 @@ import {
   is主担当者,
   is副担当者,
 } from "@/domain";
-import type { VersionedAssessmentResult } from "@/domain/repositories";
+import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
@@ -58,9 +58,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Version history state (ADR 0018)
   const [versionHistory, setVersionHistory] = useState<VersionedAssessmentResult[]>([]);
-  const [publications, setPublications] = useState<
-    Array<{ revisionNumber: number; internalVersion: number; publishedAt: Date }>
-  >([]);
+  const [publications, setPublications] = useState<PublicationRecord[]>([]);
   const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
   const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

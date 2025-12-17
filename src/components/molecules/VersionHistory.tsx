@@ -1,13 +1,7 @@
 "use client";
 
-import type { VersionedAssessmentResult } from "@/domain/repositories";
+import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
 import type { 評価ステータス } from "@/domain/models/stock/status";
-
-interface PublicationRecord {
-  revisionNumber: number;
-  internalVersion: number;
-  publishedAt: Date;
-}
 
 // Statuses where the approved version is actually "approved" (not just "under review")
 const 承諾済みステータス: 評価ステータス[] = ["外部公開可能", "外部査読中", "外部査読受理済み"];
@@ -93,12 +87,15 @@ export function VersionHistory({
   );
 }
 
+// Memoize the formatter instance for performance
+const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return dateFormatter.format(date);
 }

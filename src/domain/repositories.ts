@@ -21,6 +21,15 @@ export interface VersionedAssessmentResult {
   createdAt: Date;
 }
 
+/**
+ * Publication record for external releases (ADR 0018)
+ */
+export interface PublicationRecord {
+  revisionNumber: number;
+  internalVersion: number;
+  publishedAt: Date;
+}
+
 export interface AssessmentResultRepository {
   /**
    * @deprecated Use findByStockNameAndFiscalYear instead
