@@ -45,9 +45,19 @@ export function StatusChangeButton({
     }
   };
 
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setError(null);
+  };
+
+  const handleOpen = () => {
+    setError(null);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className={className}>
-      <Button variant={variant} onClick={() => setIsDialogOpen(true)} disabled={disabled}>
+      <Button variant={variant} onClick={handleOpen} disabled={disabled}>
         {label}
       </Button>
       {error && <p className="mt-2 text-sm text-danger">{error}</p>}
@@ -59,7 +69,7 @@ export function StatusChangeButton({
         confirmLabel={label}
         confirmVariant={variant}
         onConfirm={handleConfirm}
-        onCancel={() => setIsDialogOpen(false)}
+        onCancel={handleCancel}
         isLoading={isLoading}
       />
     </div>
