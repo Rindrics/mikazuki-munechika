@@ -802,11 +802,12 @@ export async function stopExternalPublicationAction(
 
   const beforeStatus = currentAssessment.ステータス;
 
-  // Update status
+  // Update status, preserving the approved version
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "外部公開可能",
+    承諾バージョン: currentAssessment.承諾バージョン,
   });
 
   // Log status change to audit log
