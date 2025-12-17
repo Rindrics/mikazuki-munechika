@@ -58,6 +58,22 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     Array<{ revisionNumber: number; internalVersion: number; publishedAt: Date }>
   >([]);
   const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
+  const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
+
+  // Load version data into form fields
+  const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
+    setSelectedVersion(version.version);
+    if (version.parameters) {
+      set漁獲量データValue(version.parameters.catchData?.value ?? "");
+      set生物学的データValue(version.parameters.biologicalData?.value ?? "");
+    }
+    if (version.result) {
+      setCalculationResult(version.result);
+    }
+    // Reset save state when switching versions
+    setIsSaved(false);
+    setSavedVersion(null);
+  }, []);
 
   // Fetch version history and populate fields with latest version's parameters
   const fetchVersionHistory = useCallback(async () => {
@@ -72,19 +88,12 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       // Populate fields with latest version's parameters (ADR 0018)
       if (versions.length > 0) {
         const latestVersion = versions[0]; // versions are sorted by version desc
-        if (latestVersion.parameters) {
-          set漁獲量データValue(latestVersion.parameters.catchData?.value ?? "");
-          set生物学的データValue(latestVersion.parameters.biologicalData?.value ?? "");
-          // Also set the calculation result if available
-          if (latestVersion.result) {
-            setCalculationResult(latestVersion.result);
-          }
-        }
+        loadVersionIntoForm(latestVersion);
       }
     } catch (error) {
       console.error("Failed to fetch version history:", error);
     }
-  }, [stockGroupName]);
+  }, [stockGroupName, loadVersionIntoForm]);
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
@@ -393,6 +402,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               versions={versionHistory}
               publications={publications}
               currentApprovedVersion={approvedVersion}
+              selectedVersion={selectedVersion}
+              onSelectVersion={loadVersionIntoForm}
             />
           </div>
         </aside>

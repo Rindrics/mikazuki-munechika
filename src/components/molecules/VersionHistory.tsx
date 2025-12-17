@@ -12,6 +12,8 @@ interface VersionHistoryProps {
   versions: VersionedAssessmentResult[];
   publications?: PublicationRecord[];
   currentApprovedVersion?: number;
+  selectedVersion?: number;
+  onSelectVersion?: (version: VersionedAssessmentResult) => void;
   className?: string;
 }
 
@@ -22,6 +24,8 @@ export function VersionHistory({
   versions,
   publications = [],
   currentApprovedVersion,
+  selectedVersion,
+  onSelectVersion,
   className = "",
 }: VersionHistoryProps) {
   if (versions.length === 0) {
@@ -41,29 +45,37 @@ export function VersionHistory({
         {versions.map((v) => {
           const publication = publicationMap.get(v.version);
           const isApproved = v.version === currentApprovedVersion;
+          const isSelected = v.version === selectedVersion;
 
           return (
-            <div
+            <button
+              type="button"
               key={v.version}
-              className={`p-3 flex items-center justify-between ${
+              onClick={() => onSelectVersion?.(v)}
+              className={`w-full p-3 flex items-center justify-between text-left hover:bg-secondary-light/50 transition-colors ${
                 isApproved ? "bg-success-light/30" : ""
-              }`}
+              } ${isSelected ? "ring-2 ring-primary ring-inset" : ""}`}
             >
-              <div>
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium">v{v.version}</span>
+                {isSelected && (
+                  <span className="text-xs px-2 py-0.5 bg-primary text-white rounded-full">
+                    選択中
+                  </span>
+                )}
                 {isApproved && (
-                  <span className="ml-2 text-xs px-2 py-0.5 bg-success text-white rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-success text-white rounded-full">
                     承諾済み
                   </span>
                 )}
                 {publication && (
-                  <span className="ml-2 text-xs px-2 py-0.5 bg-primary text-white rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
                     公開済み (改訂{publication.revisionNumber})
                   </span>
                 )}
               </div>
               <div className="text-sm text-secondary">{formatDate(v.createdAt)}</div>
-            </div>
+            </button>
           );
         })}
       </div>
