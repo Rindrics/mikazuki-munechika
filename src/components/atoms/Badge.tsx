@@ -21,7 +21,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   secondary: "bg-secondary-light text-foreground dark:bg-secondary-dark dark:text-foreground-dark",
   success: "bg-success-light text-success-dark dark:bg-success-dark dark:text-foreground-dark",
   warning: "bg-warning-light text-foreground dark:bg-warning-dark dark:text-foreground-dark",
-  danger: "bg-danger-light text-danger-dark dark:bg-danger-dark dark:text-foreground-dark",
+  danger: "bg-danger-light text-foreground dark:bg-danger-dark dark:text-foreground-dark",
   info: "bg-info-light text-foreground dark:bg-info-dark dark:text-foreground-dark",
 };
 
