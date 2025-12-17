@@ -57,7 +57,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [publications, setPublications] = useState<
     Array<{ revisionNumber: number; internalVersion: number; publishedAt: Date }>
   >([]);
-  const [approvedVersion, _setApprovedVersion] = useState<number | undefined>();
+  const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
 
   // Fetch version history
   const fetchVersionHistory = useCallback(async () => {
@@ -97,9 +97,13 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         if (isPrimaryAssignee) {
           const result = await startWorkAction(stockGroupName);
           setCurrentStatus(result.newStatus);
+          // Fetch approved version separately
+          const statusResult = await getAssessmentStatusAction(stockGroupName);
+          setApprovedVersion(statusResult.approvedVersion);
         } else {
-          const status = await getAssessmentStatusAction(stockGroupName);
-          setCurrentStatus(status);
+          const statusResult = await getAssessmentStatusAction(stockGroupName);
+          setCurrentStatus(statusResult.status);
+          setApprovedVersion(statusResult.approvedVersion);
         }
         // Fetch version history after status is loaded
         await fetchVersionHistory();

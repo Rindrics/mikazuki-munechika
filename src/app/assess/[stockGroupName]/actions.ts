@@ -191,7 +191,9 @@ export async function getAssessmentResultByVersionAction(
 /**
  * Get current assessment status for a stock
  */
-export async function getAssessmentStatusAction(stockGroupName: 資源名): Promise<評価ステータス> {
+export async function getAssessmentStatusAction(
+  stockGroupName: 資源名
+): Promise<{ status: 評価ステータス; approvedVersion?: number }> {
   const repository = await create資源評価RepositoryServer();
   const 年度 = getCurrentFiscalYear();
 
@@ -204,10 +206,10 @@ export async function getAssessmentStatusAction(stockGroupName: 資源名): Prom
       年度,
       ステータス: "未着手",
     });
-    return "未着手";
+    return { status: "未着手" };
   }
 
-  return assessment.ステータス;
+  return { status: assessment.ステータス, approvedVersion: assessment.承諾バージョン };
 }
 
 /**
