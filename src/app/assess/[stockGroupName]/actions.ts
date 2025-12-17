@@ -424,7 +424,6 @@ export async function approveInternalReviewAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.副担当);
 
   const repository = await create資源評価RepositoryServer();
-  const resultRepository = createAssessmentResultRepository();
   const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
