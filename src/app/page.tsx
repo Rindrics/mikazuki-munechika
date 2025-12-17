@@ -6,7 +6,7 @@ export default function Home() {
       href: "https://github.com/Rindrics/mikazuki-munechika/pull/24",
       description: "ロールに応じて表示・操作を制御する",
     },
-    { text: "管理画面", href: undefined, description: "ユーザーの認可・権限管理を行う" },
+    { text: "管理画面", href: "/manage", description: "ユーザーの認可・権限管理を行う" },
     {
       text: "データ登録・資源量推定機能（ダミー版）",
       href: "/assess",

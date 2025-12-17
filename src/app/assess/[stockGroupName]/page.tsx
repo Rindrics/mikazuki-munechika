@@ -8,6 +8,7 @@ import {
   資源名,
   ABC算定結果,
   is主担当者,
+  is副担当者,
 } from "@/domain";
 import type { 評価ステータス } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
@@ -22,6 +23,7 @@ import {
   cancelInternalReviewAction,
   getAssessmentStatusAction,
   startWorkAction,
+  approveInternalReviewAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -49,6 +51,12 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is主担当者(user as 認証済評価担当者, stockGroupName);
+
+  // Check if user is secondary assignee for this stock
+  const isSecondaryAssignee =
+    user &&
+    (user as 認証済評価担当者).種別 === "評価担当者" &&
+    is副担当者(user as 認証済評価担当者, stockGroupName);
 
   // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
@@ -192,6 +200,21 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                   />
                 )}
               </>
+            )}
+            {/* Status change buttons for secondary assignee */}
+            {isSecondaryAssignee && currentStatus === "内部査読中" && (
+              <StatusChangeButton
+                label="承諾する"
+                confirmTitle="内部査読を承諾しますか？"
+                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+                variant="success"
+                onAction={async () => {
+                  const result = await approveInternalReviewAction(stockGroupName);
+                  if (result.success) {
+                    setCurrentStatus(result.newStatus);
+                  }
+                }}
+              />
             )}
           </StatusPanel>
       </div>
