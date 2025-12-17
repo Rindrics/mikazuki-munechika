@@ -477,6 +477,93 @@ export async function approveInternalReviewAction(
 }
 
 /**
+ * Cancel internal review approval (secondary assignee or administrator)
+ * Changes status from "外部公開可能" to "内部査読中"
+ */
+export async function cancelApprovalAction(
+  stockGroupName: 資源名
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  // Check if user is administrator
+  const { data: adminRoleData } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", ロールs.管理者)
+    .limit(1);
+
+  const isAdmin = adminRoleData && adminRoleData.length > 0;
+
+  // Check if user is secondary assignee for this stock
+  let isSecondary = false;
+  if (!isAdmin) {
+    const { data: assignment } = await supabase
+      .from("stock_assignments")
+      .select("role, stock_groups!inner(name)")
+      .eq("user_id", user.id)
+      .eq("stock_groups.name", stockGroupName)
+      .single();
+
+    isSecondary = assignment?.role === ロールs.副担当;
+  }
+
+  if (!isAdmin && !isSecondary) {
+    throw new Error("承諾取り消しは副担当者または管理者のみが実行できます");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "外部公開可能") {
+    throw new Error(
+      `現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`
+    );
+  }
+
+  const beforeStatus = currentAssessment.ステータス;
+
+  // Update status (clear approved version as approval is cancelled)
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "内部査読中",
+    承諾バージョン: undefined,
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "内部査読中",
+    reason: "承諾取り消し",
+  });
+
+  logger.info("承諾取り消し完了", {
+    stockGroupName,
+    userId: user.id,
+  });
+
+  return { success: true, newStatus: "内部査読中" };
+}
+
+/**
  * Publish assessment externally (administrator only)
  * Changes status from "外部公開可能" to "外部査読中"
  * Records the publication in assessment_publications table

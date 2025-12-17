@@ -25,6 +25,7 @@ import {
   getAssessmentStatusAction,
   startWorkAction,
   approveInternalReviewAction,
+  cancelApprovalAction,
   publishExternallyAction,
   stopExternalPublicationAction,
   getVersionHistoryAction,
@@ -295,6 +296,22 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
                   setApprovedVersion(result.approvedVersion);
+                }
+              }}
+            />
+          )}
+          {/* Cancel approval button for secondary assignee or administrator */}
+          {(isSecondaryAssignee || is管理者) && currentStatus === "外部公開可能" && (
+            <StatusChangeButton
+              label="承諾取り消し"
+              confirmTitle="承諾を取り消しますか？"
+              confirmMessage="承諾を取り消すと、ステータスが「内部査読中」に戻ります。"
+              variant="secondary"
+              onAction={async () => {
+                const result = await cancelApprovalAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                  setApprovedVersion(undefined);
                 }
               }}
             />
