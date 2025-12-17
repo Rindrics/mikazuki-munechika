@@ -1,3 +1,5 @@
+import { 資源量 } from "../models/stock";
+
 /**
  * 生物学的許容漁獲量（ABC: Acceptable Biological Catch）
  * 資源評価の結果として算出される、持続可能な漁獲量の上限値
@@ -5,6 +7,10 @@
 export interface ABC算定結果 {
   /** ABC の値 */
   value: string;
+  /** 単位 */
+  unit: "トン";
+  /** 資源量 */
+  資源量?: 資源量;
 }
 
 /**

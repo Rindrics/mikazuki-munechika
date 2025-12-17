@@ -76,7 +76,7 @@ describe("SaveAssessmentResultService", () => {
       const repository = new InMemoryAssessmentResultRepository();
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await service.execute(stock, result);
 
@@ -88,8 +88,8 @@ describe("SaveAssessmentResultService", () => {
       const repository = new InMemoryAssessmentResultRepository();
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result1: ABC算定結果 = { value: "ABC = 10000 tons" };
-      const result2: ABC算定結果 = { value: "ABC = 20000 tons" };
+      const result1: ABC算定結果 = { value: "ABC = 10000 tons", unit: "トン" };
+      const result2: ABC算定結果 = { value: "ABC = 20000 tons", unit: "トン" };
 
       await service.execute(stock, result1);
       await service.execute(stock, result2);
@@ -103,8 +103,8 @@ describe("SaveAssessmentResultService", () => {
       const service = new SaveAssessmentResultService(repository);
       const stock1 = createMockStock("マイワシ太平洋系群");
       const stock2 = createMockStock("ズワイガニオホーツク海系群");
-      const result1: ABC算定結果 = { value: "ABC = 10000 tons" };
-      const result2: ABC算定結果 = { value: "ABC = 5000 tons" };
+      const result1: ABC算定結果 = { value: "ABC = 10000 tons", unit: "トン" };
+      const result2: ABC算定結果 = { value: "ABC = 5000 tons", unit: "トン" };
 
       await service.execute(stock1, result1);
       await service.execute(stock2, result2);
@@ -124,7 +124,7 @@ describe("SaveAssessmentResultService", () => {
       };
       const service = new SaveAssessmentResultService(failingRepository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await expect(service.execute(stock, result)).rejects.toThrow("Database connection failed");
     });
@@ -141,7 +141,7 @@ describe("SaveAssessmentResultService", () => {
       };
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await service.execute(stock, result);
 

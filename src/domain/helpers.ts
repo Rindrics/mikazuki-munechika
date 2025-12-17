@@ -57,6 +57,8 @@ function createType1Stock(stockGroup: 資源情報): 未着手資源評価 {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
     ABC算定: (abundance) => ({
       value: `Simulated WITH recruitment using its abundance "${abundance}"`,
+      unit: "トン",
+      資源量: { 値: abundance, 単位: "トン" },
     }),
   });
 }
@@ -66,6 +68,8 @@ function createType2Stock(stockGroup: 資源情報): 未着手資源評価 {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
       value: `Simulated WITHOUT recruitment using its abundance "${abundance}"`,
+      unit: "トン",
+      資源量: { 値: abundance, 単位: "トン" },
     }),
   });
 }
@@ -75,6 +79,8 @@ function createType3Stock(stockGroup: 資源情報): 未着手資源評価 {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2020-ABCWG01-01.pdf",
     ABC算定: (abundance) => ({
       value: `ABC estimated DIRECTLY using its abundance "${abundance}"`,
+      unit: "トン",
+      資源量: { 値: abundance, 単位: "トン" },
     }),
   });
 }

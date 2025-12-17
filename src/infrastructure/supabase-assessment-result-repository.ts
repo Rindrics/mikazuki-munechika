@@ -3,6 +3,7 @@ import {
   ABC算定結果,
   VersionedAssessmentResult,
   AssessmentParameters,
+  資源量,
 } from "@/domain";
 import { logger } from "@/utils/logger";
 
@@ -10,6 +11,49 @@ import { logger } from "@/utils/logger";
 async function getServerClient() {
   const { getSupabaseServerClient } = await import("./supabase-server-client");
   return getSupabaseServerClient();
+}
+
+/**
+ * Parse result from database value
+ * Handles both legacy string format and new JSON format
+ */
+function parseResultFromDb(dbValue: unknown): ABC算定結果 {
+  // If it's already an object (JSON from JSONB column), use it directly
+  if (typeof dbValue === "object" && dbValue !== null) {
+    const obj = dbValue as Record<string, unknown>;
+    return {
+      value: String(obj.value ?? ""),
+      unit: "トン",
+      資源量: obj.資源量 as 資源量 | undefined,
+    };
+  }
+
+  // If it's a string, try to parse as JSON first
+  if (typeof dbValue === "string") {
+    try {
+      const parsed = JSON.parse(dbValue);
+      if (typeof parsed === "object" && parsed !== null) {
+        return {
+          value: String(parsed.value ?? ""),
+          unit: "トン",
+          資源量: parsed.資源量 as 資源量 | undefined,
+        };
+      }
+    } catch {
+      // Not JSON, treat as legacy string value
+    }
+    // Legacy string format: just the value
+    return {
+      value: dbValue,
+      unit: "トン",
+    };
+  }
+
+  // Fallback
+  return {
+    value: String(dbValue ?? ""),
+    unit: "トン",
+  };
 }
 
 export class SupabaseAssessmentResultRepository implements AssessmentResultRepository {
@@ -46,7 +90,9 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     }
 
     logger.debug("findByStockName completed", { stockName, value: data.value });
-    return { value: data.value };
+    // Parse result from database (may be JSON object or simple string)
+    const parsedResult = parseResultFromDb(data.value);
+    return parsedResult;
   }
 
   async findByStockNameAndFiscalYear(
@@ -86,7 +132,7 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     return data.map((row) => ({
       version: row.version,
       fiscalYear: row.fiscal_year,
-      result: { value: row.value },
+      result: parseResultFromDb(row.value),
       parameters: row.parameters as AssessmentParameters | undefined,
       createdAt: new Date(row.created_at),
     }));
@@ -130,7 +176,7 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     return {
       version: data.version,
       fiscalYear: data.fiscal_year,
-      result: { value: data.value },
+      result: parseResultFromDb(data.value),
       parameters: data.parameters as AssessmentParameters | undefined,
       createdAt: new Date(data.created_at),
     };
@@ -262,11 +308,12 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     const nextVersion = await this.getNextVersion(stockName, fiscalYear);
 
     // Insert with version and parameters
+    // Store the entire result object as JSON (includes value, unit, and 資源量)
     const { error } = await supabase.from("assessment_results").insert({
       stock_group_id: stockGroup.id,
       fiscal_year: fiscalYear,
       version: nextVersion,
-      value: result.value,
+      value: result,
       parameters: parameters,
     });
 
