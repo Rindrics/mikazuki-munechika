@@ -59,7 +59,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   >([]);
   const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
 
-  // Fetch version history
+  // Fetch version history and populate fields with latest version's parameters
   const fetchVersionHistory = useCallback(async () => {
     try {
       const [versions, pubs] = await Promise.all([
@@ -68,6 +68,19 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       ]);
       setVersionHistory(versions);
       setPublications(pubs);
+
+      // Populate fields with latest version's parameters (ADR 0018)
+      if (versions.length > 0) {
+        const latestVersion = versions[0]; // versions are sorted by version desc
+        if (latestVersion.parameters) {
+          set漁獲量データValue(latestVersion.parameters.catchData?.value ?? "");
+          set生物学的データValue(latestVersion.parameters.biologicalData?.value ?? "");
+          // Also set the calculation result if available
+          if (latestVersion.result) {
+            setCalculationResult(latestVersion.result);
+          }
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch version history:", error);
     }
