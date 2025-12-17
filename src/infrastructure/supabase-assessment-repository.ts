@@ -29,7 +29,7 @@ export class Supabase資源評価Repository implements 資源評価Repository {
     // Get assessment
     const { data: assessment, error } = await this.supabase
       .from("stock_assessments")
-      .select("status, origin_status")
+      .select("status, origin_status, approved_version")
       .eq("stock_group_id", stockGroup.id)
       .eq("fiscal_year", 年度)
       .single();
@@ -44,6 +44,7 @@ export class Supabase資源評価Repository implements 資源評価Repository {
       年度,
       ステータス: assessment.status as 評価ステータス,
       元ステータス: assessment.origin_status as 再検討前ステータス | undefined,
+      承諾バージョン: assessment.approved_version as number | undefined,
     };
   }
 
@@ -56,6 +57,7 @@ export class Supabase資源評価Repository implements 資源評価Repository {
         `
         status,
         origin_status,
+        approved_version,
         stock_groups!inner(name)
       `
       )
@@ -87,6 +89,7 @@ export class Supabase資源評価Repository implements 資源評価Repository {
         年度,
         ステータス: a.status as 評価ステータス,
         元ステータス: a.origin_status as 再検討前ステータス | undefined,
+        承諾バージョン: a.approved_version as number | undefined,
       };
     });
   }
@@ -112,6 +115,7 @@ export class Supabase資源評価Repository implements 資源評価Repository {
         fiscal_year: assessment.年度,
         status: assessment.ステータス,
         origin_status: assessment.元ステータス || null,
+        approved_version: assessment.承諾バージョン || null,
       },
       {
         onConflict: "stock_group_id,fiscal_year",

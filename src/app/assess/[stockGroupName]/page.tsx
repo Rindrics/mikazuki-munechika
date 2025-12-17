@@ -10,11 +10,12 @@ import {
   is主担当者,
   is副担当者,
 } from "@/domain";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton } from "@/components/molecules";
-import { use, useState, useEffect } from "react";
+import { StatusChangeButton, VersionHistory } from "@/components/molecules";
+import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   calculateAbcAction,
@@ -25,6 +26,8 @@ import {
   startWorkAction,
   approveInternalReviewAction,
   publishExternallyAction,
+  getVersionHistoryAction,
+  getPublicationHistoryAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -43,9 +46,32 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [isNewVersion, setIsNewVersion] = useState<boolean>(true);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
   const [_isStatusLoading, setIsStatusLoading] = useState(true);
+
+  // Version history state (ADR 0018)
+  const [versionHistory, setVersionHistory] = useState<VersionedAssessmentResult[]>([]);
+  const [publications, setPublications] = useState<
+    Array<{ revisionNumber: number; internalVersion: number; publishedAt: Date }>
+  >([]);
+  const [approvedVersion, _setApprovedVersion] = useState<number | undefined>();
+
+  // Fetch version history
+  const fetchVersionHistory = useCallback(async () => {
+    try {
+      const [versions, pubs] = await Promise.all([
+        getVersionHistoryAction(stockGroupName),
+        getPublicationHistoryAction(stockGroupName),
+      ]);
+      setVersionHistory(versions);
+      setPublications(pubs);
+    } catch (error) {
+      console.error("Failed to fetch version history:", error);
+    }
+  }, [stockGroupName]);
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
@@ -75,6 +101,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           const status = await getAssessmentStatusAction(stockGroupName);
           setCurrentStatus(status);
         }
+        // Fetch version history after status is loaded
+        await fetchVersionHistory();
       } catch (error) {
         console.error("Failed to fetch/update status:", error);
       } finally {
@@ -86,7 +114,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     if (!isLoading && user) {
       fetchAndMaybeStartWork();
     }
-  }, [stockGroupName, isPrimaryAssignee, isLoading, user]);
+  }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -105,8 +133,17 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     setIsSaving(true);
     setSaveError(null);
     try {
-      await saveAssessmentResultAction(stockGroupName, calculationResult);
+      const { version, isNew } = await saveAssessmentResultAction(
+        stockGroupName,
+        calculationResult,
+        catchDataValue,
+        biologicalDataValue
+      );
       setIsSaved(true);
+      setSavedVersion(version);
+      setIsNewVersion(isNew);
+      // Refresh version history after save
+      await fetchVersionHistory();
     } catch (error) {
       const message = error instanceof Error ? error.message : "登録に失敗しました";
       setSaveError(message);
@@ -297,7 +334,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         </div>
       </section>
 
-      <section>
+      <section className="mb-8">
         <h2 className="mb-4">登録</h2>
 
         <button
@@ -309,7 +346,13 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
         </button>
 
-        {isSaved && <p className="mt-4 text-success font-medium">評価結果を登録しました。</p>}
+        {isSaved && savedVersion !== null && (
+          <p className="mt-4 text-success font-medium">
+            {isNewVersion
+              ? `評価結果を v${savedVersion} として登録しました。`
+              : `既存バージョン (v${savedVersion}) と同じパラメータです。`}
+          </p>
+        )}
 
         {saveError && (
           <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
@@ -318,6 +361,16 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
             </p>
           </div>
         )}
+      </section>
+
+      {/* Version History (ADR 0018) */}
+      <section>
+        <h2 className="mb-4">バージョン履歴</h2>
+        <VersionHistory
+          versions={versionHistory}
+          publications={publications}
+          currentApprovedVersion={approvedVersion}
+        />
       </section>
     </main>
   );

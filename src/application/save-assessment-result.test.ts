@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { SaveAssessmentResultService } from "./save-assessment-result";
-import type { AssessmentResultRepository, ABC算定結果 } from "@/domain";
+import type {
+  AssessmentResultRepository,
+  ABC算定結果,
+  VersionedAssessmentResult,
+  AssessmentParameters,
+} from "@/domain";
 import type { 進行中資源評価 } from "@/domain/models/stock/status";
 
 /**
@@ -13,8 +18,29 @@ class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
     return this.store.get(stockName);
   }
 
+  async findByStockNameAndFiscalYear(): Promise<VersionedAssessmentResult[]> {
+    return [];
+  }
+
+  async findByStockNameAndVersion(): Promise<VersionedAssessmentResult | undefined> {
+    return undefined;
+  }
+
+  async getNextVersion(): Promise<number> {
+    return 1;
+  }
+
   async save(stockName: string, result: ABC算定結果): Promise<void> {
     this.store.set(stockName, result);
+  }
+
+  async saveWithVersion(
+    _stockName: string,
+    _fiscalYear: number,
+    _result: ABC算定結果,
+    _parameters: AssessmentParameters
+  ): Promise<{ version: number; isNew: boolean }> {
+    return { version: 1, isNew: true };
   }
 
   // Test helper methods
@@ -90,7 +116,11 @@ describe("SaveAssessmentResultService", () => {
     it("throws error when repository fails", async () => {
       const failingRepository: AssessmentResultRepository = {
         findByStockName: vi.fn(),
+        findByStockNameAndFiscalYear: vi.fn(),
+        findByStockNameAndVersion: vi.fn(),
+        getNextVersion: vi.fn(),
         save: vi.fn().mockRejectedValue(new Error("Database connection failed")),
+        saveWithVersion: vi.fn(),
       };
       const service = new SaveAssessmentResultService(failingRepository);
       const stock = createMockStock("マイワシ太平洋系群");
@@ -103,7 +133,11 @@ describe("SaveAssessmentResultService", () => {
       const mockSave = vi.fn().mockResolvedValue(undefined);
       const repository: AssessmentResultRepository = {
         findByStockName: vi.fn(),
+        findByStockNameAndFiscalYear: vi.fn(),
+        findByStockNameAndVersion: vi.fn(),
+        getNextVersion: vi.fn(),
         save: mockSave,
+        saveWithVersion: vi.fn(),
       };
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");

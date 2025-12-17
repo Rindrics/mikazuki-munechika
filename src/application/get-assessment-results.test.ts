@@ -22,7 +22,11 @@ describe("GetAssessmentResultsService", () => {
     findByStockName: AssessmentResultRepository["findByStockName"]
   ): AssessmentResultRepository => ({
     findByStockName,
+    findByStockNameAndFiscalYear: vi.fn(),
+    findByStockNameAndVersion: vi.fn(),
+    getNextVersion: vi.fn(),
     save: vi.fn(),
+    saveWithVersion: vi.fn().mockResolvedValue({ version: 1, isNew: true }),
   });
 
   describe("execute", () => {
