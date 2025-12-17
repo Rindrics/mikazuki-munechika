@@ -1,6 +1,7 @@
 "use client";
 
 import type { VersionedAssessmentResult } from "@/domain/repositories";
+import type { 評価ステータス } from "@/domain/models/stock/status";
 
 interface PublicationRecord {
   revisionNumber: number;
@@ -8,10 +9,18 @@ interface PublicationRecord {
   publishedAt: Date;
 }
 
+// Statuses where the approved version is actually "approved" (not just "under review")
+const 承諾済みステータス: 評価ステータス[] = [
+  "外部公開可能",
+  "外部査読中",
+  "外部査読受理済み",
+];
+
 interface VersionHistoryProps {
   versions: VersionedAssessmentResult[];
   publications?: PublicationRecord[];
   currentApprovedVersion?: number;
+  currentStatus?: 評価ステータス;
   selectedVersion?: number;
   onSelectVersion?: (version: VersionedAssessmentResult) => void;
   className?: string;
@@ -24,6 +33,7 @@ export function VersionHistory({
   versions,
   publications = [],
   currentApprovedVersion,
+  currentStatus,
   selectedVersion,
   onSelectVersion,
   className = "",
@@ -39,12 +49,17 @@ export function VersionHistory({
   // Create a map of internal version -> publication info
   const publicationMap = new Map(publications.map((pub) => [pub.internalVersion, pub]));
 
+  // "承諾済み" label should only show when the status indicates actual approval
+  // (not just "under review" which is "内部査読中")
+  const isActuallyApproved =
+    currentStatus && 承諾済みステータス.includes(currentStatus);
+
   return (
     <div className={`border rounded-lg ${className}`}>
       <div className="divide-y max-h-64 overflow-y-auto">
         {versions.map((v) => {
           const publication = publicationMap.get(v.version);
-          const isApproved = v.version === currentApprovedVersion;
+          const isApproved = isActuallyApproved && v.version === currentApprovedVersion;
           const isSelected = v.version === selectedVersion;
 
           return (

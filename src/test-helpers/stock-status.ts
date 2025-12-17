@@ -43,44 +43,52 @@ export const create作業中の資源評価 = () => {
   return 進行中資源評価;
 };
 
+// Default test version number
+const テスト用バージョン = 1;
+
 export const create内部査読中の資源評価 = () => {
   const 進行中資源評価 = create作業中の資源評価();
   const 認証済み主担当者 = create認証済み主担当者();
-  const { 内部査読待ち資源評価 } = 内部査読依頼(進行中資源評価, new Date(), 認証済み主担当者);
+  const { 内部査読待ち資源評価 } = 内部査読依頼(
+    進行中資源評価,
+    new Date(),
+    認証済み主担当者,
+    テスト用バージョン
+  );
   return 内部査読待ち資源評価;
 };
 
 export const create外部査読中の資源評価 = () => {
   const 内部査読中 = create内部査読中の資源評価();
   const 認証済み管理者 = create認証済み資源評価管理者();
-  const { 外部査読中資源評価 } = 外部公開(内部査読中, new Date(), 認証済み管理者);
+  const { 外部査読中資源評価 } = 外部公開(内部査読中, new Date(), 認証済み管理者, テスト用バージョン);
   return 外部査読中資源評価;
 };
 
 export const create再検討中の資源評価_内部査読中から = () => {
   const 内部査読中 = create内部査読中の資源評価();
   const 認証済み副担当者 = create認証済み副担当者();
-  const { 再検討待ち資源評価 } = 再検討依頼(内部査読中, new Date(), 認証済み副担当者);
+  const { 再検討待ち資源評価 } = 再検討依頼(内部査読中, new Date(), 認証済み副担当者, テスト用バージョン);
   return 再検討待ち資源評価;
 };
 
 export const create再検討中の資源評価_外部査読中から = () => {
   const 外部査読中 = create外部査読中の資源評価();
   const 認証済み管理者 = create認証済み資源評価管理者();
-  const { 再検討待ち資源評価 } = 再検討依頼(外部査読中, new Date(), 認証済み管理者);
+  const { 再検討待ち資源評価 } = 再検討依頼(外部査読中, new Date(), 認証済み管理者, テスト用バージョン);
   return 再検討待ち資源評価;
 };
 
 export const create内部査読受理済みの資源評価 = () => {
   const 内部査読中 = create内部査読中の資源評価();
   const 管理者 = create認証済み資源評価管理者();
-  const { 受理済み資源評価 } = 受理(内部査読中, new Date(), 管理者);
+  const { 受理済み資源評価 } = 受理(内部査読中, new Date(), 管理者, テスト用バージョン);
   return 受理済み資源評価;
 };
 
 export const create外部査読受理済みの資源評価 = () => {
   const 外部査読中 = create外部査読中の資源評価();
   const 管理者 = create認証済み資源評価管理者();
-  const { 受理済み資源評価 } = 受理(外部査読中, new Date(), 管理者);
+  const { 受理済み資源評価 } = 受理(外部査読中, new Date(), 管理者, テスト用バージョン);
   return 受理済み資源評価;
 };

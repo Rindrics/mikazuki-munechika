@@ -85,7 +85,12 @@ export interface 資源評価ステータス {
   年度: number;
   ステータス: 評価ステータス;
   元ステータス?: 再検討前ステータス;
-  /** Version of assessment result that was approved (ADR 0018) */
+  /**
+   * Target version of assessment result for status changes (ADR 0018)
+   * - 内部査読中: version under review (requested by primary assignee)
+   * - 外部公開可能: version approved by secondary assignee
+   * - 外部査読中: version published externally
+   */
   承諾バージョン?: number;
 }
 

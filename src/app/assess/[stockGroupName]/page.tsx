@@ -75,25 +75,33 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     setSavedVersion(null);
   }, []);
 
-  // Fetch version history and populate fields with latest version's parameters
-  const fetchVersionHistory = useCallback(async () => {
-    try {
-      const [versions, pubs] = await Promise.all([
-        getVersionHistoryAction(stockGroupName),
-        getPublicationHistoryAction(stockGroupName),
-      ]);
-      setVersionHistory(versions);
-      setPublications(pubs);
+  // Fetch version history and populate fields with appropriate version's parameters
+  const fetchVersionHistory = useCallback(
+    async (targetApprovedVersion?: number) => {
+      try {
+        const [versions, pubs] = await Promise.all([
+          getVersionHistoryAction(stockGroupName),
+          getPublicationHistoryAction(stockGroupName),
+        ]);
+        setVersionHistory(versions);
+        setPublications(pubs);
 
-      // Populate fields with latest version's parameters (ADR 0018)
-      if (versions.length > 0) {
-        const latestVersion = versions[0]; // versions are sorted by version desc
-        loadVersionIntoForm(latestVersion);
+        if (versions.length > 0) {
+          // If there's an approved/requested version, select it; otherwise select latest
+          const versionToSelect = targetApprovedVersion
+            ? versions.find((v) => v.version === targetApprovedVersion)
+            : versions[0]; // versions are sorted by version desc
+
+          if (versionToSelect) {
+            loadVersionIntoForm(versionToSelect);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch version history:", error);
       }
-    } catch (error) {
-      console.error("Failed to fetch version history:", error);
-    }
-  }, [stockGroupName, loadVersionIntoForm]);
+    },
+    [stockGroupName, loadVersionIntoForm]
+  );
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
@@ -115,6 +123,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   useEffect(() => {
     const fetchAndMaybeStartWork = async () => {
       try {
+        let targetApprovedVersion: number | undefined;
+
         // For primary assignees, auto-start work (changes "未着手" to "作業中")
         if (isPrimaryAssignee) {
           const result = await startWorkAction(stockGroupName);
@@ -122,13 +132,15 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           // Fetch approved version separately
           const statusResult = await getAssessmentStatusAction(stockGroupName);
           setApprovedVersion(statusResult.approvedVersion);
+          targetApprovedVersion = statusResult.approvedVersion;
         } else {
           const statusResult = await getAssessmentStatusAction(stockGroupName);
           setCurrentStatus(statusResult.status);
           setApprovedVersion(statusResult.approvedVersion);
+          targetApprovedVersion = statusResult.approvedVersion;
         }
-        // Fetch version history after status is loaded
-        await fetchVersionHistory();
+        // Fetch version history and select the target version (or latest if none)
+        await fetchVersionHistory(targetApprovedVersion);
       } catch (error) {
         console.error("Failed to fetch/update status:", error);
       } finally {
@@ -239,16 +251,17 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {/* Status change buttons for primary assignee */}
           {isPrimaryAssignee && (
             <>
-              {currentStatus === "作業中" && (
+              {currentStatus === "作業中" && selectedVersion && (
                 <StatusChangeButton
                   label="内部査読を依頼"
                   confirmTitle="内部査読を依頼しますか？"
-                  confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
+                  confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
                   variant="primary"
                   onAction={async () => {
-                    const result = await requestInternalReviewAction(stockGroupName);
+                    const result = await requestInternalReviewAction(stockGroupName, selectedVersion);
                     if (result.success) {
                       setCurrentStatus(result.newStatus);
+                      setApprovedVersion(result.requestedVersion);
                     }
                   }}
                 />
@@ -280,6 +293,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 const result = await approveInternalReviewAction(stockGroupName);
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
+                  setApprovedVersion(result.approvedVersion);
                 }
               }}
             />
@@ -402,6 +416,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               versions={versionHistory}
               publications={publications}
               currentApprovedVersion={approvedVersion}
+              currentStatus={currentStatus}
               selectedVersion={selectedVersion}
               onSelectVersion={loadVersionIntoForm}
             />

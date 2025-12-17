@@ -274,8 +274,9 @@ export async function startWorkAction(
  * Changes status from "作業中" to "内部査読中"
  */
 export async function requestInternalReviewAction(
-  stockGroupName: 資源名
-): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  stockGroupName: 資源名,
+  targetVersion: number
+): Promise<{ success: boolean; newStatus: 評価ステータス; requestedVersion: number }> {
   // Get current user from Supabase session
   const supabase = await getSupabaseServerClient();
   const {
@@ -290,8 +291,19 @@ export async function requestInternalReviewAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
+  const resultRepository = createAssessmentResultRepository();
   const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
+
+  // Verify the target version exists
+  const targetResult = await resultRepository.findByStockNameAndVersion(
+    stockGroupName,
+    年度,
+    targetVersion
+  );
+  if (!targetResult) {
+    throw new Error(`バージョン v${targetVersion} が見つかりません`);
+  }
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -304,11 +316,12 @@ export async function requestInternalReviewAction(
 
   const beforeStatus = currentAssessment.ステータス;
 
-  // Update status
+  // Update status with target version (version under review)
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "内部査読中",
+    承諾バージョン: targetVersion, // Record which version is under review
   });
 
   // Log status change to audit log
@@ -318,12 +331,12 @@ export async function requestInternalReviewAction(
     fiscalYear: 年度,
     beforeStatus,
     afterStatus: "内部査読中",
-    reason: "内部査読依頼",
+    reason: `内部査読依頼 (v${targetVersion})`,
   });
 
-  logger.info("内部査読依頼完了", { stockGroupName, userId: user.id });
+  logger.info("内部査読依頼完了", { stockGroupName, userId: user.id, targetVersion });
 
-  return { success: true, newStatus: "内部査読中" };
+  return { success: true, newStatus: "内部査読中", requestedVersion: targetVersion };
 }
 
 /**
@@ -423,15 +436,15 @@ export async function approveInternalReviewAction(
     );
   }
 
-  // Get the latest version if not specified
+  // Use the version that was requested for review (stored in 承諾バージョン during requestInternalReviewAction)
+  // If explicitly specified, use that; otherwise use the requested version
   let versionToApprove = approvedVersion;
   if (!versionToApprove) {
-    const versions = await resultRepository.findByStockNameAndFiscalYear(stockGroupName, 年度);
-    if (versions.length === 0) {
-      throw new Error("評価結果が見つかりません。保存してから査読依頼してください。");
+    // Get the version that was requested for review
+    versionToApprove = currentAssessment.承諾バージョン;
+    if (!versionToApprove) {
+      throw new Error("査読対象バージョンが指定されていません。内部査読を依頼し直してください。");
     }
-    // Approve the latest version
-    versionToApprove = Math.max(...versions.map((v) => v.version));
   }
 
   const beforeStatus = currentAssessment.ステータス;

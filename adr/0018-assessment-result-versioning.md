@@ -299,6 +299,21 @@ Potential race condition when determining revision number:
 
 If race conditions become a real problem in the future, we can add atomic insertion using a database function with advisory locks.
 
+## Implementation Notes
+
+### Domain Function Signatures
+
+Status change domain functions require a `対象バージョン` (target version) parameter to ensure the status change is explicitly tied to a specific version:
+
+- `内部査読依頼(対象資源評価, 日時, 操作者, 対象バージョン)` - Request internal review for a specific version
+- `外部公開(対象資源評価, 日時, 操作者, 対象バージョン)` - Publish a specific version externally
+- `再検討依頼(対象資源評価, 日時, 操作者, 対象バージョン)` - Request reconsideration for a specific version
+- `受理(対象資源評価, 日時, 操作者, 対象バージョン)` - Approve a specific version
+
+**Exception**: `作業着手` (start work) does not require a version parameter because no version exists when transitioning from "未着手" (not started) to "作業中" (in progress).
+
+The version information is stored in the status change event (`ステータス変化イベント.対象バージョン`) for audit purposes.
+
 ## Related ADRs
 
 - ADR 0004: Audit Logging - Complements version tracking with action audit

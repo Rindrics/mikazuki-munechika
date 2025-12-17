@@ -28,6 +28,9 @@ import {
   create外部査読受理済みの資源評価,
 } from "@/test-helpers";
 
+// Default test version number for status changes
+const テスト用バージョン = 1;
+
 describe("評価開始ユースケース", () => {
   it("未着手の資源評価を作業中に変更する", () => {
     const 未着手 = create未着手の資源評価();
@@ -46,7 +49,7 @@ describe("内部査読依頼ユースケース", () => {
     const 作業中 = create作業中の資源評価();
     const 主担当者 = create認証済み主担当者();
 
-    const result = 内部査読依頼ユースケース(作業中, 主担当者);
+    const result = 内部査読依頼ユースケース(作業中, 主担当者, テスト用バージョン);
 
     expect(result.内部査読待ち資源評価.作業ステータス).toBe("内部査読中");
     expect(result.内部査読依頼済み.変化前).toBe("作業中");
@@ -72,7 +75,7 @@ describe("外部公開ユースケース", () => {
     const 内部査読中 = create内部査読中の資源評価();
     const 管理者 = create認証済み資源評価管理者();
 
-    const result = 外部公開ユースケース(内部査読中, 管理者);
+    const result = 外部公開ユースケース(内部査読中, 管理者, テスト用バージョン);
 
     expect(result.外部査読中資源評価.作業ステータス).toBe("外部査読中");
     expect(result.外部公開済み.変化前).toBe("内部査読中");
@@ -98,7 +101,7 @@ describe("再検討依頼ユースケース", () => {
     const 内部査読中 = create内部査読中の資源評価();
     const 副担当者 = create認証済み副担当者();
 
-    const result = 再検討依頼ユースケース(内部査読中, 副担当者);
+    const result = 再検討依頼ユースケース(内部査読中, 副担当者, テスト用バージョン);
 
     expect(result.再検討待ち資源評価.作業ステータス).toBe("再検討中");
     expect(result.再検討依頼済み.変化前).toBe("内部査読中");
@@ -109,7 +112,7 @@ describe("再検討依頼ユースケース", () => {
     const 外部査読中 = create外部査読中の資源評価();
     const 管理者 = create認証済み資源評価管理者();
 
-    const result = 再検討依頼ユースケース(外部査読中, 管理者);
+    const result = 再検討依頼ユースケース(外部査読中, 管理者, テスト用バージョン);
 
     expect(result.再検討待ち資源評価.作業ステータス).toBe("再検討中");
     expect(result.再検討依頼済み.変化前).toBe("外部査読中");
@@ -151,7 +154,7 @@ describe("受理ユースケース", () => {
       const 内部査読中 = create内部査読中の資源評価();
       const 管理者 = create認証済み資源評価管理者();
 
-      const result = 内部査読受理ユースケース(内部査読中, 管理者);
+      const result = 内部査読受理ユースケース(内部査読中, 管理者, テスト用バージョン);
 
       expect(result.受理済み資源評価.作業ステータス).toBe("外部公開可能");
       expect(result.受理済み.変化前).toBe("内部査読中");
@@ -164,7 +167,7 @@ describe("受理ユースケース", () => {
       const 外部査読中 = create外部査読中の資源評価();
       const 管理者 = create認証済み資源評価管理者();
 
-      const result = 外部査読受理ユースケース(外部査読中, 管理者);
+      const result = 外部査読受理ユースケース(外部査読中, 管理者, テスト用バージョン);
 
       expect(result.受理済み資源評価.作業ステータス).toBe("外部査読受理済み");
       expect(result.受理済み.変化前).toBe("外部査読中");
