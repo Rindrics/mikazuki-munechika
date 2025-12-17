@@ -282,6 +282,23 @@ CREATE INDEX idx_assessment_publications_lookup
    - Need to join with publications table for dashboard
    - However, indexes mitigate performance concerns
 
+### Race Condition Considerations
+
+**Decision: No special handling for race conditions (YAGNI)**
+
+Potential race condition when determining revision number:
+- Between reading the last publication and inserting a new record, another request could insert with the same revision number.
+
+**Why we don't handle this:**
+
+1. **Single primary assignee per stock**: Each stock has exactly one primary assignee, so concurrent operations on the same stock are rare.
+2. **Administrator-only publication**: External publication requires administrator role, limiting concurrent access.
+3. **Status check as guard**: Before publishing, we check that status is "外部公開可能". After successful publication, status changes to "外部査読中". A second concurrent request would fail this check.
+4. **Double-click protection**: Even if a user double-clicks, the second request fails with "ステータスが「外部公開可能」ではありません" because the first request already changed the status.
+5. **Unique constraint**: The database has `UNIQUE(stock_group_id, fiscal_year, revision_number)` as a final safety net.
+
+If race conditions become a real problem in the future, we can add atomic insertion using a database function with advisory locks.
+
 ## Related ADRs
 
 - ADR 0004: Audit Logging - Complements version tracking with action audit

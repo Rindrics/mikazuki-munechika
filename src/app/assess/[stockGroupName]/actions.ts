@@ -506,6 +506,9 @@ export async function publishExternallyAction(
   const stockGroupId = await getStockGroupId(supabase, stockGroupName);
 
   // Get next revision number for this publication
+  // Note: Race conditions are unlikely because:
+  // 1. Single primary assignee per stock
+  // 2. Status check guards against concurrent operations (see ADR 0018)
   const { data: lastPublication, error: pubError } = await supabase
     .from("assessment_publications")
     .select("revision_number")
