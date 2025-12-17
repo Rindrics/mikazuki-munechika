@@ -13,6 +13,7 @@ import type { 評価ステータス } from "@/domain/models/stock/status";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
 import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
+import { SupabaseAuditLogRepository } from "@/infrastructure/supabase-audit-log-repository";
 import { logger } from "@/utils/logger";
 
 // Get current fiscal year (April-based fiscal year in Japan)
@@ -93,6 +94,7 @@ export async function startWorkAction(
   }
 
   const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -104,11 +106,23 @@ export async function startWorkAction(
     return { success: true, newStatus: currentAssessment.ステータス };
   }
 
+  const beforeStatus = currentAssessment?.ステータス ?? null;
+
   // Update status to "作業中"
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "作業中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "作業中",
+    reason: "作業開始",
   });
 
   logger.info("作業開始", { stockGroupName, userId: user.id });
@@ -134,6 +148,7 @@ export async function requestInternalReviewAction(
   }
 
   const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -142,11 +157,23 @@ export async function requestInternalReviewAction(
     throw new Error(`現在のステータスが「作業中」ではありません: ${currentAssessment.ステータス}`);
   }
 
+  const beforeStatus = currentAssessment?.ステータス ?? "作業中";
+
   // Update status
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "内部査読中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "内部査読中",
+    reason: "内部査読依頼",
   });
 
   logger.info("内部査読依頼完了", { stockGroupName, userId: user.id });
@@ -172,6 +199,7 @@ export async function cancelInternalReviewAction(
   }
 
   const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -180,11 +208,23 @@ export async function cancelInternalReviewAction(
     throw new Error(`現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`);
   }
 
+  const beforeStatus = currentAssessment?.ステータス ?? "内部査読中";
+
   // Update status
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "作業中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "作業中",
+    reason: "内部査読依頼取り消し",
   });
 
   logger.info("内部査読依頼取り消し完了", { stockGroupName, userId: user.id });
