@@ -37,9 +37,6 @@ export function VersionHistory({
 
   return (
     <div className={`border rounded-lg ${className}`}>
-      <div className="p-3 bg-secondary-light border-b">
-        <h3 className="font-medium">バージョン履歴</h3>
-      </div>
       <div className="divide-y max-h-64 overflow-y-auto">
         {versions.map((v) => {
           const publication = publicationMap.get(v.version);
