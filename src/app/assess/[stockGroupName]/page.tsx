@@ -194,7 +194,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }
 
   return (
-    <main className="p-8 max-w-3xl mx-auto">
+    <main className="p-8 max-w-6xl mx-auto">
       <div className="mb-4">
         <Link href="/assess" className="text-link hover:text-link-hover underline text-sm">
           ← 担当資源一覧に戻る
@@ -280,8 +280,12 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         </StatusPanel>
       </div>
 
-      <section className="mb-8">
-        <h2 className="mb-4">パラメータ入力</h2>
+      {/* Two-column layout: Main content (left) + Version history (right) */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left column: Main content */}
+        <div className="flex-1 min-w-0">
+          <section className="mb-8">
+            <h2 className="mb-4">パラメータ入力</h2>
 
         <div className="space-y-4">
           <div>
@@ -366,16 +370,20 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           </div>
         )}
       </section>
+        </div>
 
-      {/* Version History (ADR 0018) */}
-      <section>
-        <h2 className="mb-4">バージョン履歴</h2>
-        <VersionHistory
-          versions={versionHistory}
-          publications={publications}
-          currentApprovedVersion={approvedVersion}
-        />
-      </section>
+        {/* Right column: Version history (sticky on large screens) */}
+        <aside className="lg:w-80 lg:flex-shrink-0">
+          <div className="lg:sticky lg:top-32">
+            <h2 className="mb-4">バージョン履歴</h2>
+            <VersionHistory
+              versions={versionHistory}
+              publications={publications}
+              currentApprovedVersion={approvedVersion}
+            />
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
