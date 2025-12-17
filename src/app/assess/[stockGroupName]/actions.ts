@@ -508,14 +508,15 @@ export async function cancelApprovalAction(
   // Check if user is secondary assignee for this stock
   let isSecondary = false;
   if (!isAdmin) {
-    const { data: assignment } = await supabase
-      .from("stock_assignments")
-      .select("role, stock_groups!inner(name)")
+    const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+    const { data: roleData } = await supabase
+      .from("user_stock_group_roles")
+      .select("role")
       .eq("user_id", user.id)
-      .eq("stock_groups.name", stockGroupName)
+      .eq("stock_group_id", stockGroupId)
       .single();
 
-    isSecondary = assignment?.role === ロールs.副担当;
+    isSecondary = roleData?.role === ロールs.副担当;
   }
 
   if (!isAdmin && !isSecondary) {
