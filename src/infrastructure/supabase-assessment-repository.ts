@@ -61,8 +61,12 @@ export class Supabase資源評価Repository implements 資源評価Repository {
       )
       .eq("fiscal_year", 年度);
 
-    if (error || !assessments) {
+    if (error) {
       logger.error("Failed to fetch assessments", { 年度 }, error as Error);
+      throw new Error(`Failed to fetch assessments for fiscal year ${年度}: ${error.message}`);
+    }
+
+    if (!assessments) {
       return [];
     }
 
