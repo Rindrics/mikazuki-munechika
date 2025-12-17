@@ -9,7 +9,12 @@ import {
   create資源情報,
   create資源評価,
 } from "@/domain";
-import type { 評価ステータス } from "@/domain/models/stock/status";
+import {
+  type 評価ステータス,
+  type 進行中資源評価,
+  type 再検討中資源評価,
+  require保存可能ステータス,
+} from "@/domain/models/stock/status";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
 import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
@@ -43,13 +48,23 @@ export async function saveAssessmentResultAction(
   stockGroupName: 資源名,
   result: ABC算定結果
 ): Promise<void> {
+  // Check current status - only "作業中" or "再検討中" can save results
+  const statusRepository = await create資源評価RepositoryServer();
+  const 年度 = getCurrentFiscalYear();
+  const currentAssessment = await statusRepository.findBy資源名And年度(stockGroupName, 年度);
+  const currentStatus = currentAssessment?.ステータス ?? "未着手";
+
+  // This will throw if status doesn't allow saving
+  require保存可能ステータス(currentStatus);
+
   const stockGroup = create資源情報(stockGroupName);
   const stock = create資源評価(stockGroup);
 
   const repository = createAssessmentResultRepository();
   const service = new SaveAssessmentResultService(repository);
 
-  await service.execute(stock, result);
+  // Type assertion is safe here because require保存可能ステータス already validated
+  await service.execute(stock as unknown as 進行中資源評価 | 再検討中資源評価, result);
 }
 
 /**

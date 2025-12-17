@@ -486,3 +486,23 @@ export function 再検討依頼取り消し(
   );
   return { 査読中資源評価: 更新後資源評価, 再検討依頼取り消し済み: イベント };
 }
+
+/**
+ * Check if assessment result can be saved for the given status
+ * Only "作業中" and "再検討中" statuses allow saving assessment results
+ */
+export function can保存評価結果(status: 評価ステータス): boolean {
+  return status === "作業中" || status === "再検討中";
+}
+
+/**
+ * Assert that assessment result can be saved for the given status
+ * @throws Error if status does not allow saving
+ */
+export function require保存可能ステータス(status: 評価ステータス): void {
+  if (!can保存評価結果(status)) {
+    throw new Error(
+      `評価結果を保存できるのは「作業中」または「再検討中」ステータスのみです。現在のステータス: ${status}`
+    );
+  }
+}

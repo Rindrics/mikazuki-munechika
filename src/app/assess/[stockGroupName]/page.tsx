@@ -10,7 +10,7 @@ import {
   is主担当者,
   is副担当者,
 } from "@/domain";
-import type { 評価ステータス } from "@/domain/models/stock/status";
+import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import { StatusPanel } from "@/components/organisms";
 import { StatusChangeButton } from "@/components/molecules";
@@ -304,7 +304,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         <button
           type="button"
           onClick={handleSave}
-          disabled={!calculationResult || isSaving || isSaved}
+          disabled={!calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)}
           className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
         >
           {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
