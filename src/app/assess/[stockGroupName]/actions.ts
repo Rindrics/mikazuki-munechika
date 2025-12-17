@@ -649,11 +649,12 @@ export async function requestReconsiderationAction(
 
   const beforeStatus = currentStatus;
 
-  // Update status
+  // Update status with origin status for later cancellation
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "再検討中",
+    元ステータス: beforeStatus as "内部査読中" | "外部査読中",
   });
 
   // Log status change to audit log
