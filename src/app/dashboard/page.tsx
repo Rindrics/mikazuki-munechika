@@ -4,10 +4,13 @@ import { 資源名s, create資源情報, create資源評価, type 資源名 } fr
 import type { 評価ステータス } from "@/domain/models/stock/status";
 import { logger } from "@/utils/logger";
 import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
+import { getCurrentFiscalYearAction } from "@/app/manage/actions";
 import ResultPanel from "./components/ResultPanel";
 
-// Get current fiscal year (April-based fiscal year in Japan)
-function getCurrentFiscalYear(): number {
+/**
+ * Fallback: compute fiscal year from local date (April-based in Japan)
+ */
+function computeFiscalYearFromDate(): number {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
@@ -33,8 +36,9 @@ export default async function Home() {
   // Get assessment results from repository
   const assessmentResults = await getAssessmentResultsService.execute(stocks);
 
-  // Get status for each stock
-  const 年度 = getCurrentFiscalYear();
+  // Get current fiscal year from admin settings, with fallback to date-based calculation
+  const adminFiscalYear = await getCurrentFiscalYearAction();
+  const 年度 = adminFiscalYear ?? computeFiscalYearFromDate();
   const statusMap = new Map<資源名, 評価ステータス>();
   for (const { stock } of assessmentResults) {
     const stockName = stock.対象.toString() as 資源名;
