@@ -310,8 +310,11 @@ export async function requestInternalReviewAction(
   if (!currentAssessment) {
     throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
   }
-  if (currentAssessment.ステータス !== "作業中") {
-    throw new Error(`現在のステータスが「作業中」ではありません: ${currentAssessment.ステータス}`);
+  // Allow from "作業中" or "再検討中"
+  if (currentAssessment.ステータス !== "作業中" && currentAssessment.ステータス !== "再検討中") {
+    throw new Error(
+      `内部査読依頼は「作業中」または「再検討中」ステータスでのみ実行できます。現在のステータス: ${currentAssessment.ステータス}`
+    );
   }
 
   const beforeStatus = currentAssessment.ステータス;

@@ -269,21 +269,25 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {/* Status change buttons for primary assignee */}
           {isPrimaryAssignee && (
             <>
-              {currentStatus === "作業中" && selectedVersion && (
-                <StatusChangeButton
-                  label="内部査読を依頼"
-                  confirmTitle="内部査読を依頼しますか？"
-                  confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
-                  variant="primary"
-                  onAction={async () => {
-                    const result = await requestInternalReviewAction(stockGroupName, selectedVersion);
-                    if (result.success) {
-                      setCurrentStatus(result.newStatus);
-                      setApprovedVersion(result.requestedVersion);
-                    }
-                  }}
-                />
-              )}
+              {(currentStatus === "作業中" || currentStatus === "再検討中") &&
+                selectedVersion && (
+                  <StatusChangeButton
+                    label="内部査読を依頼"
+                    confirmTitle="内部査読を依頼しますか？"
+                    confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
+                    variant="primary"
+                    onAction={async () => {
+                      const result = await requestInternalReviewAction(
+                        stockGroupName,
+                        selectedVersion
+                      );
+                      if (result.success) {
+                        setCurrentStatus(result.newStatus);
+                        setApprovedVersion(result.requestedVersion);
+                      }
+                    }}
+                  />
+                )}
               {currentStatus === "内部査読中" && (
                 <StatusChangeButton
                   label="内部査読依頼を取り消す"
