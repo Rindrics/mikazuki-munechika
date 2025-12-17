@@ -564,6 +564,113 @@ export async function cancelApprovalAction(
 }
 
 /**
+ * Request reconsideration for an assessment (secondary assignee or administrator)
+ * Changes status from "内部査読中" to "再検討中"
+ * Note: From "外部査読中", only administrator can request reconsideration
+ */
+export async function requestReconsiderationAction(
+  stockGroupName: 資源名,
+  targetVersion: number
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const resultRepository = createAssessmentResultRepository();
+  const auditLogRepository = new SupabaseAuditLogRepository();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+
+  const currentStatus = currentAssessment.ステータス;
+
+  // Verify status is "内部査読中" or "外部査読中"
+  if (currentStatus !== "内部査読中" && currentStatus !== "外部査読中") {
+    throw new Error(
+      `再検討依頼は「内部査読中」または「外部査読中」ステータスでのみ実行できます。現在のステータス: ${currentStatus}`
+    );
+  }
+
+  // Check if user is administrator
+  const { data: adminRoleData } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", ロールs.管理者)
+    .limit(1);
+
+  const isAdmin = adminRoleData && adminRoleData.length > 0;
+
+  // For "外部査読中", only administrator can request reconsideration
+  if (currentStatus === "外部査読中" && !isAdmin) {
+    throw new Error("外部査読中の再検討依頼は管理者のみが実行できます");
+  }
+
+  // For "内部査読中", check if user is secondary assignee or administrator
+  if (currentStatus === "内部査読中" && !isAdmin) {
+    const { data: assignment } = await supabase
+      .from("stock_assignments")
+      .select("role, stock_groups!inner(name)")
+      .eq("user_id", user.id)
+      .eq("stock_groups.name", stockGroupName)
+      .single();
+
+    const isSecondary = assignment?.role === ロールs.副担当;
+    if (!isSecondary) {
+      throw new Error("内部査読中の再検討依頼は副担当者または管理者のみが実行できます");
+    }
+  }
+
+  // Verify the target version exists
+  const targetResult = await resultRepository.findByStockNameAndVersion(
+    stockGroupName,
+    年度,
+    targetVersion
+  );
+  if (!targetResult) {
+    throw new Error(`バージョン v${targetVersion} が見つかりません`);
+  }
+
+  const beforeStatus = currentStatus;
+
+  // Update status
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "再検討中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "再検討中",
+    reason: `再検討依頼 (v${targetVersion})`,
+  });
+
+  logger.info("再検討依頼完了", {
+    stockGroupName,
+    userId: user.id,
+    targetVersion,
+  });
+
+  return { success: true, newStatus: "再検討中" };
+}
+
+/**
  * Publish assessment externally (administrator only)
  * Changes status from "外部公開可能" to "外部査読中"
  * Records the publication in assessment_publications table

@@ -26,6 +26,7 @@ import {
   startWorkAction,
   approveInternalReviewAction,
   cancelApprovalAction,
+  requestReconsiderationAction,
   publishExternallyAction,
   stopExternalPublicationAction,
   getVersionHistoryAction,
@@ -286,19 +287,38 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           )}
           {/* Status change buttons for secondary assignee */}
           {isSecondaryAssignee && currentStatus === "内部査読中" && (
-            <StatusChangeButton
-              label="承諾する"
-              confirmTitle="内部査読を承諾しますか？"
-              confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
-              variant="success"
-              onAction={async () => {
-                const result = await approveInternalReviewAction(stockGroupName);
-                if (result.success) {
-                  setCurrentStatus(result.newStatus);
-                  setApprovedVersion(result.approvedVersion);
-                }
-              }}
-            />
+            <>
+              <StatusChangeButton
+                label="承諾する"
+                confirmTitle="内部査読を承諾しますか？"
+                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+                variant="success"
+                onAction={async () => {
+                  const result = await approveInternalReviewAction(stockGroupName);
+                  if (result.success) {
+                    setCurrentStatus(result.newStatus);
+                    setApprovedVersion(result.approvedVersion);
+                  }
+                }}
+              />
+              {selectedVersion && (
+                <StatusChangeButton
+                  label="再検討を依頼"
+                  confirmTitle="再検討を依頼しますか？"
+                  confirmMessage={`v${selectedVersion} の結果について再検討を依頼します。主担当者に通知されます。`}
+                  variant="secondary"
+                  onAction={async () => {
+                    const result = await requestReconsiderationAction(
+                      stockGroupName,
+                      selectedVersion
+                    );
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+            </>
           )}
           {/* Cancel approval button for secondary assignee or administrator */}
           {(isSecondaryAssignee || is管理者) && currentStatus === "外部公開可能" && (
