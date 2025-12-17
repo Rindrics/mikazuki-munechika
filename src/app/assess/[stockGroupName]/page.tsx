@@ -10,11 +10,13 @@ import {
   is主担当者,
   is副担当者,
 } from "@/domain";
+import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
+import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton } from "@/components/molecules";
-import { use, useState, useEffect } from "react";
+import { StatusChangeButton, VersionHistory, ButtonGroup } from "@/components/molecules";
+import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   calculateAbcAction,
@@ -24,7 +26,12 @@ import {
   getAssessmentStatusAction,
   startWorkAction,
   approveInternalReviewAction,
+  cancelApprovalAction,
+  requestReconsiderationAction,
   publishExternallyAction,
+  stopExternalPublicationAction,
+  getVersionHistoryAction,
+  getPublicationHistoryAction,
 } from "./actions";
 
 interface AssessmentPageProps {
@@ -43,9 +50,61 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [isNewVersion, setIsNewVersion] = useState<boolean>(true);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
   const [_isStatusLoading, setIsStatusLoading] = useState(true);
+
+  // Version history state (ADR 0018)
+  const [versionHistory, setVersionHistory] = useState<VersionedAssessmentResult[]>([]);
+  const [publications, setPublications] = useState<PublicationRecord[]>([]);
+  const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
+  const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Load version data into form fields
+  const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
+    setSelectedVersion(version.version);
+    if (version.parameters) {
+      set漁獲量データValue(version.parameters.catchData?.value ?? "");
+      set生物学的データValue(version.parameters.biologicalData?.value ?? "");
+    }
+    if (version.result) {
+      setCalculationResult(version.result);
+    }
+    // Reset save state when switching versions
+    setIsSaved(false);
+    setSavedVersion(null);
+  }, []);
+
+  // Fetch version history and populate fields with appropriate version's parameters
+  const fetchVersionHistory = useCallback(
+    async (targetApprovedVersion?: number) => {
+      try {
+        const [versions, pubs] = await Promise.all([
+          getVersionHistoryAction(stockGroupName),
+          getPublicationHistoryAction(stockGroupName),
+        ]);
+        setVersionHistory(versions);
+        setPublications(pubs);
+
+        if (versions.length > 0) {
+          // If there's an approved/requested version, select it; otherwise select latest
+          const versionToSelect = targetApprovedVersion
+            ? versions.find((v) => v.version === targetApprovedVersion)
+            : versions[0]; // versions are sorted by version desc
+
+          if (versionToSelect) {
+            loadVersionIntoForm(versionToSelect);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch version history:", error);
+      }
+    },
+    [stockGroupName, loadVersionIntoForm]
+  );
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
@@ -67,14 +126,24 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   useEffect(() => {
     const fetchAndMaybeStartWork = async () => {
       try {
+        let targetApprovedVersion: number | undefined;
+
         // For primary assignees, auto-start work (changes "未着手" to "作業中")
         if (isPrimaryAssignee) {
           const result = await startWorkAction(stockGroupName);
           setCurrentStatus(result.newStatus);
+          // Fetch approved version separately
+          const statusResult = await getAssessmentStatusAction(stockGroupName);
+          setApprovedVersion(statusResult.approvedVersion);
+          targetApprovedVersion = statusResult.approvedVersion;
         } else {
-          const status = await getAssessmentStatusAction(stockGroupName);
-          setCurrentStatus(status);
+          const statusResult = await getAssessmentStatusAction(stockGroupName);
+          setCurrentStatus(statusResult.status);
+          setApprovedVersion(statusResult.approvedVersion);
+          targetApprovedVersion = statusResult.approvedVersion;
         }
+        // Fetch version history and select the target version (or latest if none)
+        await fetchVersionHistory(targetApprovedVersion);
       } catch (error) {
         console.error("Failed to fetch/update status:", error);
       } finally {
@@ -86,7 +155,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     if (!isLoading && user) {
       fetchAndMaybeStartWork();
     }
-  }, [stockGroupName, isPrimaryAssignee, isLoading, user]);
+  }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
   const handleCalculate = async () => {
     setIsCalculating(true);
@@ -105,8 +174,17 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     setIsSaving(true);
     setSaveError(null);
     try {
-      await saveAssessmentResultAction(stockGroupName, calculationResult);
+      const { version, isNew } = await saveAssessmentResultAction(
+        stockGroupName,
+        calculationResult,
+        catchDataValue,
+        biologicalDataValue
+      );
       setIsSaved(true);
+      setSavedVersion(version);
+      setIsNewVersion(isNew);
+      // Refresh version history after save
+      await fetchVersionHistory();
     } catch (error) {
       const message = error instanceof Error ? error.message : "登録に失敗しました";
       setSaveError(message);
@@ -128,7 +206,16 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     return (
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">資源評価</h1>
-        <p className="text-secondary">ログインしてください。</p>
+        <p className="text-secondary">
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="text-primary underline hover:opacity-80"
+          >
+            ログイン
+          </button>
+          してください
+        </p>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </main>
     );
   }
@@ -153,7 +240,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }
 
   return (
-    <main className="p-8 max-w-3xl mx-auto">
+    <main className="p-8 max-w-6xl mx-auto">
       <div className="mb-4">
         <Link href="/assess" className="text-link hover:text-link-hover underline text-sm">
           ← 担当資源一覧に戻る
@@ -176,16 +263,20 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           {/* Status change buttons for primary assignee */}
           {isPrimaryAssignee && (
             <>
-              {currentStatus === "作業中" && (
+              {(currentStatus === "作業中" || currentStatus === "再検討中") && selectedVersion && (
                 <StatusChangeButton
                   label="内部査読を依頼"
                   confirmTitle="内部査読を依頼しますか？"
-                  confirmMessage="内部査読を依頼すると、副担当者・管理者に通知されます。"
+                  confirmMessage={`v${selectedVersion} の結果で内部査読を依頼します。副担当者・管理者に通知されます。`}
                   variant="primary"
                   onAction={async () => {
-                    const result = await requestInternalReviewAction(stockGroupName);
+                    const result = await requestInternalReviewAction(
+                      stockGroupName,
+                      selectedVersion
+                    );
                     if (result.success) {
                       setCurrentStatus(result.newStatus);
+                      setApprovedVersion(result.requestedVersion);
                     }
                   }}
                 />
@@ -208,15 +299,51 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           )}
           {/* Status change buttons for secondary assignee */}
           {isSecondaryAssignee && currentStatus === "内部査読中" && (
+            <ButtonGroup direction="horizontal">
+              {selectedVersion && (
+                <StatusChangeButton
+                  label="再検討を依頼"
+                  confirmTitle="再検討を依頼しますか？"
+                  confirmMessage={`v${selectedVersion} の結果について再検討を依頼します。主担当者に通知されます。`}
+                  variant="secondary"
+                  onAction={async () => {
+                    const result = await requestReconsiderationAction(
+                      stockGroupName,
+                      selectedVersion
+                    );
+                    if (result.success) {
+                      setCurrentStatus(result.newStatus);
+                    }
+                  }}
+                />
+              )}
+              <StatusChangeButton
+                label="承諾する"
+                confirmTitle="内部査読を承諾しますか？"
+                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+                variant="success"
+                onAction={async () => {
+                  const result = await approveInternalReviewAction(stockGroupName);
+                  if (result.success) {
+                    setCurrentStatus(result.newStatus);
+                    setApprovedVersion(result.approvedVersion);
+                  }
+                }}
+              />
+            </ButtonGroup>
+          )}
+          {/* Cancel approval button for secondary assignee or administrator */}
+          {(isSecondaryAssignee || is管理者) && currentStatus === "外部公開可能" && (
             <StatusChangeButton
-              label="承諾する"
-              confirmTitle="内部査読を承諾しますか？"
-              confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
-              variant="success"
+              label="承諾取り消し"
+              confirmTitle="承諾を取り消しますか？"
+              confirmMessage="承諾を取り消すと、ステータスが「内部査読中」に戻ります。"
+              variant="secondary"
               onAction={async () => {
-                const result = await approveInternalReviewAction(stockGroupName);
+                const result = await cancelApprovalAction(stockGroupName);
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
+                  setApprovedVersion(undefined);
                 }
               }}
             />
@@ -236,89 +363,132 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               }}
             />
           )}
+          {is管理者 && currentStatus === "外部査読中" && (
+            <StatusChangeButton
+              label="公開停止"
+              confirmTitle="外部公開を停止しますか？"
+              confirmMessage="公開停止すると、ステータスが「外部公開可能」に戻ります。"
+              variant="secondary"
+              onAction={async () => {
+                const result = await stopExternalPublicationAction(stockGroupName);
+                if (result.success) {
+                  setCurrentStatus(result.newStatus);
+                }
+              }}
+            />
+          )}
         </StatusPanel>
       </div>
 
-      <section className="mb-8">
-        <h2 className="mb-4">パラメータ入力</h2>
+      {/* Two-column layout: Main content (left) + Version history (right) */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left column: Main content */}
+        <div className="flex-1 min-w-0">
+          <section className="mb-8">
+            <h2 className="mb-4">パラメータ入力</h2>
 
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="catchData" className="block mb-2 font-medium">
-              漁獲データ
-            </label>
-            <input
-              id="catchData"
-              type="text"
-              value={catchDataValue}
-              onChange={(e) => set漁獲量データValue(e.target.value)}
-              placeholder="漁獲データを入力"
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="catchData" className="block mb-2 font-medium">
+                  漁獲データ
+                </label>
+                <input
+                  id="catchData"
+                  type="text"
+                  value={catchDataValue}
+                  onChange={(e) => set漁獲量データValue(e.target.value)}
+                  placeholder="漁獲データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="biologicalData" className="block mb-2 font-medium">
-              生物学的データ
-            </label>
-            <input
-              id="biologicalData"
-              type="text"
-              value={biologicalDataValue}
-              onChange={(e) => set生物学的データValue(e.target.value)}
-              placeholder="生物学的データを入力"
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-4">計算・プレビュー</h2>
-
-        <button
-          type="button"
-          onClick={handleCalculate}
-          disabled={!catchDataValue || !biologicalDataValue || isCalculating}
-          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-        >
-          {isCalculating ? "計算中..." : "ABC を計算"}
-        </button>
-
-        <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
-          {calculationResult ? (
-            <div>
-              <p className="font-medium mb-1">計算結果:</p>
-              <p>{calculationResult.value}</p>
+              <div>
+                <label htmlFor="biologicalData" className="block mb-2 font-medium">
+                  生物学的データ
+                </label>
+                <input
+                  id="biologicalData"
+                  type="text"
+                  value={biologicalDataValue}
+                  onChange={(e) => set生物学的データValue(e.target.value)}
+                  placeholder="生物学的データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
-          ) : (
-            <p className="text-secondary italic">計算結果がここに表示されます</p>
-          )}
+          </section>
+
+          <section className="mb-8">
+            <h2 className="mb-4">計算・プレビュー</h2>
+
+            <button
+              type="button"
+              onClick={handleCalculate}
+              disabled={!catchDataValue || !biologicalDataValue || isCalculating}
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+            >
+              {isCalculating ? "計算中..." : "ABC を計算"}
+            </button>
+
+            <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
+              {calculationResult ? (
+                <div>
+                  <p className="font-medium mb-1">計算結果:</p>
+                  <p>{calculationResult.value}</p>
+                </div>
+              ) : (
+                <p className="text-secondary italic">計算結果がここに表示されます</p>
+              )}
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="mb-4">登録</h2>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={
+                !calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)
+              }
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
+            </button>
+
+            {isSaved && savedVersion !== null && (
+              <p className="mt-4 text-success font-medium">
+                {isNewVersion
+                  ? `評価結果を v${savedVersion} として登録しました。`
+                  : `既存バージョン (v${savedVersion}) と同じパラメータです。`}
+              </p>
+            )}
+
+            {saveError && (
+              <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
+                <p className="text-danger-dark font-medium dark:text-foreground-dark">
+                  結果の登録に失敗しました
+                </p>
+              </div>
+            )}
+          </section>
         </div>
-      </section>
 
-      <section>
-        <h2 className="mb-4">登録</h2>
-
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)}
-          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-        >
-          {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
-        </button>
-
-        {isSaved && <p className="mt-4 text-success font-medium">評価結果を登録しました。</p>}
-
-        {saveError && (
-          <div className="mt-2 p-2 border border-danger rounded-lg bg-danger-light dark:bg-danger-hover ">
-            <p className="text-danger-dark font-medium dark:text-foreground-dark">
-              結果の登録に失敗しました
-            </p>
+        {/* Right column: Version history (sticky on large screens) */}
+        <aside className="lg:w-80 lg:flex-shrink-0">
+          <div className="lg:sticky lg:top-32">
+            <h2 className="mb-4">バージョン履歴</h2>
+            <VersionHistory
+              versions={versionHistory}
+              publications={publications}
+              currentApprovedVersion={approvedVersion}
+              currentStatus={currentStatus}
+              selectedVersion={selectedVersion}
+              onSelectVersion={loadVersionIntoForm}
+            />
           </div>
-        )}
-      </section>
+        </aside>
+      </div>
     </main>
   );
 }

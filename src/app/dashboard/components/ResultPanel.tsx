@@ -7,13 +7,6 @@ interface ResultPanelProps {
 }
 
 export default function ResultPanel({ stock, result, isInProgress = false }: ResultPanelProps) {
-  let abundance: string | undefined;
-  try {
-    abundance = stock.資源量;
-  } catch {
-    abundance = undefined;
-  }
-
   // Show "評価中" for stocks that are not yet published
   if (isInProgress) {
     return (
@@ -26,17 +19,26 @@ export default function ResultPanel({ stock, result, isInProgress = false }: Res
     );
   }
 
+  // Use abundance from result (saved in database)
+  const abundance = result?.資源量;
+
   return (
     <section className="border rounded-lg p-6">
       <h2 className="mb-2">{stock.対象.toString()}</h2>
       <div className="mb-2">
         <strong>資源量:</strong>{" "}
-        {abundance ? abundance : <span className="text-gray-500 italic">データ未登録</span>}
+        {abundance ? (
+          `${abundance.値} ${abundance.単位}`
+        ) : (
+          <span className="text-gray-500 italic">データ未登録</span>
+        )}
       </div>
       <div className="p-4 rounded border">
         <strong className="block mb-2">評価結果:</strong>
         {result ? (
-          <div>{result.value}</div>
+          <div>
+            {result.value} {result.unit}
+          </div>
         ) : (
           <div className="text-gray-500 italic">データ未登録</div>
         )}

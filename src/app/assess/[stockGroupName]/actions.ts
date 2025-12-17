@@ -1,6 +1,6 @@
 "use server";
 
-import { ABC算定, SaveAssessmentResultService } from "@/application";
+import { ABC算定 } from "@/application";
 import {
   ABC算定結果,
   漁獲量データ,
@@ -11,12 +11,8 @@ import {
   ロール,
   ロールs,
 } from "@/domain";
-import {
-  type 評価ステータス,
-  type 進行中資源評価,
-  type 再検討中資源評価,
-  require保存可能ステータス,
-} from "@/domain/models/stock/status";
+import { type 評価ステータス, require保存可能ステータス } from "@/domain/models/stock/status";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
 import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
@@ -107,10 +103,29 @@ export async function calculateAbcAction(
   return ABC算定(stock, catchData, biologicalData);
 }
 
+/**
+ * Get stock group ID from stock group name
+ */
+async function getStockGroupId(supabase: SupabaseClient, stockGroupName: 資源名): Promise<string> {
+  const { data: stockGroup, error } = await supabase
+    .from("stock_groups")
+    .select("id")
+    .eq("name", stockGroupName)
+    .single();
+
+  if (error || !stockGroup) {
+    throw new Error(`資源グループが見つかりません: ${stockGroupName}`);
+  }
+
+  return stockGroup.id;
+}
+
 export async function saveAssessmentResultAction(
   stockGroupName: 資源名,
-  result: ABC算定結果
-): Promise<void> {
+  result: ABC算定結果,
+  catchDataValue: string,
+  biologicalDataValue: string
+): Promise<{ version: number; isNew: boolean }> {
   // Check current status - only "作業中" or "再検討中" can save results
   const statusRepository = await create資源評価RepositoryServer();
   const 年度 = getCurrentFiscalYear();
@@ -120,20 +135,65 @@ export async function saveAssessmentResultAction(
   // This will throw if status doesn't allow saving
   require保存可能ステータス(currentStatus);
 
-  const stockGroup = create資源情報(stockGroupName);
-  const stock = create資源評価(stockGroup);
-
   const repository = createAssessmentResultRepository();
-  const service = new SaveAssessmentResultService(repository);
 
-  // Type assertion is safe here because require保存可能ステータス already validated
-  await service.execute(stock as unknown as 進行中資源評価 | 再検討中資源評価, result);
+  // Build parameters for reproducibility (ADR 0018)
+  const parameters = {
+    catchData: { value: catchDataValue },
+    biologicalData: { value: biologicalDataValue },
+  };
+
+  // Save with versioning - automatically increments version number
+  // If same parameters exist, returns existing version (no new record)
+  const { version, isNew } = await repository.saveWithVersion(
+    stockGroupName,
+    年度,
+    result,
+    parameters
+  );
+
+  if (isNew) {
+    logger.info("評価結果を新規保存しました", { stockGroupName, 年度, version });
+  } else {
+    logger.info("同一パラメータの既存バージョンを返しました", { stockGroupName, 年度, version });
+  }
+
+  return { version, isNew };
+}
+
+/**
+ * Get version history for a stock group
+ */
+export async function getVersionHistoryAction(
+  stockGroupName: 資源名
+): Promise<VersionedAssessmentResult[]> {
+  const 年度 = getCurrentFiscalYear();
+  const repository = createAssessmentResultRepository();
+
+  const versions = await repository.findByStockNameAndFiscalYear(stockGroupName, 年度);
+
+  return versions;
+}
+
+/**
+ * Get a specific version of assessment result
+ */
+export async function getAssessmentResultByVersionAction(
+  stockGroupName: 資源名,
+  version: number
+): Promise<VersionedAssessmentResult | undefined> {
+  const 年度 = getCurrentFiscalYear();
+  const repository = createAssessmentResultRepository();
+
+  return repository.findByStockNameAndVersion(stockGroupName, 年度, version);
 }
 
 /**
  * Get current assessment status for a stock
  */
-export async function getAssessmentStatusAction(stockGroupName: 資源名): Promise<評価ステータス> {
+export async function getAssessmentStatusAction(
+  stockGroupName: 資源名
+): Promise<{ status: 評価ステータス; approvedVersion?: number }> {
   const repository = await create資源評価RepositoryServer();
   const 年度 = getCurrentFiscalYear();
 
@@ -146,10 +206,10 @@ export async function getAssessmentStatusAction(stockGroupName: 資源名): Prom
       年度,
       ステータス: "未着手",
     });
-    return "未着手";
+    return { status: "未着手" };
   }
 
-  return assessment.ステータス;
+  return { status: assessment.ステータス, approvedVersion: assessment.承諾バージョン };
 }
 
 /**
@@ -214,8 +274,9 @@ export async function startWorkAction(
  * Changes status from "作業中" to "内部査読中"
  */
 export async function requestInternalReviewAction(
-  stockGroupName: 資源名
-): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  stockGroupName: 資源名,
+  targetVersion: number
+): Promise<{ success: boolean; newStatus: 評価ステータス; requestedVersion: number }> {
   // Get current user from Supabase session
   const supabase = await getSupabaseServerClient();
   const {
@@ -230,25 +291,40 @@ export async function requestInternalReviewAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
+  const resultRepository = createAssessmentResultRepository();
   const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
+
+  // Verify the target version exists
+  const targetResult = await resultRepository.findByStockNameAndVersion(
+    stockGroupName,
+    年度,
+    targetVersion
+  );
+  if (!targetResult) {
+    throw new Error(`バージョン v${targetVersion} が見つかりません`);
+  }
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
   if (!currentAssessment) {
     throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
   }
-  if (currentAssessment.ステータス !== "作業中") {
-    throw new Error(`現在のステータスが「作業中」ではありません: ${currentAssessment.ステータス}`);
+  // Allow from "作業中" or "再検討中"
+  if (currentAssessment.ステータス !== "作業中" && currentAssessment.ステータス !== "再検討中") {
+    throw new Error(
+      `内部査読依頼は「作業中」または「再検討中」ステータスでのみ実行できます。現在のステータス: ${currentAssessment.ステータス}`
+    );
   }
 
   const beforeStatus = currentAssessment.ステータス;
 
-  // Update status
+  // Update status with target version (version under review)
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "内部査読中",
+    承諾バージョン: targetVersion, // Record which version is under review
   });
 
   // Log status change to audit log
@@ -258,12 +334,12 @@ export async function requestInternalReviewAction(
     fiscalYear: 年度,
     beforeStatus,
     afterStatus: "内部査読中",
-    reason: "内部査読依頼",
+    reason: `内部査読依頼 (v${targetVersion})`,
   });
 
-  logger.info("内部査読依頼完了", { stockGroupName, userId: user.id });
+  logger.info("内部査読依頼完了", { stockGroupName, userId: user.id, targetVersion });
 
-  return { success: true, newStatus: "内部査読中" };
+  return { success: true, newStatus: "内部査読中", requestedVersion: targetVersion };
 }
 
 /**
@@ -328,10 +404,12 @@ export async function cancelInternalReviewAction(
 /**
  * Approve internal review (secondary assignee only)
  * Changes status from "内部査読中" to "外部公開可能"
+ * Records the approved version number
  */
 export async function approveInternalReviewAction(
-  stockGroupName: 資源名
-): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  stockGroupName: 資源名,
+  approvedVersion?: number
+): Promise<{ success: boolean; newStatus: 評価ステータス; approvedVersion: number }> {
   // Get current user from Supabase session
   const supabase = await getSupabaseServerClient();
   const {
@@ -360,13 +438,25 @@ export async function approveInternalReviewAction(
     );
   }
 
+  // Use the version that was requested for review (stored in 承諾バージョン during requestInternalReviewAction)
+  // If explicitly specified, use that; otherwise use the requested version
+  let versionToApprove = approvedVersion;
+  if (!versionToApprove) {
+    // Get the version that was requested for review
+    versionToApprove = currentAssessment.承諾バージョン;
+    if (!versionToApprove) {
+      throw new Error("査読対象バージョンが指定されていません。内部査読を依頼し直してください。");
+    }
+  }
+
   const beforeStatus = currentAssessment.ステータス;
 
-  // Update status
+  // Update status with approved version
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "外部公開可能",
+    承諾バージョン: versionToApprove,
   });
 
   // Log status change to audit log
@@ -376,21 +466,224 @@ export async function approveInternalReviewAction(
     fiscalYear: 年度,
     beforeStatus,
     afterStatus: "外部公開可能",
-    reason: "内部査読承諾",
+    reason: `内部査読承諾 (v${versionToApprove})`,
   });
 
-  logger.info("内部査読承諾完了", { stockGroupName, userId: user.id });
+  logger.info("内部査読承諾完了", {
+    stockGroupName,
+    userId: user.id,
+    approvedVersion: versionToApprove,
+  });
 
-  return { success: true, newStatus: "外部公開可能" };
+  return { success: true, newStatus: "外部公開可能", approvedVersion: versionToApprove };
+}
+
+/**
+ * Cancel internal review approval (secondary assignee or administrator)
+ * Changes status from "外部公開可能" to "内部査読中"
+ */
+export async function cancelApprovalAction(
+  stockGroupName: 資源名
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  // Check if user is administrator
+  const { data: adminRoleData } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", ロールs.管理者)
+    .limit(1);
+
+  const isAdmin = adminRoleData && adminRoleData.length > 0;
+
+  // Check if user is secondary assignee for this stock
+  let isSecondary = false;
+  if (!isAdmin) {
+    const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+    const { data: roleData } = await supabase
+      .from("user_stock_group_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("stock_group_id", stockGroupId)
+      .single();
+
+    isSecondary = roleData?.role === ロールs.副担当;
+  }
+
+  if (!isAdmin && !isSecondary) {
+    throw new Error("承諾取り消しは副担当者または管理者のみが実行できます");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "外部公開可能") {
+    throw new Error(
+      `現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`
+    );
+  }
+
+  const beforeStatus = currentAssessment.ステータス;
+
+  // Update status (clear approved version as approval is cancelled)
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "内部査読中",
+    承諾バージョン: undefined,
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "内部査読中",
+    reason: "承諾取り消し",
+  });
+
+  logger.info("承諾取り消し完了", {
+    stockGroupName,
+    userId: user.id,
+  });
+
+  return { success: true, newStatus: "内部査読中" };
+}
+
+/**
+ * Request reconsideration for an assessment (secondary assignee or administrator)
+ * Changes status from "内部査読中" to "再検討中"
+ * Note: From "外部査読中", only administrator can request reconsideration
+ */
+export async function requestReconsiderationAction(
+  stockGroupName: 資源名,
+  targetVersion: number
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  const repository = await create資源評価RepositoryServer();
+  const resultRepository = createAssessmentResultRepository();
+  const auditLogRepository = new SupabaseAuditLogRepository();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+
+  const currentStatus = currentAssessment.ステータス;
+
+  // Verify status is "内部査読中" or "外部査読中"
+  if (currentStatus !== "内部査読中" && currentStatus !== "外部査読中") {
+    throw new Error(
+      `再検討依頼は「内部査読中」または「外部査読中」ステータスでのみ実行できます。現在のステータス: ${currentStatus}`
+    );
+  }
+
+  // Check if user is administrator
+  const { data: adminRoleData } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", ロールs.管理者)
+    .limit(1);
+
+  const isAdmin = adminRoleData && adminRoleData.length > 0;
+
+  // For "外部査読中", only administrator can request reconsideration
+  if (currentStatus === "外部査読中" && !isAdmin) {
+    throw new Error("外部査読中の再検討依頼は管理者のみが実行できます");
+  }
+
+  // For "内部査読中", check if user is secondary assignee or administrator
+  if (currentStatus === "内部査読中" && !isAdmin) {
+    const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+    const { data: roleData } = await supabase
+      .from("user_stock_group_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("stock_group_id", stockGroupId)
+      .eq("role", ロールs.副担当)
+      .limit(1);
+
+    const isSecondary = roleData && roleData.length > 0;
+    if (!isSecondary) {
+      throw new Error("内部査読中の再検討依頼は副担当者または管理者のみが実行できます");
+    }
+  }
+
+  // Verify the target version exists
+  const targetResult = await resultRepository.findByStockNameAndVersion(
+    stockGroupName,
+    年度,
+    targetVersion
+  );
+  if (!targetResult) {
+    throw new Error(`バージョン v${targetVersion} が見つかりません`);
+  }
+
+  const beforeStatus = currentStatus;
+
+  // Update status with origin status for later cancellation
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "再検討中",
+    元ステータス: beforeStatus as "内部査読中" | "外部査読中",
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "再検討中",
+    reason: `再検討依頼 (v${targetVersion})`,
+  });
+
+  logger.info("再検討依頼完了", {
+    stockGroupName,
+    userId: user.id,
+    targetVersion,
+  });
+
+  return { success: true, newStatus: "再検討中" };
 }
 
 /**
  * Publish assessment externally (administrator only)
  * Changes status from "外部公開可能" to "外部査読中"
+ * Records the publication in assessment_publications table
  */
 export async function publishExternallyAction(
   stockGroupName: 資源名
-): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+): Promise<{ success: boolean; newStatus: 評価ステータス; revisionNumber: number }> {
   // Get current user from Supabase session
   const supabase = await getSupabaseServerClient();
   const {
@@ -418,14 +711,39 @@ export async function publishExternallyAction(
       `現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`
     );
   }
+  if (!currentAssessment.承諾バージョン) {
+    throw new Error("承諾済みバージョンがありません。査読承諾してから公開してください。");
+  }
 
   const beforeStatus = currentAssessment.ステータス;
+  const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+
+  // Atomically insert publication record and get the assigned revision number
+  // This prevents race conditions by using a database function with row-level locking
+  const { data: revisionNumber, error: insertError } = await supabase.rpc(
+    "insert_publication_atomic",
+    {
+      p_stock_group_id: stockGroupId,
+      p_fiscal_year: 年度,
+      p_internal_version: currentAssessment.承諾バージョン,
+    }
+  );
+
+  if (insertError || revisionNumber === null) {
+    logger.error(
+      "公開履歴の記録に失敗しました",
+      { stockGroupName, 年度 },
+      insertError ? new Error(insertError.message) : undefined
+    );
+    throw new Error("公開履歴の記録に失敗しました");
+  }
 
   // Update status
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "外部査読中",
+    承諾バージョン: currentAssessment.承諾バージョン,
   });
 
   // Log status change to audit log
@@ -435,10 +753,111 @@ export async function publishExternallyAction(
     fiscalYear: 年度,
     beforeStatus,
     afterStatus: "外部査読中",
-    reason: "外部公開",
+    reason: `外部公開 (内部v${currentAssessment.承諾バージョン} → 改訂${revisionNumber})`,
   });
 
-  logger.info("外部公開完了", { stockGroupName, userId: user.id });
+  logger.info("外部公開完了", {
+    stockGroupName,
+    userId: user.id,
+    internalVersion: currentAssessment.承諾バージョン,
+    revisionNumber,
+  });
 
-  return { success: true, newStatus: "外部査読中" };
+  return { success: true, newStatus: "外部査読中", revisionNumber };
+}
+
+/**
+ * Stop external publication (administrator only)
+ * Changes status from "外部査読中" to "外部公開可能"
+ */
+export async function stopExternalPublicationAction(
+  stockGroupName: 資源名
+): Promise<{ success: boolean; newStatus: 評価ステータス }> {
+  // Get current user from Supabase session
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("認証が必要です");
+  }
+
+  // Verify user is administrator
+  await verifyAdministrator(supabase, user.id);
+
+  const repository = await create資源評価RepositoryServer();
+  const auditLogRepository = new SupabaseAuditLogRepository();
+  const 年度 = getCurrentFiscalYear();
+
+  // Get current status
+  const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "外部査読中") {
+    throw new Error(
+      `現在のステータスが「外部査読中」ではありません: ${currentAssessment.ステータス}`
+    );
+  }
+
+  const beforeStatus = currentAssessment.ステータス;
+
+  // Update status, preserving the approved version
+  await repository.save({
+    資源名: stockGroupName,
+    年度,
+    ステータス: "外部公開可能",
+    承諾バージョン: currentAssessment.承諾バージョン,
+  });
+
+  // Log status change to audit log
+  await auditLogRepository.logStatusChange({
+    userId: user.id,
+    stockGroupName,
+    fiscalYear: 年度,
+    beforeStatus,
+    afterStatus: "外部公開可能",
+    reason: "外部公開停止",
+  });
+
+  logger.info("外部公開停止完了", {
+    stockGroupName,
+    userId: user.id,
+  });
+
+  return { success: true, newStatus: "外部公開可能" };
+}
+
+/**
+ * Get publication history for a stock group
+ */
+export async function getPublicationHistoryAction(stockGroupName: 資源名): Promise<
+  Array<{
+    revisionNumber: number;
+    internalVersion: number;
+    publishedAt: Date;
+  }>
+> {
+  const supabase = await getSupabaseServerClient();
+  const 年度 = getCurrentFiscalYear();
+  const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+
+  const { data, error } = await supabase
+    .from("assessment_publications")
+    .select("revision_number, internal_version, published_at")
+    .eq("stock_group_id", stockGroupId)
+    .eq("fiscal_year", 年度)
+    .order("revision_number", { ascending: false });
+
+  if (error) {
+    logger.error("公開履歴の取得に失敗しました", { stockGroupName, 年度 }, error);
+    throw new Error("公開履歴の取得に失敗しました");
+  }
+
+  return (data || []).map((pub) => ({
+    revisionNumber: pub.revision_number,
+    internalVersion: pub.internal_version,
+    publishedAt: new Date(pub.published_at),
+  }));
 }

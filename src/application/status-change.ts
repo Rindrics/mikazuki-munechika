@@ -33,6 +33,7 @@ import { logger } from "@/utils/logger";
 /**
  * 評価開始ユースケース
  * 未着手の資源評価を作業中に変更する
+ * Note: No version parameter because version doesn't exist at this point
  */
 export function 評価開始ユースケース(対象資源評価: 未着手資源評価, 操作者: 認証済評価担当者) {
   logger.debug("評価開始ユースケース called", {
@@ -54,13 +55,18 @@ export function 評価開始ユースケース(対象資源評価: 未着手資�
  * 内部査読依頼ユースケース
  * 作業中の資源評価を内部査読中に変更する
  */
-export function 内部査読依頼ユースケース(対象資源評価: 進行中資源評価, 操作者: 認証済評価担当者) {
+export function 内部査読依頼ユースケース(
+  対象資源評価: 進行中資源評価,
+  操作者: 認証済評価担当者,
+  対象バージョン: number
+) {
   logger.debug("内部査読依頼ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
+    対象バージョン,
   });
 
-  const result = 内部査読依頼(対象資源評価, new Date(), 操作者);
+  const result = 内部査読依頼(対象資源評価, new Date(), 操作者, 対象バージョン);
 
   logger.info("内部査読依頼完了", {
     資源名: result.内部査読待ち資源評価.対象.toString(),
@@ -99,14 +105,16 @@ export function 内部査読依頼取り消しユースケース(
  */
 export function 外部公開ユースケース(
   対象資源評価: 内部査読中資源評価,
-  操作者: 認証済資源評価管理者
+  操作者: 認証済資源評価管理者,
+  対象バージョン: number
 ) {
   logger.debug("外部公開ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
+    対象バージョン,
   });
 
-  const result = 外部公開(対象資源評価, new Date(), 操作者);
+  const result = 外部公開(対象資源評価, new Date(), 操作者, 対象バージョン);
 
   logger.info("外部公開完了", {
     資源名: result.外部査読中資源評価.対象.toString(),
@@ -145,14 +153,16 @@ export function 外部公開停止ユースケース(
  */
 export function 再検討依頼ユースケース(
   対象資源評価: 内部査読中資源評価 | 外部査読中資源評価,
-  操作者: 認証済資源評価管理者 | 副担当者
+  操作者: 認証済資源評価管理者 | 副担当者,
+  対象バージョン: number
 ) {
   logger.debug("再検討依頼ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
+    対象バージョン,
   });
 
-  const result = 再検討依頼(対象資源評価, new Date(), 操作者);
+  const result = 再検討依頼(対象資源評価, new Date(), 操作者, 対象バージョン);
 
   logger.info("再検討依頼完了", {
     資源名: result.再検討待ち資源評価.対象.toString(),
@@ -203,14 +213,16 @@ export function 再検討依頼取り消しユースケース(
  */
 export function 内部査読受理ユースケース(
   対象資源評価: 内部査読中資源評価,
-  操作者: 認証済資源評価管理者
+  操作者: 認証済資源評価管理者,
+  対象バージョン: number
 ) {
   logger.debug("内部査読受理ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
+    対象バージョン,
   });
 
-  const result = 受理(対象資源評価, new Date(), 操作者);
+  const result = 受理(対象資源評価, new Date(), 操作者, 対象バージョン);
 
   logger.info("内部査読受理完了", {
     資源名: result.受理済み資源評価.対象.toString(),
@@ -226,14 +238,16 @@ export function 内部査読受理ユースケース(
  */
 export function 外部査読受理ユースケース(
   対象資源評価: 外部査読中資源評価,
-  操作者: 認証済資源評価管理者
+  操作者: 認証済資源評価管理者,
+  対象バージョン: number
 ) {
   logger.debug("外部査読受理ユースケース called", {
     資源名: 対象資源評価.対象.toString(),
     操作者: 操作者.氏名,
+    対象バージョン,
   });
 
-  const result = 受理(対象資源評価, new Date(), 操作者);
+  const result = 受理(対象資源評価, new Date(), 操作者, 対象バージョン);
 
   logger.info("外部査読受理完了", {
     資源名: result.受理済み資源評価.対象.toString(),

@@ -1,11 +1,79 @@
 import { ユーザー, 認証済ユーザー, 資源名 } from "./models";
 import type { 評価ステータス, 再検討前ステータス } from "./models/stock/status";
-import { ABC算定結果 } from "./data";
+import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
+
+/**
+ * Input parameters for assessment calculation (ADR 0018)
+ */
+export interface AssessmentParameters {
+  catchData: 漁獲量データ;
+  biologicalData: 生物学的データ;
+}
+
+/**
+ * Versioned assessment result (ADR 0018)
+ */
+export interface VersionedAssessmentResult {
+  version: number;
+  fiscalYear: number;
+  result: ABC算定結果;
+  parameters?: AssessmentParameters;
+  createdAt: Date;
+}
+
+/**
+ * Publication record for external releases (ADR 0018)
+ */
+export interface PublicationRecord {
+  revisionNumber: number;
+  internalVersion: number;
+  publishedAt: Date;
+}
 
 export interface AssessmentResultRepository {
+  /**
+   * @deprecated Use findByStockNameAndFiscalYear instead
+   */
   findByStockName(stockName: string): Promise<ABC算定結果 | undefined>;
 
+  /**
+   * Find all versions of assessment results for a stock and fiscal year
+   */
+  findByStockNameAndFiscalYear(
+    stockName: string,
+    fiscalYear: number
+  ): Promise<VersionedAssessmentResult[]>;
+
+  /**
+   * Find a specific version of assessment result
+   */
+  findByStockNameAndVersion(
+    stockName: string,
+    fiscalYear: number,
+    version: number
+  ): Promise<VersionedAssessmentResult | undefined>;
+
+  /**
+   * Get the next version number for a stock and fiscal year
+   */
+  getNextVersion(stockName: string, fiscalYear: number): Promise<number>;
+
+  /**
+   * @deprecated Use saveWithVersion instead
+   */
   save(stockName: string, result: ABC算定結果): Promise<void>;
+
+  /**
+   * Save a new version of assessment result (ADR 0018)
+   * If parameters match an existing version, returns that version number (no new record)
+   * Returns the version number assigned or found
+   */
+  saveWithVersion(
+    stockName: string,
+    fiscalYear: number,
+    result: ABC算定結果,
+    parameters: AssessmentParameters
+  ): Promise<{ version: number; isNew: boolean }>;
 }
 
 export interface ユーザーRepository {
@@ -26,6 +94,13 @@ export interface 資源評価ステータス {
   年度: number;
   ステータス: 評価ステータス;
   元ステータス?: 再検討前ステータス;
+  /**
+   * Target version of assessment result for status changes (ADR 0018)
+   * - 内部査読中: version under review (requested by primary assignee)
+   * - 外部公開可能: version approved by secondary assignee
+   * - 外部査読中: version published externally
+   */
+  承諾バージョン?: number;
 }
 
 /**

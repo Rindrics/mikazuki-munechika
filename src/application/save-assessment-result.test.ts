@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { SaveAssessmentResultService } from "./save-assessment-result";
-import type { AssessmentResultRepository, ABC算定結果 } from "@/domain";
+import type {
+  AssessmentResultRepository,
+  ABC算定結果,
+  VersionedAssessmentResult,
+  AssessmentParameters,
+} from "@/domain";
 import type { 進行中資源評価 } from "@/domain/models/stock/status";
 
 /**
@@ -13,8 +18,29 @@ class InMemoryAssessmentResultRepository implements AssessmentResultRepository {
     return this.store.get(stockName);
   }
 
+  async findByStockNameAndFiscalYear(): Promise<VersionedAssessmentResult[]> {
+    return [];
+  }
+
+  async findByStockNameAndVersion(): Promise<VersionedAssessmentResult | undefined> {
+    return undefined;
+  }
+
+  async getNextVersion(): Promise<number> {
+    return 1;
+  }
+
   async save(stockName: string, result: ABC算定結果): Promise<void> {
     this.store.set(stockName, result);
+  }
+
+  async saveWithVersion(
+    _stockName: string,
+    _fiscalYear: number,
+    _result: ABC算定結果,
+    _parameters: AssessmentParameters
+  ): Promise<{ version: number; isNew: boolean }> {
+    return { version: 1, isNew: true };
   }
 
   // Test helper methods
@@ -50,7 +76,7 @@ describe("SaveAssessmentResultService", () => {
       const repository = new InMemoryAssessmentResultRepository();
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await service.execute(stock, result);
 
@@ -62,8 +88,8 @@ describe("SaveAssessmentResultService", () => {
       const repository = new InMemoryAssessmentResultRepository();
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result1: ABC算定結果 = { value: "ABC = 10000 tons" };
-      const result2: ABC算定結果 = { value: "ABC = 20000 tons" };
+      const result1: ABC算定結果 = { value: "ABC = 10000 tons", unit: "トン" };
+      const result2: ABC算定結果 = { value: "ABC = 20000 tons", unit: "トン" };
 
       await service.execute(stock, result1);
       await service.execute(stock, result2);
@@ -77,8 +103,8 @@ describe("SaveAssessmentResultService", () => {
       const service = new SaveAssessmentResultService(repository);
       const stock1 = createMockStock("マイワシ太平洋系群");
       const stock2 = createMockStock("ズワイガニオホーツク海系群");
-      const result1: ABC算定結果 = { value: "ABC = 10000 tons" };
-      const result2: ABC算定結果 = { value: "ABC = 5000 tons" };
+      const result1: ABC算定結果 = { value: "ABC = 10000 tons", unit: "トン" };
+      const result2: ABC算定結果 = { value: "ABC = 5000 tons", unit: "トン" };
 
       await service.execute(stock1, result1);
       await service.execute(stock2, result2);
@@ -90,11 +116,15 @@ describe("SaveAssessmentResultService", () => {
     it("throws error when repository fails", async () => {
       const failingRepository: AssessmentResultRepository = {
         findByStockName: vi.fn(),
+        findByStockNameAndFiscalYear: vi.fn(),
+        findByStockNameAndVersion: vi.fn(),
+        getNextVersion: vi.fn(),
         save: vi.fn().mockRejectedValue(new Error("Database connection failed")),
+        saveWithVersion: vi.fn(),
       };
       const service = new SaveAssessmentResultService(failingRepository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await expect(service.execute(stock, result)).rejects.toThrow("Database connection failed");
     });
@@ -103,11 +133,15 @@ describe("SaveAssessmentResultService", () => {
       const mockSave = vi.fn().mockResolvedValue(undefined);
       const repository: AssessmentResultRepository = {
         findByStockName: vi.fn(),
+        findByStockNameAndFiscalYear: vi.fn(),
+        findByStockNameAndVersion: vi.fn(),
+        getNextVersion: vi.fn(),
         save: mockSave,
+        saveWithVersion: vi.fn(),
       };
       const service = new SaveAssessmentResultService(repository);
       const stock = createMockStock("マイワシ太平洋系群");
-      const result: ABC算定結果 = { value: "ABC = 12345 tons" };
+      const result: ABC算定結果 = { value: "ABC = 12345 tons", unit: "トン" };
 
       await service.execute(stock, result);
 

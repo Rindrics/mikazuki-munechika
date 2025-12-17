@@ -22,15 +22,19 @@ describe("GetAssessmentResultsService", () => {
     findByStockName: AssessmentResultRepository["findByStockName"]
   ): AssessmentResultRepository => ({
     findByStockName,
+    findByStockNameAndFiscalYear: vi.fn(),
+    findByStockNameAndVersion: vi.fn(),
+    getNextVersion: vi.fn(),
     save: vi.fn(),
+    saveWithVersion: vi.fn().mockResolvedValue({ version: 1, isNew: true }),
   });
 
   describe("execute", () => {
     it("retrieves results for multiple stocks from repository", async () => {
       const stock1 = createMockStock("マイワシ太平洋系群");
       const stock2 = createMockStock("ズワイガニオホーツク海系群");
-      const result1: ABC算定結果 = { value: "ABC result 1" };
-      const result2: ABC算定結果 = { value: "ABC result 2" };
+      const result1: ABC算定結果 = { value: "ABC result 1", unit: "トン" };
+      const result2: ABC算定結果 = { value: "ABC result 2", unit: "トン" };
 
       const mockFindByStockName = vi.fn().mockImplementation((stockName: string) => {
         if (stockName === "マイワシ太平洋系群") return Promise.resolve(result1);
@@ -89,7 +93,7 @@ describe("GetAssessmentResultsService", () => {
     it("throws error when one of multiple repository calls fails", async () => {
       const stock1 = createMockStock("マイワシ太平洋系群");
       const stock2 = createMockStock("エラー系群");
-      const result1: ABC算定結果 = { value: "ABC result 1" };
+      const result1: ABC算定結果 = { value: "ABC result 1", unit: "トン" };
       const error = new Error("Partial failure");
 
       const mockFindByStockName = vi.fn().mockImplementation((stockName: string) => {

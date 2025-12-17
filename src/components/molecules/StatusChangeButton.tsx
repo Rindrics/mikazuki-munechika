@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, type ButtonVariant } from "../atoms";
+import { Button, type ButtonVariant, type ButtonSize } from "../atoms";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useState } from "react";
 
@@ -9,6 +9,8 @@ interface StatusChangeButtonProps {
   confirmTitle?: string;
   confirmMessage?: string;
   variant?: ButtonVariant;
+  size?: ButtonSize;
+  fullWidth?: boolean;
   onAction: () => Promise<void>;
   disabled?: boolean;
   className?: string;
@@ -24,6 +26,8 @@ export function StatusChangeButton({
   confirmTitle = "確認",
   confirmMessage = "この操作を実行しますか？",
   variant = "primary",
+  size = "md",
+  fullWidth = false,
   onAction,
   disabled = false,
   className = "",
@@ -57,7 +61,13 @@ export function StatusChangeButton({
 
   return (
     <div className={className}>
-      <Button variant={variant} onClick={handleOpen} disabled={disabled}>
+      <Button
+        variant={variant}
+        size={size}
+        fullWidth={fullWidth}
+        onClick={handleOpen}
+        disabled={disabled}
+      >
         {label}
       </Button>
       {error && <p className="mt-2 text-sm text-danger">{error}</p>}

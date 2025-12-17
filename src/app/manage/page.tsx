@@ -3,6 +3,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import type { 認証済資源評価管理者, 認証済評価担当者 } from "@/domain";
 import ErrorCard from "@/components/error-card";
+import AuthModal from "@/components/auth-modal";
 import { Button, Badge } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/molecules";
 import { useState, useEffect, useCallback } from "react";
@@ -29,6 +30,7 @@ export default function ManagePage() {
   const [dialogType, setDialogType] = useState<DialogType>(null);
   const [dialogYear, setDialogYear] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -126,7 +128,15 @@ export default function ManagePage() {
     return (
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">管理画面</h1>
-        <p className="text-secondary">ログインしてください。</p>
+        <p className="text-secondary">
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="text-primary underline hover:opacity-80"
+          >
+            ログイン
+          </button>
+        </p>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </main>
     );
   }

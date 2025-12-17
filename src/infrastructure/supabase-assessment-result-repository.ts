@@ -1,4 +1,10 @@
-import { AssessmentResultRepository, ABC算定結果 } from "@/domain";
+import {
+  AssessmentResultRepository,
+  ABC算定結果,
+  VersionedAssessmentResult,
+  AssessmentParameters,
+  資源量,
+} from "@/domain";
 import { logger } from "@/utils/logger";
 
 // Dynamic import to avoid bundling server-only code in client components
@@ -7,7 +13,53 @@ async function getServerClient() {
   return getSupabaseServerClient();
 }
 
+/**
+ * Parse result from database value
+ * Handles both legacy string format and new JSON format
+ */
+function parseResultFromDb(dbValue: unknown): ABC算定結果 {
+  // If it's already an object (JSON from JSONB column), use it directly
+  if (typeof dbValue === "object" && dbValue !== null) {
+    const obj = dbValue as Record<string, unknown>;
+    return {
+      value: String(obj.value ?? ""),
+      unit: "トン",
+      資源量: obj.資源量 as 資源量 | undefined,
+    };
+  }
+
+  // If it's a string, try to parse as JSON first
+  if (typeof dbValue === "string") {
+    try {
+      const parsed = JSON.parse(dbValue);
+      if (typeof parsed === "object" && parsed !== null) {
+        return {
+          value: String(parsed.value ?? ""),
+          unit: "トン",
+          資源量: parsed.資源量 as 資源量 | undefined,
+        };
+      }
+    } catch {
+      // Not JSON, treat as legacy string value
+    }
+    // Legacy string format: just the value
+    return {
+      value: dbValue,
+      unit: "トン",
+    };
+  }
+
+  // Fallback
+  return {
+    value: String(dbValue ?? ""),
+    unit: "トン",
+  };
+}
+
 export class SupabaseAssessmentResultRepository implements AssessmentResultRepository {
+  /**
+   * @deprecated Use findByStockNameAndFiscalYear instead
+   */
   async findByStockName(stockName: string): Promise<ABC算定結果 | undefined> {
     logger.debug("findByStockName called", { stockName });
 
@@ -38,9 +90,133 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     }
 
     logger.debug("findByStockName completed", { stockName, value: data.value });
-    return { value: data.value };
+    // Parse result from database (may be JSON object or simple string)
+    const parsedResult = parseResultFromDb(data.value);
+    return parsedResult;
   }
 
+  async findByStockNameAndFiscalYear(
+    stockName: string,
+    fiscalYear: number
+  ): Promise<VersionedAssessmentResult[]> {
+    logger.debug("findByStockNameAndFiscalYear called", { stockName, fiscalYear });
+
+    const supabase = await getServerClient();
+
+    const { data, error } = await supabase
+      .from("assessment_results")
+      .select(
+        `
+        version,
+        fiscal_year,
+        value,
+        parameters,
+        created_at,
+        stock_groups!inner(name)
+      `
+      )
+      .eq("stock_groups.name", stockName)
+      .eq("fiscal_year", fiscalYear)
+      .order("version", { ascending: false });
+
+    if (error) {
+      logger.error("findByStockNameAndFiscalYear failed", { stockName, fiscalYear }, error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      logger.debug("findByStockNameAndFiscalYear: no results found", { stockName, fiscalYear });
+      return [];
+    }
+
+    return data.map((row) => ({
+      version: row.version,
+      fiscalYear: row.fiscal_year,
+      result: parseResultFromDb(row.value),
+      parameters: row.parameters as AssessmentParameters | undefined,
+      createdAt: new Date(row.created_at),
+    }));
+  }
+
+  async findByStockNameAndVersion(
+    stockName: string,
+    fiscalYear: number,
+    version: number
+  ): Promise<VersionedAssessmentResult | undefined> {
+    logger.debug("findByStockNameAndVersion called", { stockName, fiscalYear, version });
+
+    const supabase = await getServerClient();
+
+    const { data, error } = await supabase
+      .from("assessment_results")
+      .select(
+        `
+        version,
+        fiscal_year,
+        value,
+        parameters,
+        created_at,
+        stock_groups!inner(name)
+      `
+      )
+      .eq("stock_groups.name", stockName)
+      .eq("fiscal_year", fiscalYear)
+      .eq("version", version)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        logger.debug("findByStockNameAndVersion: not found", { stockName, fiscalYear, version });
+        return undefined;
+      }
+      logger.error("findByStockNameAndVersion failed", { stockName, fiscalYear, version }, error);
+      throw error;
+    }
+
+    return {
+      version: data.version,
+      fiscalYear: data.fiscal_year,
+      result: parseResultFromDb(data.value),
+      parameters: data.parameters as AssessmentParameters | undefined,
+      createdAt: new Date(data.created_at),
+    };
+  }
+
+  async getNextVersion(stockName: string, fiscalYear: number): Promise<number> {
+    logger.debug("getNextVersion called", { stockName, fiscalYear });
+
+    const supabase = await getServerClient();
+
+    // Get stock_group_id from name
+    const { data: stockGroup, error: stockGroupError } = await supabase
+      .from("stock_groups")
+      .select("id")
+      .eq("name", stockName)
+      .single();
+
+    if (stockGroupError || !stockGroup) {
+      logger.error("getNextVersion failed: stock group not found", { stockName }, stockGroupError);
+      throw new Error(`Stock group not found: ${stockName}`);
+    }
+
+    // Call the database function to get next version
+    const { data, error } = await supabase.rpc("get_next_assessment_version", {
+      p_stock_group_id: stockGroup.id,
+      p_fiscal_year: fiscalYear,
+    });
+
+    if (error) {
+      logger.error("getNextVersion failed", { stockName, fiscalYear }, error);
+      throw error;
+    }
+
+    logger.debug("getNextVersion completed", { stockName, fiscalYear, nextVersion: data });
+    return data as number;
+  }
+
+  /**
+   * @deprecated Use saveWithVersion instead
+   */
   async save(stockName: string, result: ABC算定結果): Promise<void> {
     logger.debug("save called", { stockName, value: result.value });
 
@@ -75,5 +251,88 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     }
 
     logger.debug("save completed", { stockName, stockGroupId: stockGroup.id });
+  }
+
+  async saveWithVersion(
+    stockName: string,
+    fiscalYear: number,
+    result: ABC算定結果,
+    parameters: AssessmentParameters
+  ): Promise<{ version: number; isNew: boolean }> {
+    logger.debug("saveWithVersion called", { stockName, fiscalYear, value: result.value });
+
+    const supabase = await getServerClient();
+
+    // Get stock_group_id from name
+    const { data: stockGroup, error: stockGroupError } = await supabase
+      .from("stock_groups")
+      .select("id")
+      .eq("name", stockName)
+      .single();
+
+    if (stockGroupError || !stockGroup) {
+      logger.error("saveWithVersion failed: stock group not found", { stockName }, stockGroupError);
+      throw new Error(`Stock group not found: ${stockName}`);
+    }
+
+    // Check if same parameters already exist (ADR 0018 - deduplication)
+    const { data: existingVersion, error: findError } = await supabase.rpc(
+      "find_existing_version_by_params",
+      {
+        p_stock_group_id: stockGroup.id,
+        p_fiscal_year: fiscalYear,
+        p_parameters: parameters,
+      }
+    );
+
+    if (findError) {
+      logger.error(
+        "saveWithVersion: find_existing_version_by_params failed",
+        { stockName, fiscalYear },
+        findError
+      );
+      throw findError;
+    }
+
+    // If same parameters exist, return existing version
+    if (existingVersion !== null) {
+      logger.info("saveWithVersion: same parameters already exist, returning existing version", {
+        stockName,
+        fiscalYear,
+        existingVersion,
+      });
+      return { version: existingVersion, isNew: false };
+    }
+
+    // Get next version number
+    const nextVersion = await this.getNextVersion(stockName, fiscalYear);
+
+    // Insert with version and parameters
+    // Store the entire result object as JSON (includes value, unit, and 資源量)
+    const { error } = await supabase.from("assessment_results").insert({
+      stock_group_id: stockGroup.id,
+      fiscal_year: fiscalYear,
+      version: nextVersion,
+      value: result,
+      parameters: parameters,
+    });
+
+    if (error) {
+      logger.error(
+        "saveWithVersion failed",
+        { stockName, fiscalYear, version: nextVersion },
+        error
+      );
+      throw error;
+    }
+
+    logger.info("saveWithVersion completed", {
+      stockName,
+      fiscalYear,
+      version: nextVersion,
+      isNew: true,
+    });
+
+    return { version: nextVersion, isNew: true };
   }
 }
