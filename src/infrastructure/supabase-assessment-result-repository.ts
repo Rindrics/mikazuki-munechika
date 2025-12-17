@@ -240,7 +240,11 @@ export class SupabaseAssessmentResultRepository implements AssessmentResultRepos
     );
 
     if (findError) {
-      logger.error("saveWithVersion: find_existing_version_by_params failed", { stockName, fiscalYear }, findError);
+      logger.error(
+        "saveWithVersion: find_existing_version_by_params failed",
+        { stockName, fiscalYear },
+        findError
+      );
       throw findError;
     }
 

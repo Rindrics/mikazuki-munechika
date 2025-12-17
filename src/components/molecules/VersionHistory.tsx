@@ -33,9 +33,7 @@ export function VersionHistory({
   }
 
   // Create a map of internal version -> publication info
-  const publicationMap = new Map(
-    publications.map((pub) => [pub.internalVersion, pub])
-  );
+  const publicationMap = new Map(publications.map((pub) => [pub.internalVersion, pub]));
 
   return (
     <div className={`border rounded-lg ${className}`}>
@@ -67,9 +65,7 @@ export function VersionHistory({
                   </span>
                 )}
               </div>
-              <div className="text-sm text-secondary">
-                {formatDate(v.createdAt)}
-              </div>
+              <div className="text-sm text-secondary">{formatDate(v.createdAt)}</div>
             </div>
           );
         })}
@@ -87,4 +83,3 @@ function formatDate(date: Date): string {
     minute: "2-digit",
   }).format(date);
 }
-

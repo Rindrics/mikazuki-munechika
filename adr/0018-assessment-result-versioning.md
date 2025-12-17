@@ -32,12 +32,12 @@ Implement version management for assessment results with the following design:
 
 **Internal versions** and **external versions** serve different purposes and have different numbering schemes:
 
-| Aspect | Internal Version | External Version |
-|--------|------------------|------------------|
-| Scope | All saved calculations | Published to external reviewers |
+| Aspect    | Internal Version           | External Version                  |
+| --------- | -------------------------- | --------------------------------- |
+| Scope     | All saved calculations     | Published to external reviewers   |
 | Numbering | Sequential (v1, v2, v3...) | Date-based (初版, yyyymmdd改訂版) |
-| Trigger | Every save | External publication |
-| Display | Assessment page | Dashboard, external facing |
+| Trigger   | Every save                 | External publication              |
+| Display   | Assessment page            | Dashboard, external facing        |
 
 **Rationale:**
 
