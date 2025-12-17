@@ -214,7 +214,7 @@ CREATE INDEX idx_assessment_publications_lookup
 2. Primary assignee requests internal review for v3
 3. Secondary assignee approves → `approved_version = 3`
 4. Admin publishes externally → `assessment_publications` record created:
-   - `internal_version = 3, revision_number = 0, published_at = 2024-10-15`
+   - `internal_version = 3, revision_number = 1, published_at = 2024-10-15`
 5. Dashboard shows: "2024年度マイワシ太平洋系群" (no revision indicator)
 
 ### Example 2: Revision After Reconsideration
@@ -224,7 +224,7 @@ CREATE INDEX idx_assessment_publications_lookup
 3. Primary assignee requests internal review for v7
 4. Secondary assignee approves → `approved_version = 7`
 5. Admin publishes externally → new `assessment_publications` record:
-   - `internal_version = 7, revision_number = 1, published_at = 2024-12-17`
+   - `internal_version = 7, revision_number = 2, published_at = 2024-12-17`
 6. Dashboard shows: "2024年度マイワシ太平洋系群 (20241217改訂版)"
 
 ## Consequences
