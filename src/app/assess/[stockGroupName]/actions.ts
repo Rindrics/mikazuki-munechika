@@ -320,7 +320,7 @@ export async function cancelInternalReviewAction(
 }
 
 /**
- * Approve internal review (secondary assignee)
+ * Approve internal review (secondary assignee only)
  * Changes status from "内部査読中" to "外部公開可能"
  */
 export async function approveInternalReviewAction(
@@ -335,6 +335,9 @@ export async function approveInternalReviewAction(
   if (!user) {
     throw new Error("認証が必要です");
   }
+
+  // Verify user is secondary assignee for this stock
+  await verifyUserRole(supabase, user.id, stockGroupName, ロールs.副担当);
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
