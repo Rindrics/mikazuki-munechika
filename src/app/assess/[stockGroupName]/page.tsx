@@ -45,7 +45,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [currentStatus, setCurrentStatus] = useState<評価ステータス>("未着手");
-  const [isStatusLoading, setIsStatusLoading] = useState(true);
+  const [_isStatusLoading, setIsStatusLoading] = useState(true);
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
