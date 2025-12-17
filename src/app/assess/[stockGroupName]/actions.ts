@@ -619,14 +619,16 @@ export async function requestReconsiderationAction(
 
   // For "内部査読中", check if user is secondary assignee or administrator
   if (currentStatus === "内部査読中" && !isAdmin) {
-    const { data: assignment } = await supabase
-      .from("stock_assignments")
-      .select("role, stock_groups!inner(name)")
+    const stockGroupId = await getStockGroupId(supabase, stockGroupName);
+    const { data: roleData } = await supabase
+      .from("user_stock_group_roles")
+      .select("role")
       .eq("user_id", user.id)
-      .eq("stock_groups.name", stockGroupName)
-      .single();
+      .eq("stock_group_id", stockGroupId)
+      .eq("role", ロールs.副担当)
+      .limit(1);
 
-    const isSecondary = assignment?.role === ロールs.副担当;
+    const isSecondary = roleData && roleData.length > 0;
     if (!isSecondary) {
       throw new Error("内部査読中の再検討依頼は副担当者または管理者のみが実行できます");
     }

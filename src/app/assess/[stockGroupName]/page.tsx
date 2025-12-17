@@ -14,7 +14,11 @@ import type { VersionedAssessmentResult } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton, VersionHistory } from "@/components/molecules";
+import {
+  StatusChangeButton,
+  VersionHistory,
+  ButtonGroup,
+} from "@/components/molecules";
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -287,20 +291,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           )}
           {/* Status change buttons for secondary assignee */}
           {isSecondaryAssignee && currentStatus === "内部査読中" && (
-            <>
-              <StatusChangeButton
-                label="承諾する"
-                confirmTitle="内部査読を承諾しますか？"
-                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
-                variant="success"
-                onAction={async () => {
-                  const result = await approveInternalReviewAction(stockGroupName);
-                  if (result.success) {
-                    setCurrentStatus(result.newStatus);
-                    setApprovedVersion(result.approvedVersion);
-                  }
-                }}
-              />
+            <ButtonGroup direction="horizontal">
               {selectedVersion && (
                 <StatusChangeButton
                   label="再検討を依頼"
@@ -318,7 +309,20 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                   }}
                 />
               )}
-            </>
+              <StatusChangeButton
+                label="承諾する"
+                confirmTitle="内部査読を承諾しますか？"
+                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+                variant="success"
+                onAction={async () => {
+                  const result = await approveInternalReviewAction(stockGroupName);
+                  if (result.success) {
+                    setCurrentStatus(result.newStatus);
+                    setApprovedVersion(result.approvedVersion);
+                  }
+                }}
+              />
+            </ButtonGroup>
           )}
           {/* Cancel approval button for secondary assignee or administrator */}
           {(isSecondaryAssignee || is管理者) && currentStatus === "外部公開可能" && (

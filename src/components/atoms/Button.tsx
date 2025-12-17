@@ -8,6 +8,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  fullWidth?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -35,14 +36,17 @@ export function Button({
   variant = "primary",
   size = "md",
   isLoading = false,
+  fullWidth = false,
   disabled,
   className = "",
   ...props
 }: ButtonProps) {
+  const widthClass = fullWidth ? "w-full" : "";
+
   return (
     <button
       disabled={disabled || isLoading}
-      className={`rounded-lg font-medium transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`rounded-lg font-medium transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${widthClass} ${className}`}
       {...props}
     >
       {isLoading ? "処理中..." : children}
