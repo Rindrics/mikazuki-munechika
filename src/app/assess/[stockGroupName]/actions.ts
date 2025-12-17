@@ -235,11 +235,14 @@ export async function requestInternalReviewAction(
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
-  if (currentAssessment && currentAssessment.ステータス !== "作業中") {
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "作業中") {
     throw new Error(`現在のステータスが「作業中」ではありません: ${currentAssessment.ステータス}`);
   }
 
-  const beforeStatus = currentAssessment?.ステータス ?? "作業中";
+  const beforeStatus = currentAssessment.ステータス;
 
   // Update status
   await repository.save({
@@ -289,13 +292,16 @@ export async function cancelInternalReviewAction(
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
-  if (currentAssessment && currentAssessment.ステータス !== "内部査読中") {
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "内部査読中") {
     throw new Error(
       `現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`
     );
   }
 
-  const beforeStatus = currentAssessment?.ステータス ?? "内部査読中";
+  const beforeStatus = currentAssessment.ステータス;
 
   // Update status
   await repository.save({
@@ -345,13 +351,16 @@ export async function approveInternalReviewAction(
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
-  if (currentAssessment && currentAssessment.ステータス !== "内部査読中") {
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "内部査読中") {
     throw new Error(
       `現在のステータスが「内部査読中」ではありません: ${currentAssessment.ステータス}`
     );
   }
 
-  const beforeStatus = currentAssessment?.ステータス ?? "内部査読中";
+  const beforeStatus = currentAssessment.ステータス;
 
   // Update status
   await repository.save({
@@ -401,13 +410,16 @@ export async function publishExternallyAction(
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
-  if (currentAssessment && currentAssessment.ステータス !== "外部公開可能") {
+  if (!currentAssessment) {
+    throw new Error(`評価が見つかりません: ${stockGroupName} (${年度}年度)`);
+  }
+  if (currentAssessment.ステータス !== "外部公開可能") {
     throw new Error(
       `現在のステータスが「外部公開可能」ではありません: ${currentAssessment.ステータス}`
     );
   }
 
-  const beforeStatus = currentAssessment?.ステータス ?? "外部公開可能";
+  const beforeStatus = currentAssessment.ステータス;
 
   // Update status
   await repository.save({
