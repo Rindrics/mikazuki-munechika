@@ -1,6 +1,6 @@
-import { SupabaseClient } from "@supabase/supabase-js";
 import type { 資源名 } from "@/domain/models";
 import type { 評価ステータス } from "@/domain/models/stock/status";
+import { getSupabaseServiceRoleClient } from "@/infrastructure/supabase-server-client";
 import { logger } from "@/utils/logger";
 
 export interface StatusChangeAuditLog {
@@ -13,10 +13,11 @@ export interface StatusChangeAuditLog {
 }
 
 /**
- * Repository for audit logging
+ * Repository for audit logging.
+ * Uses service_role client per ADR 0004 - audit inserts must be restricted to service_role.
  */
 export class SupabaseAuditLogRepository {
-  constructor(private supabase: SupabaseClient) {}
+  private supabase = getSupabaseServiceRoleClient();
 
   /**
    * Log a status change event

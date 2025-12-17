@@ -12,8 +12,6 @@ CHECK (action_type IN (
   'STATUS_CHANGE'
 ));
 
--- Allow authenticated users to insert audit logs for their own actions
-CREATE POLICY "Authenticated users can insert their own audit logs"
-  ON public.audit_logs
-  FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+-- NOTE: Audit log inserts are restricted to service_role per ADR 0004.
+-- The "Service role can insert audit logs" policy is defined in
+-- 20251205000002_create_audit_logs.sql and handles all audit inserts.

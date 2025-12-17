@@ -182,7 +182,7 @@ export async function createFiscalYearAction(year: number): Promise<void> {
   }
 
   // Log audit for each stock group
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   for (const sg of stockGroups) {
     await auditLogRepository.logStatusChange({
       userId: user.id,

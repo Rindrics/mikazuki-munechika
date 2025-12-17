@@ -173,7 +173,7 @@ export async function startWorkAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -230,7 +230,7 @@ export async function requestInternalReviewAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -284,7 +284,7 @@ export async function cancelInternalReviewAction(
   await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -337,7 +337,7 @@ export async function approveInternalReviewAction(
   }
 
   const repository = await create資源評価RepositoryServer();
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
@@ -393,7 +393,7 @@ export async function publishExternallyAction(
   await verifyAdministrator(supabase, user.id);
 
   const repository = await create資源評価RepositoryServer();
-  const auditLogRepository = new SupabaseAuditLogRepository(supabase);
+  const auditLogRepository = new SupabaseAuditLogRepository();
   const 年度 = getCurrentFiscalYear();
 
   // Get current status
