@@ -8,6 +8,8 @@ import {
   資源名,
   create資源情報,
   create資源評価,
+  ロール,
+  ロールs,
 } from "@/domain";
 import {
   type 評価ステータス,
@@ -20,6 +22,7 @@ import { create資源評価RepositoryServer } from "@/infrastructure/assessment-
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
 import { SupabaseAuditLogRepository } from "@/infrastructure/supabase-audit-log-repository";
 import { logger } from "@/utils/logger";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 // Get current fiscal year (April-based fiscal year in Japan)
 function getCurrentFiscalYear(): number {
@@ -28,6 +31,66 @@ function getCurrentFiscalYear(): number {
   const year = now.getFullYear();
   // Fiscal year starts in April
   return month >= 4 ? year : year - 1;
+}
+
+/**
+ * Verify user has the required role for a specific stock group
+ * @throws Error if user doesn't have the required role
+ */
+async function verifyUserRole(
+  supabase: SupabaseClient,
+  userId: string,
+  stockGroupName: 資源名,
+  requiredRole: ロール
+): Promise<void> {
+  // Get stock group ID from name
+  const { data: stockGroup, error: stockGroupError } = await supabase
+    .from("stock_groups")
+    .select("id")
+    .eq("name", stockGroupName)
+    .single();
+
+  if (stockGroupError || !stockGroup) {
+    throw new Error(`資源グループが見つかりません: ${stockGroupName}`);
+  }
+
+  // Check user's role for this stock group
+  const { data: roleData, error: roleError } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("stock_group_id", stockGroup.id)
+    .single();
+
+  if (roleError || !roleData) {
+    throw new Error("この資源に対する権限がありません");
+  }
+
+  if (roleData.role !== requiredRole) {
+    const roleDisplayNames: Record<ロール, string> = {
+      [ロールs.主担当]: "主担当者",
+      [ロールs.副担当]: "副担当者",
+      [ロールs.管理者]: "管理者",
+    };
+    throw new Error(`${roleDisplayNames[requiredRole]}のみがこの操作を実行できます`);
+  }
+}
+
+/**
+ * Verify user is an administrator (has admin role for any stock group)
+ * @throws Error if user is not an administrator
+ */
+async function verifyAdministrator(supabase: SupabaseClient, userId: string): Promise<void> {
+  const { data: roleData, error: roleError } = await supabase
+    .from("user_stock_group_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", ロールs.管理者)
+    .limit(1);
+
+  if (roleError || !roleData || roleData.length === 0) {
+    throw new Error("管理者のみがこの操作を実行できます");
+  }
 }
 
 export async function calculateAbcAction(
@@ -106,6 +169,9 @@ export async function startWorkAction(
     throw new Error("認証が必要です");
   }
 
+  // Verify user is primary assignee for this stock
+  await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
+
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository(supabase);
   const 年度 = getCurrentFiscalYear();
@@ -144,7 +210,7 @@ export async function startWorkAction(
 }
 
 /**
- * Request internal review for an assessment
+ * Request internal review for an assessment (primary assignee only)
  * Changes status from "作業中" to "内部査読中"
  */
 export async function requestInternalReviewAction(
@@ -159,6 +225,9 @@ export async function requestInternalReviewAction(
   if (!user) {
     throw new Error("認証が必要です");
   }
+
+  // Verify user is primary assignee for this stock
+  await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository(supabase);
@@ -195,7 +264,7 @@ export async function requestInternalReviewAction(
 }
 
 /**
- * Cancel internal review request
+ * Cancel internal review request (primary assignee only)
  * Changes status from "内部査読中" to "作業中"
  */
 export async function cancelInternalReviewAction(
@@ -210,6 +279,9 @@ export async function cancelInternalReviewAction(
   if (!user) {
     throw new Error("認証が必要です");
   }
+
+  // Verify user is primary assignee for this stock
+  await verifyUserRole(supabase, user.id, stockGroupName, ロールs.主担当);
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository(supabase);
@@ -316,6 +388,9 @@ export async function publishExternallyAction(
   if (!user) {
     throw new Error("認証が必要です");
   }
+
+  // Verify user is an administrator
+  await verifyAdministrator(supabase, user.id);
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository(supabase);
