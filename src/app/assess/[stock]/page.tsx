@@ -637,9 +637,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         message={
           <div className="space-y-4">
             <p>
-              現在選択中のバージョン（v{selectedVersion}）は、
+              現在選択中のバージョン（v{selectedVersion ?? "-"}）は、
               {versionMismatchAction === "approve" ? "提出された" : "内部承諾済みの"}
-              バージョン（v{approvedVersion}）と異なります。
+              バージョン（v{approvedVersion ?? "-"}）と異なります。
             </p>
             <p>
               {versionMismatchAction === "approve"
@@ -661,8 +661,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         }}
         isLoading={isActionLoading}
         errorMessage={actionError}
-        neutralLabel={`v${approvedVersion} を確認`}
-        onNeutral={goToSubmittedVersion}
+        neutralLabel={approvedVersion ? `v${approvedVersion} を確認` : undefined}
+        onNeutral={approvedVersion ? goToSubmittedVersion : undefined}
       />
 
       {/* Confirmation dialog for external publication (when versions match) */}
