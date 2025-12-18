@@ -9,6 +9,7 @@ import {
   ABC算定結果,
   is主担当者,
   is副担当者,
+  get資源名BySlug,
 } from "@/domain";
 import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
@@ -39,10 +40,24 @@ interface AssessmentPageProps {
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { stock: encodedName } = use(params);
-  const stockGroupName = decodeURIComponent(encodedName) as 資源名;
+  const { stock: slug } = use(params);
+  const stockGroupName = get資源名BySlug(slug);
 
   const { user, isLoading } = useAuth();
+
+  // Invalid slug - show 404-like error
+  if (!stockGroupName) {
+    return (
+      <main className="p-8 max-w-3xl mx-auto">
+        <ErrorCard title="資源が見つかりません（404）">
+          <p className="mb-4">指定された資源は存在しません: {slug}</p>
+          <Link href="/assess" className="underline hover:opacity-80">
+            担当資源一覧に戻る
+          </Link>
+        </ErrorCard>
+      </main>
+    );
+  }
 
   const [catchDataValue, set漁獲量データValue] = useState("");
   const [biologicalDataValue, set生物学的データValue] = useState("");

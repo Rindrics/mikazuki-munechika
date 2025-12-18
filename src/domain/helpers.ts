@@ -13,6 +13,23 @@ import { logger } from "../utils/logger";
 // Re-export user factory functions for backward compatibility
 export { to認証済ユーザー, get担当資源情報s } from "./models/user/factory";
 
+/**
+ * slug から資源名を取得する (ADR 0018)
+ *
+ * @param slug - URL パスで使用する英語 slug
+ * @returns 対応する資源名、見つからない場合は null
+ */
+export function get資源名BySlug(slug: string): 資源名 | null {
+  for (const [_key, stockData] of Object.entries(資源グループs)) {
+    for (const [_regionKey, regionInfo] of Object.entries(stockData.系群)) {
+      if (regionInfo.slug === slug) {
+        return `${stockData.呼称}${regionInfo.系群名}` as 資源名;
+      }
+    }
+  }
+  return null;
+}
+
 export function create資源情報(name: 資源名 | string): 資源情報 {
   const trimmedName = typeof name === "string" ? name.trim() : name;
   logger.debug("create資源情報", { trimmedName });
