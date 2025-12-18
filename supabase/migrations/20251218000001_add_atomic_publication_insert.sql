@@ -12,13 +12,19 @@ AS $$
 DECLARE
   v_revision_number INTEGER;
 BEGIN
-  -- Lock the table for this stock_group_id and fiscal_year to prevent concurrent inserts
-  -- Get the next revision number atomically
-  SELECT COALESCE(MAX(revision_number), 0) + 1 INTO v_revision_number
+  -- Lock rows for this stock_group_id and fiscal_year to prevent concurrent inserts
+  -- Use a subquery to lock existing rows, then calculate max
+  PERFORM 1
   FROM assessment_publications
   WHERE stock_group_id = p_stock_group_id
     AND fiscal_year = p_fiscal_year
   FOR UPDATE;
+
+  -- Get the next revision number
+  SELECT COALESCE(MAX(revision_number), 0) + 1 INTO v_revision_number
+  FROM assessment_publications
+  WHERE stock_group_id = p_stock_group_id
+    AND fiscal_year = p_fiscal_year;
 
   -- Insert the new publication record
   INSERT INTO assessment_publications (

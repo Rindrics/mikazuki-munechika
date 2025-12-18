@@ -22,6 +22,63 @@ export default function AssessPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [statusMap, setStatusMap] = useState<Map<資源名, 評価ステータス>>(new Map());
 
+  // Get assessable stocks for the user (memoized to prevent infinite re-renders)
+  // Must be called at top level to comply with Rules of Hooks
+  const 全資源名リスト = useMemo(() => Object.values(資源名s), []);
+  const assessableStocks = useMemo(
+    () =>
+      user
+        ? get評価可能資源s(user as 認証済評価担当者 | 認証済資源評価管理者, 全資源名リスト)
+        : [],
+    [user, 全資源名リスト]
+  );
+
+  // Check if user is administrator
+  const is管理者 = useMemo(
+    () =>
+      user
+        ? (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者"
+        : false,
+    [user]
+  );
+
+  // Group stocks by role
+  const 主担当資源s = useMemo(
+    () => assessableStocks.filter(({ ロール }) => ロール === ロールs.主担当),
+    [assessableStocks]
+  );
+  const 副担当資源s = useMemo(
+    () => assessableStocks.filter(({ ロール }) => ロール === ロールs.副担当),
+    [assessableStocks]
+  );
+  const 管理資源s = useMemo(
+    () => assessableStocks.filter(({ ロール }) => ロール === ロールs.管理者),
+    [assessableStocks]
+  );
+
+  // Fetch status for all assessable stocks
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      const newStatusMap = new Map<資源名, 評価ステータス>();
+      await Promise.all(
+        assessableStocks.map(async ({ 担当資源名 }) => {
+          try {
+            const { status } = await getAssessmentStatusAction(担当資源名);
+            newStatusMap.set(担当資源名, status);
+          } catch (error) {
+            console.error(`Failed to fetch status for ${担当資源名}:`, error);
+          }
+        })
+      );
+      setStatusMap(newStatusMap);
+    };
+
+    if (assessableStocks.length > 0) {
+      fetchStatuses();
+    }
+  }, [assessableStocks]);
+
+  // Early returns after all hooks
   if (isLoading) {
     return (
       <main className="p-8 max-w-3xl mx-auto">
@@ -48,45 +105,6 @@ export default function AssessPage() {
       </main>
     );
   }
-
-  // Get assessable stocks for the user (memoized to prevent infinite re-renders)
-  const 全資源名リスト = Object.values(資源名s);
-  const assessableStocks = useMemo(
-    () =>
-      get評価可能資源s(user as 認証済評価担当者 | 認証済資源評価管理者, 全資源名リスト),
-    [user]
-  );
-
-  // Check if user is administrator
-  const is管理者 =
-    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
-
-  // Group stocks by role
-  const 主担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.主担当);
-  const 副担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.副担当);
-  const 管理資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.管理者);
-
-  // Fetch status for all assessable stocks
-  useEffect(() => {
-    const fetchStatuses = async () => {
-      const newStatusMap = new Map<資源名, 評価ステータス>();
-      await Promise.all(
-        assessableStocks.map(async ({ 担当資源名 }) => {
-          try {
-            const { status } = await getAssessmentStatusAction(担当資源名);
-            newStatusMap.set(担当資源名, status);
-          } catch (error) {
-            console.error(`Failed to fetch status for ${担当資源名}:`, error);
-          }
-        })
-      );
-      setStatusMap(newStatusMap);
-    };
-
-    if (assessableStocks.length > 0) {
-      fetchStatuses();
-    }
-  }, [assessableStocks]);
 
   if (assessableStocks.length === 0) {
     return (
