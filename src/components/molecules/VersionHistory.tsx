@@ -82,14 +82,15 @@ export function VersionHistory({
                     内部査読中
                   </span>
                 )}
-                {isApproved && (
+                {/* Show "内部承諾済み" only if not yet published externally */}
+                {isApproved && !publication && (
                   <span className="text-xs px-2 py-0.5 bg-success text-white rounded-full">
                     内部承諾済み
                   </span>
                 )}
                 {publication && (
                   <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
-                    公開済み (改訂{publication.revisionNumber})
+                    公開済み（{formatPublicationDate(publication.publishedAt)}公開版）
                   </span>
                 )}
               </div>
@@ -102,7 +103,7 @@ export function VersionHistory({
   );
 }
 
-// Memoize the formatter instance for performance
+// Memoize the formatter instances for performance
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",
   month: "2-digit",
@@ -111,6 +112,16 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   minute: "2-digit",
 });
 
+const publicationDateFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 function formatDate(date: Date): string {
   return dateFormatter.format(date);
+}
+
+function formatPublicationDate(date: Date): string {
+  return publicationDateFormatter.format(date);
 }
