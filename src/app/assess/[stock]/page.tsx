@@ -244,6 +244,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         setApprovedVersion(result.approvedVersion);
         setIsVersionMismatchWarningOpen(false);
         setVersionMismatchAction(null);
+        // Refresh version history to reflect status changes
+        await fetchVersionHistory(result.approvedVersion);
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "承諾に失敗しました");
@@ -265,6 +267,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         setIsVersionMismatchWarningOpen(false);
         setVersionMismatchAction(null);
         setIsPublishConfirmOpen(false);
+        // Refresh version history to show new publication record
+        await fetchVersionHistory();
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "外部公開に失敗しました");
