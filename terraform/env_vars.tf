@@ -33,6 +33,11 @@ resource "vercel_project_environment_variables" "production" {
       value  = "false"
       target = ["production"]
     },
+    {
+      key    = "SENTRY_AUTH_TOKEN"
+      value  = var.sentry_auth_token
+      target = ["production"]
+    },
   ]
 }
 
@@ -67,6 +72,11 @@ resource "vercel_project_environment_variables" "preview" {
     {
       key    = "NEXT_PUBLIC_USE_IN_MEMORY_REPOSITORY"
       value  = "true"
+      target = ["preview"]
+    },
+    {
+      key    = "SENTRY_AUTH_TOKEN"
+      value  = var.sentry_auth_token
       target = ["preview"]
     },
   ]

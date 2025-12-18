@@ -36,3 +36,6 @@ dist/
 *.tfvars.json
 .terraform.lock.hcl
 .env
+
+# Sentry Config File
+.env.sentry-build-plugin
