@@ -1,11 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Modal, Button, type ButtonVariant } from "../atoms";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   confirmVariant?: ButtonVariant;
@@ -32,7 +33,7 @@ export function ConfirmDialog({
     <Modal isOpen={isOpen} onClose={onCancel}>
       <div className="p-6">
         <h3 className="text-lg font-bold mb-2">{title}</h3>
-        <p className="text-secondary mb-6">{message}</p>
+        <div className="text-secondary mb-6">{message}</div>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
             {cancelLabel}

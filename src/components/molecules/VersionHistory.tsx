@@ -28,6 +28,14 @@ export function VersionHistory({
   onSelectVersion,
   className = "",
 }: VersionHistoryProps) {
+  // Debug log to check props
+  console.log("VersionHistory props:", {
+    currentApprovedVersion,
+    currentStatus,
+    selectedVersion,
+    versionsCount: versions.length,
+  });
+
   if (versions.length === 0) {
     return (
       <div className={`p-4 border rounded-lg bg-secondary-light ${className}`}>

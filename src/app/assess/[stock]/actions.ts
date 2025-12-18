@@ -540,12 +540,12 @@ export async function cancelApprovalAction(
 
   const beforeStatus = currentAssessment.ステータス;
 
-  // Update status (clear approved version as approval is cancelled)
+  // Update status (preserve the version under review for label display)
   await repository.save({
     資源名: stockGroupName,
     年度,
     ステータス: "内部査読中",
-    承諾バージョン: undefined,
+    承諾バージョン: currentAssessment.承諾バージョン,
   });
 
   // Log status change to audit log

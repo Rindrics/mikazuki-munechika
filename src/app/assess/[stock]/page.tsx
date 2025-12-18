@@ -16,7 +16,8 @@ import { type 評価ステータス, can保存評価結果 } from "@/domain/mode
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton, VersionHistory, ButtonGroup } from "@/components/molecules";
+import { StatusChangeButton, VersionHistory, ButtonGroup, ConfirmDialog } from "@/components/molecules";
+import { Button } from "@/components/atoms";
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -77,6 +78,17 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [approvedVersion, setApprovedVersion] = useState<number | undefined>();
   const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Warning dialog for version mismatch (shared between approval and publication)
+  const [isVersionMismatchWarningOpen, setIsVersionMismatchWarningOpen] = useState(false);
+  const [versionMismatchAction, setVersionMismatchAction] = useState<"approve" | "publish" | null>(
+    null
+  );
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Confirmation dialog for external publication (when versions match)
+  const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
 
   // Load version data into form fields
   const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
@@ -208,6 +220,64 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     }
   };
 
+  // Handle approval action
+  const handleApprove = async () => {
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      const result = await approveInternalReviewAction(stockGroupName);
+      if (result.success) {
+        setCurrentStatus(result.newStatus);
+        setApprovedVersion(result.approvedVersion);
+        setIsVersionMismatchWarningOpen(false);
+        setVersionMismatchAction(null);
+      }
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "承諾に失敗しました");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Handle publish action
+  const handlePublish = async () => {
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      const result = await publishExternallyAction(stockGroupName);
+      if (result.success) {
+        setCurrentStatus(result.newStatus);
+        setIsVersionMismatchWarningOpen(false);
+        setVersionMismatchAction(null);
+      }
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "外部公開に失敗しました");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Handle version mismatch action confirmation
+  const handleVersionMismatchConfirm = async () => {
+    if (versionMismatchAction === "approve") {
+      await handleApprove();
+    } else if (versionMismatchAction === "publish") {
+      await handlePublish();
+    }
+  };
+
+  // Navigate to submitted/approved version
+  const goToSubmittedVersion = () => {
+    if (approvedVersion) {
+      const submittedVersion = versionHistory.find((v) => v.version === approvedVersion);
+      if (submittedVersion) {
+        loadVersionIntoForm(submittedVersion);
+      }
+    }
+    setIsVersionMismatchWarningOpen(false);
+    setVersionMismatchAction(null);
+  };
+
   if (isLoading) {
     return (
       <main className="p-8 max-w-3xl mx-auto">
@@ -332,19 +402,21 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                   }}
                 />
               )}
-              <StatusChangeButton
-                label="承諾する"
-                confirmTitle="内部査読を承諾しますか？"
-                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+              <Button
                 variant="success"
-                onAction={async () => {
-                  const result = await approveInternalReviewAction(stockGroupName);
-                  if (result.success) {
-                    setCurrentStatus(result.newStatus);
-                    setApprovedVersion(result.approvedVersion);
+                onClick={() => {
+                  // Check if selected version differs from submitted version
+                  if (selectedVersion !== approvedVersion) {
+                    setVersionMismatchAction("approve");
+                    setIsVersionMismatchWarningOpen(true);
+                  } else {
+                    // Directly approve if versions match
+                    handleApprove();
                   }
                 }}
-              />
+              >
+                承諾する
+              </Button>
             </ButtonGroup>
           )}
           {/* Cancel approval button for secondary assignee or administrator */}
@@ -358,25 +430,28 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 const result = await cancelApprovalAction(stockGroupName);
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
-                  setApprovedVersion(undefined);
+                  // Keep approvedVersion to show "内部査読中" label on the version
                 }
               }}
             />
           )}
           {/* Status change buttons for administrator */}
           {is管理者 && currentStatus === "外部公開可能" && (
-            <StatusChangeButton
-              label="外部公開する"
-              confirmTitle="外部公開しますか？"
-              confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
+            <Button
               variant="primary"
-              onAction={async () => {
-                const result = await publishExternallyAction(stockGroupName);
-                if (result.success) {
-                  setCurrentStatus(result.newStatus);
+              onClick={() => {
+                // Check if selected version differs from approved version
+                if (selectedVersion !== approvedVersion) {
+                  setVersionMismatchAction("publish");
+                  setIsVersionMismatchWarningOpen(true);
+                } else {
+                  // Show confirmation dialog when versions match
+                  setIsPublishConfirmOpen(true);
                 }
               }}
-            />
+            >
+              外部公開する
+            </Button>
           )}
           {is管理者 && currentStatus === "外部査読中" && (
             <StatusChangeButton
@@ -504,6 +579,62 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           </div>
         </aside>
       </div>
+
+      {/* Warning dialog for version mismatch when approving or publishing */}
+      <ConfirmDialog
+        isOpen={isVersionMismatchWarningOpen}
+        title="選択中のバージョンが異なります"
+        message={
+          <div className="space-y-4">
+            <p>
+              現在選択中のバージョン（v{selectedVersion}）は、
+              {versionMismatchAction === "approve" ? "提出された" : "内部承諾済みの"}
+              バージョン（v{approvedVersion}）と異なります。
+            </p>
+            <p>
+              {versionMismatchAction === "approve"
+                ? "提出されたバージョンで承諾しますか？"
+                : "内部承諾済みのバージョンで外部公開しますか？"}
+            </p>
+            <button
+              type="button"
+              onClick={goToSubmittedVersion}
+              className="text-primary underline hover:opacity-80"
+            >
+              {versionMismatchAction === "approve" ? "提出された" : "内部承諾済みの"}
+              バージョン (v{approvedVersion}) を見る
+            </button>
+            {actionError && <p className="text-danger text-sm">{actionError}</p>}
+          </div>
+        }
+        confirmLabel={
+          versionMismatchAction === "approve"
+            ? "提出されたバージョンで承諾"
+            : "内部承諾済みバージョンで公開"
+        }
+        confirmVariant={versionMismatchAction === "approve" ? "success" : "primary"}
+        onConfirm={handleVersionMismatchConfirm}
+        onCancel={() => {
+          setIsVersionMismatchWarningOpen(false);
+          setVersionMismatchAction(null);
+        }}
+        isLoading={isActionLoading}
+      />
+
+      {/* Confirmation dialog for external publication (when versions match) */}
+      <ConfirmDialog
+        isOpen={isPublishConfirmOpen}
+        title="外部公開しますか？"
+        message="外部公開すると、ステークホルダーによる査読が開始されます。"
+        confirmLabel="外部公開する"
+        confirmVariant="primary"
+        onConfirm={async () => {
+          setIsPublishConfirmOpen(false);
+          await handlePublish();
+        }}
+        onCancel={() => setIsPublishConfirmOpen(false)}
+        isLoading={isActionLoading}
+      />
     </main>
   );
 }
