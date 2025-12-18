@@ -658,6 +658,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         onCancel={() => {
           setIsVersionMismatchWarningOpen(false);
           setVersionMismatchAction(null);
+          setActionError(null);
         }}
         isLoading={isActionLoading}
         errorMessage={actionError}
