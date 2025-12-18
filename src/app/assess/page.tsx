@@ -50,11 +50,18 @@ export default function AssessPage() {
     全資源名リスト
   );
 
+  // Check if user is administrator
+  const is管理者 =
+    (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
+  const 資源一覧ラベル = is管理者 ? "管理中の資源" : "担当中の資源";
+
   if (assessableStocks.length === 0) {
     return (
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">資源評価</h1>
-        <p className="text-secondary">担当している資源がありません。</p>
+        <p className="text-secondary">
+          {is管理者 ? "管理している資源がありません。" : "担当している資源がありません。"}
+        </p>
       </main>
     );
   }
@@ -63,7 +70,7 @@ export default function AssessPage() {
     <main className="p-8 max-w-3xl mx-auto">
       <h1 className="mb-8">資源評価</h1>
       <section>
-        <h2 className="mb-4">担当資源一覧</h2>
+        <h2 className="mb-4">{資源一覧ラベル}</h2>
         <ul className="space-y-3">
           {assessableStocks.map(({ 担当資源名, ロール }) => (
             <li key={担当資源名}>

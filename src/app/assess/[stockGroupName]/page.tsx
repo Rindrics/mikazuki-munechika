@@ -243,7 +243,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="mb-4">
         <Link href="/assess" className="text-link hover:text-link-hover underline text-sm">
-          ← 担当資源一覧に戻る
+          ← {is管理者 ? "管理中の資源" : "担当中の資源"}に戻る
         </Link>
       </div>
 
