@@ -510,10 +510,11 @@ export function 再検討依頼取り消し(
 
 /**
  * Check if assessment result can be saved for the given status
- * Only "作業中" and "再検討中" statuses allow saving assessment results
+ * All statuses except "未着手" allow saving assessment results
+ * (Users can calculate and save results at any time after starting work)
  */
 export function can保存評価結果(status: 評価ステータス): boolean {
-  return status === "作業中" || status === "再検討中";
+  return status !== "未着手";
 }
 
 /**
@@ -522,9 +523,7 @@ export function can保存評価結果(status: 評価ステータス): boolean {
  */
 export function require保存可能ステータス(status: 評価ステータス): void {
   if (!can保存評価結果(status)) {
-    throw new Error(
-      `評価結果を保存できるのは「作業中」または「再検討中」ステータスのみです。現在のステータス: ${status}`
-    );
+    throw new Error(`評価結果を保存できるのは作業開始後のみです。現在のステータス: ${status}`);
   }
 }
 
