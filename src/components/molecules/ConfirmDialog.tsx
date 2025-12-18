@@ -37,9 +37,7 @@ export function ConfirmDialog({
       <div className="p-6">
         <h3 className="text-lg font-bold mb-2">{title}</h3>
         <div className="text-secondary mb-4">{message}</div>
-        {errorMessage && (
-          <p className="text-danger text-sm mb-4">{errorMessage}</p>
-        )}
+        {errorMessage && <p className="text-danger text-sm mb-4">{errorMessage}</p>}
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
             {cancelLabel}
