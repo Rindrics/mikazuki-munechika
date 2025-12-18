@@ -82,7 +82,7 @@ export function VersionHistory({
                 )}
                 {publication && (
                   <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
-                    公開済み（{公開版ラベル.from(publication.publishedAt).toString()}）
+                    {公開版ラベル.from(publication.publishedAt).toString()}
                   </span>
                 )}
               </div>
