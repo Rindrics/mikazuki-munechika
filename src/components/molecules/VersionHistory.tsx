@@ -1,7 +1,7 @@
 "use client";
 
 import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
-import type { 評価ステータス } from "@/domain/models/stock/status";
+import { type 評価ステータス, 公開版ラベル } from "@/domain/models/stock/status";
 
 // Statuses where the approved version is actually "approved" (not just "under review")
 const 承諾済みステータス: 評価ステータス[] = ["外部公開可能", "外部査読中", "外部査読受理済み"];
@@ -90,7 +90,7 @@ export function VersionHistory({
                 )}
                 {publication && (
                   <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
-                    公開済み（{formatPublicationDate(publication.publishedAt)}公開版）
+                    公開済み（{公開版ラベル.from(publication.publishedAt).toString()}）
                   </span>
                 )}
               </div>
@@ -103,7 +103,7 @@ export function VersionHistory({
   );
 }
 
-// Memoize the formatter instances for performance
+// Memoize the formatter instance for performance
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",
   month: "2-digit",
@@ -112,16 +112,6 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   minute: "2-digit",
 });
 
-const publicationDateFormatter = new Intl.DateTimeFormat("ja-JP", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
 function formatDate(date: Date): string {
   return dateFormatter.format(date);
-}
-
-function formatPublicationDate(date: Date): string {
-  return publicationDateFormatter.format(date);
 }

@@ -527,3 +527,30 @@ export function require保存可能ステータス(status: 評価ステータス
     );
   }
 }
+
+// Date formatter for publication labels (yyyy/mm/dd format)
+const publicationDateFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * Value object for publication version label (e.g., "2024/12/18 公開版")
+ */
+export class 公開版ラベル {
+  private readonly value: string;
+
+  private constructor(value: string) {
+    this.value = value;
+  }
+
+  static from(publishedAt: Date): 公開版ラベル {
+    const formattedDate = publicationDateFormatter.format(publishedAt);
+    return new 公開版ラベル(`${formattedDate} 公開版`);
+  }
+
+  toString(): string {
+    return this.value;
+  }
+}

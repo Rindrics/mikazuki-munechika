@@ -1,21 +1,11 @@
 import { 資源評価, ABC算定結果 } from "@/domain";
+import { 公開版ラベル } from "@/domain/models/stock/status";
 
 interface ResultPanelProps {
   stock: 資源評価;
   result: ABC算定結果 | undefined;
   isInProgress?: boolean;
   publishedAt?: Date;
-}
-
-// Format publication date as yyyy/mm/dd
-const publicationDateFormatter = new Intl.DateTimeFormat("ja-JP", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-function formatPublicationDate(date: Date): string {
-  return publicationDateFormatter.format(date);
 }
 
 export default function ResultPanel({
@@ -45,7 +35,7 @@ export default function ResultPanel({
         <h2 className="mb-0">{stock.対象.toString()}</h2>
         {publishedAt && (
           <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
-            公開済み（{formatPublicationDate(publishedAt)}公開版）
+            {公開版ラベル.from(publishedAt).toString()}
           </span>
         )}
       </div>
