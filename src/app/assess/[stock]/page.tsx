@@ -50,20 +50,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   const { user, isLoading } = useAuth();
 
-  // Invalid slug - show 404-like error
-  if (!stockGroupName) {
-    return (
-      <main className="p-8 max-w-3xl mx-auto">
-        <ErrorCard title="資源が見つかりません（404）">
-          <p className="mb-4">指定された資源は存在しません: {slug}</p>
-          <Link href="/assess" className="underline hover:opacity-80">
-            担当資源一覧に戻る
-          </Link>
-        </ErrorCard>
-      </main>
-    );
-  }
-
+  // All hooks must be called before any conditional returns (Rules of Hooks)
   const [catchDataValue, set漁獲量データValue] = useState("");
   const [biologicalDataValue, set生物学的データValue] = useState("");
   const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(null);
@@ -119,6 +106,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   // Fetch version history and populate fields with appropriate version's parameters
   const fetchVersionHistory = useCallback(
     async (targetApprovedVersion?: number) => {
+      // Guard against null stockGroupName (invalid slug case)
+      if (!stockGroupName) return;
+
       try {
         const [versions, pubs] = await Promise.all([
           getVersionHistoryAction(stockGroupName),
@@ -146,12 +136,14 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
+    stockGroupName &&
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is主担当者(user as 認証済評価担当者, stockGroupName);
 
   // Check if user is secondary assignee for this stock
   const isSecondaryAssignee =
+    stockGroupName &&
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is副担当者(user as 認証済評価担当者, stockGroupName);
@@ -162,6 +154,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
+    // Guard against null stockGroupName (invalid slug case)
+    if (!stockGroupName) return;
+
     const fetchAndMaybeStartWork = async () => {
       try {
         let targetApprovedVersion: number | undefined;
@@ -196,6 +191,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
   const handleCalculate = async () => {
+    if (!stockGroupName) return;
     setIsCalculating(true);
     setIsSaved(false);
     setSaveError(null);
@@ -213,7 +209,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   };
 
   const handleSave = async () => {
-    if (!calculationResult) return;
+    if (!stockGroupName || !calculationResult) return;
     setIsSaving(true);
     setSaveError(null);
     try {
@@ -238,6 +234,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Handle approval action
   const handleApprove = async () => {
+    if (!stockGroupName) return;
     setIsActionLoading(true);
     setActionError(null);
     try {
@@ -257,6 +254,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Handle publish action
   const handlePublish = async () => {
+    if (!stockGroupName) return;
     setIsActionLoading(true);
     setActionError(null);
     try {
@@ -293,6 +291,20 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     setIsVersionMismatchWarningOpen(false);
     setVersionMismatchAction(null);
   };
+
+  // Invalid slug - show 404-like error (after all hooks are called)
+  if (!stockGroupName) {
+    return (
+      <main className="p-8 max-w-3xl mx-auto">
+        <ErrorCard title="資源が見つかりません（404）">
+          <p className="mb-4">指定された資源は存在しません: {slug}</p>
+          <Link href="/assess" className="underline hover:opacity-80">
+            担当資源一覧に戻る
+          </Link>
+        </ErrorCard>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
