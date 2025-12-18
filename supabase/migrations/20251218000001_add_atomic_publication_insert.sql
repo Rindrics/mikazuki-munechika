@@ -12,13 +12,10 @@ AS $$
 DECLARE
   v_revision_number INTEGER;
 BEGIN
-  -- Lock rows for this stock_group_id and fiscal_year to prevent concurrent inserts
-  -- Use a subquery to lock existing rows, then calculate max
-  PERFORM 1
-  FROM assessment_publications
-  WHERE stock_group_id = p_stock_group_id
-    AND fiscal_year = p_fiscal_year
-  FOR UPDATE;
+  -- Use advisory lock to serialize access for this stock_group_id + fiscal_year combination
+  -- This works even when no rows exist yet (unlike FOR UPDATE)
+  -- hashtext converts UUID to 32-bit int, combined with fiscal_year for unique lock key
+  PERFORM pg_advisory_xact_lock(hashtext(p_stock_group_id::text), p_fiscal_year);
 
   -- Get the next revision number
   SELECT COALESCE(MAX(revision_number), 0) + 1 INTO v_revision_number
