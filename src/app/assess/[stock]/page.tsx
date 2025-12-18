@@ -35,11 +35,11 @@ import {
 } from "./actions";
 
 interface AssessmentPageProps {
-  params: Promise<{ stockGroupName: string }>;
+  params: Promise<{ stock: string }>;
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { stockGroupName: encodedName } = use(params);
+  const { stock: encodedName } = use(params);
   const stockGroupName = decodeURIComponent(encodedName) as 資源名;
 
   const { user, isLoading } = useAuth();
