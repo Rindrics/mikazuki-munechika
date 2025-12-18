@@ -63,6 +63,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [catchDataValue, set漁獲量データValue] = useState("");
   const [biologicalDataValue, set生物学的データValue] = useState("");
   const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(null);
+  // Track parameters used for current calculation to ensure consistency
+  const [calculatedParams, setCalculatedParams] = useState<{
+    catchData: string;
+    biologicalData: string;
+  } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -93,12 +98,14 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   // Load version data into form fields
   const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
     setSelectedVersion(version.version);
-    if (version.parameters) {
-      set漁獲量データValue(version.parameters.catchData?.value ?? "");
-      set生物学的データValue(version.parameters.biologicalData?.value ?? "");
-    }
+    const catchData = version.parameters?.catchData?.value ?? "";
+    const biologicalData = version.parameters?.biologicalData?.value ?? "";
+    set漁獲量データValue(catchData);
+    set生物学的データValue(biologicalData);
     if (version.result) {
       setCalculationResult(version.result);
+      // For loaded versions, parameters are already consistent with result
+      setCalculatedParams({ catchData, biologicalData });
     }
     // Reset save state when switching versions
     setIsSaved(false);
@@ -191,6 +198,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     try {
       const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
       setCalculationResult(result);
+      // Track the parameters used for this calculation
+      setCalculatedParams({
+        catchData: catchDataValue,
+        biologicalData: biologicalDataValue,
+      });
     } finally {
       setIsCalculating(false);
     }
@@ -539,7 +551,14 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               type="button"
               onClick={handleSave}
               disabled={
-                !calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)
+                !calculationResult ||
+                isSaving ||
+                isSaved ||
+                !can保存評価結果(currentStatus) ||
+                // Ensure parameters match the calculated result
+                !calculatedParams ||
+                calculatedParams.catchData !== catchDataValue ||
+                calculatedParams.biologicalData !== biologicalDataValue
               }
               className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
             >
