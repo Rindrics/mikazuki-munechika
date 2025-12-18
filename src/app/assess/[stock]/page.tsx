@@ -587,6 +587,15 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
             </button>
 
+            {calculationResult &&
+              calculatedParams &&
+              (calculatedParams.catchData !== catchDataValue ||
+                calculatedParams.biologicalData !== biologicalDataValue) && (
+                <p className="mt-2 text-secondary text-sm">
+                  パラメータが変更されました。登録するには再計算してください。
+                </p>
+              )}
+
             {isSaved && savedVersion !== null && (
               <p className="mt-4 text-success font-medium">
                 {isNewVersion
