@@ -54,7 +54,11 @@ export default function AssessPage() {
   // Check if user is administrator
   const is管理者 =
     (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
-  const 資源一覧ラベル = is管理者 ? "管理中の資源" : "担当中の資源";
+
+  // Group stocks by role
+  const 主担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.主担当);
+  const 副担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.副担当);
+  const 管理資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.管理者);
 
   if (assessableStocks.length === 0) {
     return (
@@ -67,38 +71,49 @@ export default function AssessPage() {
     );
   }
 
+  // Reusable stock list component
+  const StockList = ({ stocks }: { stocks: typeof assessableStocks }) => (
+    <ul className="space-y-3">
+      {stocks.map(({ 担当資源名 }) => {
+        const 資源情報 = create資源情報(担当資源名);
+        return (
+          <li key={担当資源名}>
+            <Link
+              href={`/assess/${資源情報.slug}`}
+              className="block p-4 border rounded-lg hover:bg-secondary-light transition-colors"
+            >
+              <span className="font-medium">{担当資源名}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
     <main className="p-8 max-w-3xl mx-auto">
       <h1 className="mb-8">資源評価</h1>
-      <section>
-        <h2 className="mb-4">{資源一覧ラベル}</h2>
-        <ul className="space-y-3">
-          {assessableStocks.map(({ 担当資源名, ロール }) => {
-            const 資源情報 = create資源情報(担当資源名);
-            return (
-              <li key={担当資源名}>
-                <Link
-                  href={`/assess/${資源情報.slug}`}
-                  className="block p-4 border rounded-lg hover:bg-secondary-light transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{担当資源名}</span>
-                    <span
-                      className={`text-sm px-2 py-1 rounded ${
-                        ロール === ロールs.主担当
-                          ? "bg-primary-light text-foreground dark:bg-primary-dark dark:text-foreground-dark"
-                          : "bg-secondary-light text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
-                      }`}
-                    >
-                      {ロール}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+
+      {主担当資源s.length > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-4">主担当中の資源</h2>
+          <StockList stocks={主担当資源s} />
+        </section>
+      )}
+
+      {副担当資源s.length > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-4">副担当中の資源</h2>
+          <StockList stocks={副担当資源s} />
+        </section>
+      )}
+
+      {管理資源s.length > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-4">管理中の資源</h2>
+          <StockList stocks={管理資源s} />
+        </section>
+      )}
     </main>
   );
 }
