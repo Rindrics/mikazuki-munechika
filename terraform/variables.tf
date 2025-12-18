@@ -45,3 +45,9 @@ variable "supabase_anon_key_development" {
   type        = string
   default     = "dummy" # will be updated by executing 'pnpm run sync-env'
 }
+
+variable "sentry_auth_token" {
+  description = "authentication token to upload source map to Sentry"
+  type        = string
+  sensitive   = true
+}
