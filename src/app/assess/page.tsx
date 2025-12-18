@@ -27,18 +27,14 @@ export default function AssessPage() {
   const 全資源名リスト = useMemo(() => Object.values(資源名s), []);
   const assessableStocks = useMemo(
     () =>
-      user
-        ? get評価可能資源s(user as 認証済評価担当者 | 認証済資源評価管理者, 全資源名リスト)
-        : [],
+      user ? get評価可能資源s(user as 認証済評価担当者 | 認証済資源評価管理者, 全資源名リスト) : [],
     [user, 全資源名リスト]
   );
 
   // Check if user is administrator
   const is管理者 = useMemo(
     () =>
-      user
-        ? (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者"
-        : false,
+      user ? (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者" : false,
     [user]
   );
 

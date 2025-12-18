@@ -15,7 +15,12 @@ import { type 評価ステータス, can保存評価結果 } from "@/domain/mode
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton, VersionHistory, ButtonGroup, ConfirmDialog } from "@/components/molecules";
+import {
+  StatusChangeButton,
+  VersionHistory,
+  ButtonGroup,
+  ConfirmDialog,
+} from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
