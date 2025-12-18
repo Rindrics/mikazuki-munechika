@@ -40,6 +40,8 @@ export interface 資源情報 {
   readonly 呼称: 資源グループ呼称;
   readonly 系群名: string;
   readonly 資源タイプ: 資源タイプ;
+  /** URL パスで使用する英語 slug (ADR 0018) */
+  readonly slug: string;
   equals(other: 資源情報): boolean;
   toString(): string;
   toDisplayString(formatter?: (呼称: string, 系群名: string) => string): string;

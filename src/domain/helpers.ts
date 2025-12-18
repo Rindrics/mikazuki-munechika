@@ -28,10 +28,12 @@ export function create資源情報(name: 資源名 | string): 資源情報 {
         const 呼称 = stockData.呼称 as 資源グループ呼称;
         const 系群名 = regionInfo.系群名;
         const 資源タイプ = regionInfo.資源タイプ;
+        const slug = regionInfo.slug;
         return {
           呼称,
           系群名,
           資源タイプ,
+          slug,
           equals(other: 資源情報): boolean {
             return fullName === other.toString();
           },
