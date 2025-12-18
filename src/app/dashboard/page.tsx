@@ -4,6 +4,7 @@ import { logger } from "@/utils/logger";
 import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
 import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
 import { getCurrentFiscalYearAction } from "@/app/manage/actions";
+import { getPublicationHistoryAction } from "@/app/assess/[stock]/actions";
 import ResultPanel from "./components/ResultPanel";
 
 /**
@@ -40,6 +41,7 @@ export default async function Home() {
     stock: (typeof stocks)[0];
     status: 評価ステータス;
     result: ABC算定結果 | undefined;
+    latestPublishedAt?: Date;
   }> = [];
 
   for (const stock of stocks) {
@@ -51,6 +53,8 @@ export default async function Home() {
     const isPublished = status === "外部査読中" || status === "外部査読受理済み";
 
     let result: ABC算定結果 | undefined;
+    let latestPublishedAt: Date | undefined;
+
     if (isPublished && assessment?.承諾バージョン) {
       // Get the approved version's result
       const versionedResult = await assessmentResultRepository.findByStockNameAndVersion(
@@ -59,9 +63,15 @@ export default async function Home() {
         assessment.承諾バージョン
       );
       result = versionedResult?.result;
+
+      // Get latest publication info
+      const publications = await getPublicationHistoryAction(stockName);
+      if (publications.length > 0) {
+        latestPublishedAt = publications[0].publishedAt;
+      }
     }
 
-    assessmentData.push({ stock, status, result });
+    assessmentData.push({ stock, status, result, latestPublishedAt });
   }
 
   logger.info("Dashboard page loaded");
@@ -71,7 +81,7 @@ export default async function Home() {
       <h1 className="mb-8">資源評価結果一覧</h1>
 
       <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
-        {assessmentData.map(({ stock, status, result }, index) => {
+        {assessmentData.map(({ stock, status, result, latestPublishedAt }, index) => {
           const isPublished = status === "外部査読中" || status === "外部査読受理済み";
           return (
             <ResultPanel
@@ -79,6 +89,7 @@ export default async function Home() {
               stock={stock}
               result={isPublished ? result : undefined}
               isInProgress={!isPublished}
+              publishedAt={latestPublishedAt}
             />
           );
         })}

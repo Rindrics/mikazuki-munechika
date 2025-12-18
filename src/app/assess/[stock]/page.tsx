@@ -5,17 +5,23 @@ import {
   has資源アクセス権限,
   認証済評価担当者,
   認証済資源評価管理者,
-  資源名,
   ABC算定結果,
   is主担当者,
   is副担当者,
+  get資源名BySlug,
 } from "@/domain";
 import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
 import { type 評価ステータス, can保存評価結果 } from "@/domain/models/stock/status";
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
 import { StatusPanel } from "@/components/organisms";
-import { StatusChangeButton, VersionHistory, ButtonGroup } from "@/components/molecules";
+import {
+  StatusChangeButton,
+  VersionHistory,
+  ButtonGroup,
+  ConfirmDialog,
+} from "@/components/molecules";
+import { Button } from "@/components/atoms";
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -35,18 +41,24 @@ import {
 } from "./actions";
 
 interface AssessmentPageProps {
-  params: Promise<{ stockGroupName: string }>;
+  params: Promise<{ stock: string }>;
 }
 
 export default function AssessmentPage({ params }: AssessmentPageProps) {
-  const { stockGroupName: encodedName } = use(params);
-  const stockGroupName = decodeURIComponent(encodedName) as 資源名;
+  const { stock: slug } = use(params);
+  const stockGroupName = get資源名BySlug(slug);
 
   const { user, isLoading } = useAuth();
 
+  // All hooks must be called before any conditional returns (Rules of Hooks)
   const [catchDataValue, set漁獲量データValue] = useState("");
   const [biologicalDataValue, set生物学的データValue] = useState("");
   const [calculationResult, setCalculationResult] = useState<ABC算定結果 | null>(null);
+  // Track parameters used for current calculation to ensure consistency
+  const [calculatedParams, setCalculatedParams] = useState<{
+    catchData: string;
+    biologicalData: string;
+  } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -63,15 +75,28 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  // Warning dialog for version mismatch (shared between approval and publication)
+  const [isVersionMismatchWarningOpen, setIsVersionMismatchWarningOpen] = useState(false);
+  const [versionMismatchAction, setVersionMismatchAction] = useState<"approve" | "publish" | null>(
+    null
+  );
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Confirmation dialog for external publication (when versions match)
+  const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
+
   // Load version data into form fields
   const loadVersionIntoForm = useCallback((version: VersionedAssessmentResult) => {
     setSelectedVersion(version.version);
-    if (version.parameters) {
-      set漁獲量データValue(version.parameters.catchData?.value ?? "");
-      set生物学的データValue(version.parameters.biologicalData?.value ?? "");
-    }
+    const catchData = version.parameters?.catchData?.value ?? "";
+    const biologicalData = version.parameters?.biologicalData?.value ?? "";
+    set漁獲量データValue(catchData);
+    set生物学的データValue(biologicalData);
     if (version.result) {
       setCalculationResult(version.result);
+      // For loaded versions, parameters are already consistent with result
+      setCalculatedParams({ catchData, biologicalData });
     }
     // Reset save state when switching versions
     setIsSaved(false);
@@ -81,6 +106,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   // Fetch version history and populate fields with appropriate version's parameters
   const fetchVersionHistory = useCallback(
     async (targetApprovedVersion?: number) => {
+      // Guard against null stockGroupName (invalid slug case)
+      if (!stockGroupName) return;
+
       try {
         const [versions, pubs] = await Promise.all([
           getVersionHistoryAction(stockGroupName),
@@ -108,12 +136,14 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Check if user is primary assignee for this stock
   const isPrimaryAssignee =
+    stockGroupName &&
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is主担当者(user as 認証済評価担当者, stockGroupName);
 
   // Check if user is secondary assignee for this stock
   const isSecondaryAssignee =
+    stockGroupName &&
     user &&
     (user as 認証済評価担当者).種別 === "評価担当者" &&
     is副担当者(user as 認証済評価担当者, stockGroupName);
@@ -124,6 +154,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Fetch initial status from server and auto-start work for primary assignee
   useEffect(() => {
+    // Guard against null stockGroupName (invalid slug case)
+    if (!stockGroupName) return;
+
     const fetchAndMaybeStartWork = async () => {
       try {
         let targetApprovedVersion: number | undefined;
@@ -158,19 +191,25 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
   const handleCalculate = async () => {
+    if (!stockGroupName) return;
     setIsCalculating(true);
     setIsSaved(false);
     setSaveError(null);
     try {
       const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
       setCalculationResult(result);
+      // Track the parameters used for this calculation
+      setCalculatedParams({
+        catchData: catchDataValue,
+        biologicalData: biologicalDataValue,
+      });
     } finally {
       setIsCalculating(false);
     }
   };
 
   const handleSave = async () => {
-    if (!calculationResult) return;
+    if (!stockGroupName || !calculationResult) return;
     setIsSaving(true);
     setSaveError(null);
     try {
@@ -192,6 +231,86 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       setIsSaving(false);
     }
   };
+
+  // Handle approval action
+  const handleApprove = async () => {
+    if (!stockGroupName) return;
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      const result = await approveInternalReviewAction(stockGroupName);
+      if (result.success) {
+        setCurrentStatus(result.newStatus);
+        setApprovedVersion(result.approvedVersion);
+        setIsVersionMismatchWarningOpen(false);
+        setVersionMismatchAction(null);
+        // Refresh version history to reflect status changes
+        await fetchVersionHistory(result.approvedVersion);
+      }
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "承諾に失敗しました");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Handle publish action
+  const handlePublish = async () => {
+    if (!stockGroupName) return;
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      const result = await publishExternallyAction(stockGroupName);
+      if (result.success) {
+        setCurrentStatus(result.newStatus);
+        // Close both dialogs on success
+        setIsVersionMismatchWarningOpen(false);
+        setVersionMismatchAction(null);
+        setIsPublishConfirmOpen(false);
+        // Refresh version history to show new publication record
+        await fetchVersionHistory();
+      }
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "外部公開に失敗しました");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Handle version mismatch action confirmation
+  const handleVersionMismatchConfirm = async () => {
+    if (versionMismatchAction === "approve") {
+      await handleApprove();
+    } else if (versionMismatchAction === "publish") {
+      await handlePublish();
+    }
+  };
+
+  // Navigate to submitted/approved version
+  const goToSubmittedVersion = () => {
+    if (approvedVersion) {
+      const submittedVersion = versionHistory.find((v) => v.version === approvedVersion);
+      if (submittedVersion) {
+        loadVersionIntoForm(submittedVersion);
+      }
+    }
+    setIsVersionMismatchWarningOpen(false);
+    setVersionMismatchAction(null);
+  };
+
+  // Invalid slug - show 404-like error (after all hooks are called)
+  if (!stockGroupName) {
+    return (
+      <main className="p-8 max-w-3xl mx-auto">
+        <ErrorCard title="資源が見つかりません（404）">
+          <p className="mb-4">指定された資源は存在しません: {slug}</p>
+          <Link href="/assess" className="underline hover:opacity-80">
+            担当資源一覧に戻る
+          </Link>
+        </ErrorCard>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -243,7 +362,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="mb-4">
         <Link href="/assess" className="text-link hover:text-link-hover underline text-sm">
-          ← 担当資源一覧に戻る
+          ← {is管理者 ? "管理中の資源" : "担当中の資源"}に戻る
         </Link>
       </div>
 
@@ -317,19 +436,23 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                   }}
                 />
               )}
-              <StatusChangeButton
-                label="承諾する"
-                confirmTitle="内部査読を承諾しますか？"
-                confirmMessage="承諾すると、ステータスが「外部公開可能」になります。"
+              <Button
                 variant="success"
-                onAction={async () => {
-                  const result = await approveInternalReviewAction(stockGroupName);
-                  if (result.success) {
-                    setCurrentStatus(result.newStatus);
-                    setApprovedVersion(result.approvedVersion);
+                onClick={() => {
+                  // Clear any previous errors when opening dialog
+                  setActionError(null);
+                  // Check if selected version differs from submitted version
+                  if (selectedVersion !== approvedVersion) {
+                    setVersionMismatchAction("approve");
+                    setIsVersionMismatchWarningOpen(true);
+                  } else {
+                    // Directly approve if versions match
+                    handleApprove();
                   }
                 }}
-              />
+              >
+                承諾する
+              </Button>
             </ButtonGroup>
           )}
           {/* Cancel approval button for secondary assignee or administrator */}
@@ -343,25 +466,30 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 const result = await cancelApprovalAction(stockGroupName);
                 if (result.success) {
                   setCurrentStatus(result.newStatus);
-                  setApprovedVersion(undefined);
+                  // Keep approvedVersion to show "内部査読中" label on the version
                 }
               }}
             />
           )}
           {/* Status change buttons for administrator */}
           {is管理者 && currentStatus === "外部公開可能" && (
-            <StatusChangeButton
-              label="外部公開する"
-              confirmTitle="外部公開しますか？"
-              confirmMessage="外部公開すると、ステークホルダーによる査読が開始されます。"
+            <Button
               variant="primary"
-              onAction={async () => {
-                const result = await publishExternallyAction(stockGroupName);
-                if (result.success) {
-                  setCurrentStatus(result.newStatus);
+              onClick={() => {
+                // Clear any previous errors when opening dialog
+                setActionError(null);
+                // Check if selected version differs from approved version
+                if (selectedVersion !== approvedVersion) {
+                  setVersionMismatchAction("publish");
+                  setIsVersionMismatchWarningOpen(true);
+                } else {
+                  // Show confirmation dialog when versions match
+                  setIsPublishConfirmOpen(true);
                 }
               }}
-            />
+            >
+              外部公開する
+            </Button>
           )}
           {is管理者 && currentStatus === "外部査読中" && (
             <StatusChangeButton
@@ -449,12 +577,28 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               type="button"
               onClick={handleSave}
               disabled={
-                !calculationResult || isSaving || isSaved || !can保存評価結果(currentStatus)
+                !calculationResult ||
+                isSaving ||
+                isSaved ||
+                !can保存評価結果(currentStatus) ||
+                // Ensure parameters match the calculated result
+                !calculatedParams ||
+                calculatedParams.catchData !== catchDataValue ||
+                calculatedParams.biologicalData !== biologicalDataValue
               }
               className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-success-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
             >
               {isSaving ? "登録中..." : isSaved ? "登録済み" : "評価結果を登録"}
             </button>
+
+            {calculationResult &&
+              calculatedParams &&
+              (calculatedParams.catchData !== catchDataValue ||
+                calculatedParams.biologicalData !== biologicalDataValue) && (
+                <p className="mt-2 text-secondary text-sm">
+                  パラメータが変更されました。登録するには再計算してください。
+                </p>
+              )}
 
             {isSaved && savedVersion !== null && (
               <p className="mt-4 text-success font-medium">
@@ -489,6 +633,58 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           </div>
         </aside>
       </div>
+
+      {/* Warning dialog for version mismatch when approving or publishing */}
+      <ConfirmDialog
+        isOpen={isVersionMismatchWarningOpen}
+        title="選択中のバージョンが異なります"
+        message={
+          <div className="space-y-4">
+            <p>
+              現在選択中のバージョン（v{selectedVersion ?? "-"}）は、
+              {versionMismatchAction === "approve" ? "提出された" : "内部承諾済みの"}
+              バージョン（v{approvedVersion ?? "-"}）と異なります。
+            </p>
+            <p>
+              {versionMismatchAction === "approve"
+                ? "提出されたバージョンで承諾しますか？"
+                : "内部承諾済みのバージョンで外部公開しますか？"}
+            </p>
+          </div>
+        }
+        confirmLabel={
+          versionMismatchAction === "approve"
+            ? "提出されたバージョンで承諾"
+            : "内部承諾済みバージョンで公開"
+        }
+        confirmVariant={versionMismatchAction === "approve" ? "success" : "primary"}
+        onConfirm={handleVersionMismatchConfirm}
+        onCancel={() => {
+          setIsVersionMismatchWarningOpen(false);
+          setVersionMismatchAction(null);
+          setActionError(null);
+        }}
+        isLoading={isActionLoading}
+        errorMessage={actionError}
+        neutralLabel={approvedVersion ? `v${approvedVersion} を確認` : undefined}
+        onNeutral={approvedVersion ? goToSubmittedVersion : undefined}
+      />
+
+      {/* Confirmation dialog for external publication (when versions match) */}
+      <ConfirmDialog
+        isOpen={isPublishConfirmOpen}
+        title="外部公開しますか？"
+        message="外部公開すると、ステークホルダーによる査読が開始されます。"
+        confirmLabel="外部公開する"
+        confirmVariant="primary"
+        onConfirm={handlePublish}
+        onCancel={() => {
+          setIsPublishConfirmOpen(false);
+          setActionError(null);
+        }}
+        isLoading={isActionLoading}
+        errorMessage={actionError}
+      />
     </main>
   );
 }

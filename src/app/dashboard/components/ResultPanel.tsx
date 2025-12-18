@@ -1,12 +1,19 @@
 import { 資源評価, ABC算定結果 } from "@/domain";
+import { 公開版ラベル } from "@/domain/models/stock/status";
 
 interface ResultPanelProps {
   stock: 資源評価;
   result: ABC算定結果 | undefined;
   isInProgress?: boolean;
+  publishedAt?: Date;
 }
 
-export default function ResultPanel({ stock, result, isInProgress = false }: ResultPanelProps) {
+export default function ResultPanel({
+  stock,
+  result,
+  isInProgress = false,
+  publishedAt,
+}: ResultPanelProps) {
   // Show "評価中" for stocks that are not yet published
   if (isInProgress) {
     return (
@@ -24,7 +31,14 @@ export default function ResultPanel({ stock, result, isInProgress = false }: Res
 
   return (
     <section className="border rounded-lg p-6">
-      <h2 className="mb-2">{stock.対象.toString()}</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="mb-0">{stock.対象.toString()}</h2>
+        {publishedAt && (
+          <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
+            {公開版ラベル.from(publishedAt).toString()}
+          </span>
+        )}
+      </div>
       <div className="mb-2">
         <strong>資源量:</strong>{" "}
         {abundance ? (

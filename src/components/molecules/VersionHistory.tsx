@@ -1,7 +1,7 @@
 "use client";
 
 import type { VersionedAssessmentResult, PublicationRecord } from "@/domain/repositories";
-import type { 評価ステータス } from "@/domain/models/stock/status";
+import { type 評価ステータス, 公開版ラベル } from "@/domain/models/stock/status";
 
 // Statuses where the approved version is actually "approved" (not just "under review")
 const 承諾済みステータス: 評価ステータス[] = ["外部公開可能", "外部査読中", "外部査読受理済み"];
@@ -39,16 +39,18 @@ export function VersionHistory({
   // Create a map of internal version -> publication info
   const publicationMap = new Map(publications.map((pub) => [pub.internalVersion, pub]));
 
-  // "承諾済み" label should only show when the status indicates actual approval
-  // (not just "under review" which is "内部査読中")
+  // Determine label and style for the target version based on status
   const isActuallyApproved = currentStatus && 承諾済みステータス.includes(currentStatus);
+  const isUnderInternalReview = currentStatus === "内部査読中";
 
   return (
     <div className={`border rounded-lg ${className}`}>
       <div className="divide-y max-h-64 overflow-y-auto">
         {versions.map((v) => {
           const publication = publicationMap.get(v.version);
-          const isApproved = isActuallyApproved && v.version === currentApprovedVersion;
+          const isTargetVersion = v.version === currentApprovedVersion;
+          const isApproved = isActuallyApproved && isTargetVersion;
+          const isReviewing = isUnderInternalReview && isTargetVersion;
           const isSelected = v.version === selectedVersion;
 
           return (
@@ -58,7 +60,7 @@ export function VersionHistory({
               onClick={() => onSelectVersion?.(v)}
               className={`w-full p-3 flex items-center justify-between text-left hover:bg-secondary-light/50 transition-colors ${
                 isApproved ? "bg-success-light/30" : ""
-              } ${isSelected ? "ring-2 ring-primary ring-inset" : ""}`}
+              } ${isReviewing ? "bg-warning-light/30" : ""} ${isSelected ? "ring-2 ring-primary ring-inset" : ""}`}
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium">v{v.version}</span>
@@ -67,14 +69,20 @@ export function VersionHistory({
                     選択中
                   </span>
                 )}
-                {isApproved && (
+                {isReviewing && (
+                  <span className="text-xs px-2 py-0.5 bg-warning text-white rounded-full">
+                    内部査読中
+                  </span>
+                )}
+                {/* Show "内部承諾済み" only if not yet published externally */}
+                {isApproved && !publication && (
                   <span className="text-xs px-2 py-0.5 bg-success text-white rounded-full">
-                    承諾済み
+                    内部承諾済み
                   </span>
                 )}
                 {publication && (
                   <span className="text-xs px-2 py-0.5 bg-secondary text-white rounded-full">
-                    公開済み (改訂{publication.revisionNumber})
+                    {公開版ラベル.from(publication.publishedAt).toString()}
                   </span>
                 )}
               </div>
