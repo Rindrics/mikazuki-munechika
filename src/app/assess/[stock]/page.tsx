@@ -261,8 +261,10 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
       const result = await publishExternallyAction(stockGroupName);
       if (result.success) {
         setCurrentStatus(result.newStatus);
+        // Close both dialogs on success
         setIsVersionMismatchWarningOpen(false);
         setVersionMismatchAction(null);
+        setIsPublishConfirmOpen(false);
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "外部公開に失敗しました");
@@ -433,6 +435,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               <Button
                 variant="success"
                 onClick={() => {
+                  // Clear any previous errors when opening dialog
+                  setActionError(null);
                   // Check if selected version differs from submitted version
                   if (selectedVersion !== approvedVersion) {
                     setVersionMismatchAction("approve");
@@ -468,6 +472,8 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
             <Button
               variant="primary"
               onClick={() => {
+                // Clear any previous errors when opening dialog
+                setActionError(null);
                 // Check if selected version differs from approved version
                 if (selectedVersion !== approvedVersion) {
                   setVersionMismatchAction("publish");
@@ -663,12 +669,13 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         message="外部公開すると、ステークホルダーによる査読が開始されます。"
         confirmLabel="外部公開する"
         confirmVariant="primary"
-        onConfirm={async () => {
+        onConfirm={handlePublish}
+        onCancel={() => {
           setIsPublishConfirmOpen(false);
-          await handlePublish();
+          setActionError(null);
         }}
-        onCancel={() => setIsPublishConfirmOpen(false)}
         isLoading={isActionLoading}
+        errorMessage={actionError}
       />
     </main>
   );
