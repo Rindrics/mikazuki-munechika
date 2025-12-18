@@ -646,15 +646,6 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                 ? "提出されたバージョンで承諾しますか？"
                 : "内部承諾済みのバージョンで外部公開しますか？"}
             </p>
-            <button
-              type="button"
-              onClick={goToSubmittedVersion}
-              className="text-primary underline hover:opacity-80"
-            >
-              {versionMismatchAction === "approve" ? "提出された" : "内部承諾済みの"}
-              バージョン (v{approvedVersion}) を見る
-            </button>
-            {actionError && <p className="text-danger text-sm">{actionError}</p>}
           </div>
         }
         confirmLabel={
@@ -669,6 +660,9 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           setVersionMismatchAction(null);
         }}
         isLoading={isActionLoading}
+        errorMessage={actionError}
+        neutralLabel={`v${approvedVersion} を確認`}
+        onNeutral={goToSubmittedVersion}
       />
 
       {/* Confirmation dialog for external publication (when versions match) */}

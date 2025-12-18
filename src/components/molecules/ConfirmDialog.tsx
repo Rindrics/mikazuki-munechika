@@ -15,6 +15,9 @@ interface ConfirmDialogProps {
   isLoading?: boolean;
   /** Error message to display below the main message */
   errorMessage?: string | null;
+  /** Optional neutral action button (displayed between cancel and confirm) */
+  neutralLabel?: string;
+  onNeutral?: () => void;
 }
 
 /**
@@ -31,6 +34,8 @@ export function ConfirmDialog({
   onCancel,
   isLoading = false,
   errorMessage,
+  neutralLabel,
+  onNeutral,
 }: ConfirmDialogProps) {
   return (
     <Modal isOpen={isOpen} onClose={onCancel}>
@@ -42,6 +47,11 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
             {cancelLabel}
           </Button>
+          {neutralLabel && onNeutral && (
+            <Button variant="secondary" onClick={onNeutral} disabled={isLoading}>
+              {neutralLabel}
+            </Button>
+          )}
           <Button
             variant={confirmVariant}
             onClick={onConfirm}
