@@ -1,21 +1,26 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   get評価可能資源s,
   認証済評価担当者,
   認証済資源評価管理者,
   ロールs,
   資源名s,
+  資源名,
   create資源情報,
 } from "@/domain";
+import type { 評価ステータス } from "@/domain/models/stock/status";
 import Link from "next/link";
 import AuthModal from "@/components/auth-modal";
+import { StatusBadge } from "@/components/molecules";
+import { getAssessmentStatusAction } from "./[stock]/actions";
 
 export default function AssessPage() {
   const { user, isLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [statusMap, setStatusMap] = useState<Map<資源名, 評価ステータス>>(new Map());
 
   if (isLoading) {
     return (
@@ -44,11 +49,12 @@ export default function AssessPage() {
     );
   }
 
-  // Get assessable stocks for the user
+  // Get assessable stocks for the user (memoized to prevent infinite re-renders)
   const 全資源名リスト = Object.values(資源名s);
-  const assessableStocks = get評価可能資源s(
-    user as 認証済評価担当者 | 認証済資源評価管理者,
-    全資源名リスト
+  const assessableStocks = useMemo(
+    () =>
+      get評価可能資源s(user as 認証済評価担当者 | 認証済資源評価管理者, 全資源名リスト),
+    [user]
   );
 
   // Check if user is administrator
@@ -59,6 +65,28 @@ export default function AssessPage() {
   const 主担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.主担当);
   const 副担当資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.副担当);
   const 管理資源s = assessableStocks.filter(({ ロール }) => ロール === ロールs.管理者);
+
+  // Fetch status for all assessable stocks
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      const newStatusMap = new Map<資源名, 評価ステータス>();
+      await Promise.all(
+        assessableStocks.map(async ({ 担当資源名 }) => {
+          try {
+            const { status } = await getAssessmentStatusAction(担当資源名);
+            newStatusMap.set(担当資源名, status);
+          } catch (error) {
+            console.error(`Failed to fetch status for ${担当資源名}:`, error);
+          }
+        })
+      );
+      setStatusMap(newStatusMap);
+    };
+
+    if (assessableStocks.length > 0) {
+      fetchStatuses();
+    }
+  }, [assessableStocks]);
 
   if (assessableStocks.length === 0) {
     return (
@@ -76,13 +104,17 @@ export default function AssessPage() {
     <ul className="space-y-3">
       {stocks.map(({ 担当資源名 }) => {
         const 資源情報 = create資源情報(担当資源名);
+        const status = statusMap.get(担当資源名);
         return (
           <li key={担当資源名}>
             <Link
               href={`/assess/${資源情報.slug}`}
               className="block p-4 border rounded-lg hover:bg-secondary-light transition-colors"
             >
-              <span className="font-medium">{担当資源名}</span>
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{担当資源名}</span>
+                {status && <StatusBadge status={status} />}
+              </div>
             </Link>
           </li>
         );
