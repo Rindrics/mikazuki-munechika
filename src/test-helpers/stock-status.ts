@@ -58,11 +58,18 @@ export const create内部査読中の資源評価 = () => {
   return 内部査読待ち資源評価;
 };
 
-export const create外部査読中の資源評価 = () => {
+export const create内部査読受理済みの資源評価 = () => {
   const 内部査読中 = create内部査読中の資源評価();
   const 認証済み管理者 = create認証済み資源評価管理者();
+  const { 受理済み資源評価 } = 受理(内部査読中, new Date(), 認証済み管理者, テスト用バージョン);
+  return 受理済み資源評価;
+};
+
+export const create外部査読中の資源評価 = () => {
+  const 内部査読受理済み = create内部査読受理済みの資源評価();
+  const 認証済み管理者 = create認証済み資源評価管理者();
   const { 外部査読中資源評価 } = 外部公開(
-    内部査読中,
+    内部査読受理済み,
     new Date(),
     認証済み管理者,
     テスト用バージョン
@@ -92,13 +99,6 @@ export const create再検討中の資源評価_外部査読中から = () => {
     テスト用バージョン
   );
   return 再検討待ち資源評価;
-};
-
-export const create内部査読受理済みの資源評価 = () => {
-  const 内部査読中 = create内部査読中の資源評価();
-  const 管理者 = create認証済み資源評価管理者();
-  const { 受理済み資源評価 } = 受理(内部査読中, new Date(), 管理者, テスト用バージョン);
-  return 受理済み資源評価;
 };
 
 export const create外部査読受理済みの資源評価 = () => {
