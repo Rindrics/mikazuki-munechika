@@ -38,6 +38,11 @@ resource "vercel_project_environment_variables" "production" {
       value  = var.sentry_auth_token
       target = ["production"]
     },
+    {
+      key    = "FLAGS_SECRET"
+      value  = var.vercel_flags_secret
+      target = ["production"]
+    },
   ]
 }
 
@@ -79,6 +84,11 @@ resource "vercel_project_environment_variables" "preview" {
       value  = var.sentry_auth_token
       target = ["preview"]
     },
+    {
+      key    = "FLAGS_SECRET"
+      value  = var.vercel_flags_secret
+      target = ["preview"]
+    },
   ]
 }
 
@@ -113,6 +123,11 @@ resource "vercel_project_environment_variables" "development" {
     {
       key    = "NEXT_PUBLIC_USE_IN_MEMORY_REPOSITORY"
       value  = "false"
+      target = ["development"]
+    },
+    {
+      key    = "FLAGS_SECRET"
+      value  = var.vercel_flags_secret
       target = ["development"]
     },
   ]

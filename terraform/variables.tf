@@ -51,3 +51,9 @@ variable "sentry_auth_token" {
   type        = string
   sensitive   = true
 }
+
+variable "vercel_flags_secret" {
+  description = "secret to use Vercel feature flag functionality"
+  type        = string
+  sensitive   = true
+}
