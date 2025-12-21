@@ -173,8 +173,20 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
   async delete(userId: string): Promise<void> {
     logger.debug("delete called", { userId });
 
-    // Delete user via Supabase Auth Admin API
-    // This will cascade delete user_profiles and user_stock_group_roles
+    // First, delete user_stock_group_roles to trigger audit logging
+    // while the user still exists (avoids FK constraint violation in audit_logs)
+    const { error: rolesError } = await this.supabase
+      .from("user_stock_group_roles")
+      .delete()
+      .eq("user_id", userId);
+
+    if (rolesError) {
+      logger.error("Failed to delete user roles", { userId }, rolesError as Error);
+      throw new Error(`Failed to delete user roles: ${rolesError.message}`);
+    }
+
+    // Then delete user via Supabase Auth Admin API
+    // This will cascade delete user_profiles
     const { error } = await this.supabase.auth.admin.deleteUser(userId);
 
     if (error) {
