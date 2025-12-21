@@ -106,10 +106,18 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     const assignmentText =
       assignmentDescriptions.length > 0 ? assignmentDescriptions.join("、") : "";
 
+    // Validate redirect URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      logger.error("NEXT_PUBLIC_APP_URL is not configured");
+      throw new Error("Application URL is not configured. Cannot send invitation.");
+    }
+    const redirectTo = `${appUrl.replace(/\/+$/, "")}/`;
+
     // Invite user via Supabase Auth Admin API
     const { data: inviteData, error: inviteError } =
       await this.supabase.auth.admin.inviteUserByEmail(data.メールアドレス, {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+        redirectTo,
         data: {
           inviter_email: inviterEmail || "管理者",
           assignment_text: assignmentText,
