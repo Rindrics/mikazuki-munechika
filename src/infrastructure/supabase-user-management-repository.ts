@@ -7,8 +7,21 @@ import type {
   ユーザー招待データ,
 } from "@/domain/repositories";
 import type { 資源名, ロール } from "@/domain";
+import { 資源名s, ロールs } from "@/domain";
 import { getSupabaseServiceRoleClient } from "./supabase-server-client";
 import { logger } from "@/utils/logger";
+
+// Build sets for runtime validation
+const valid資源名Set = new Set(Object.values(資源名s));
+const validロールSet = new Set(Object.values(ロールs));
+
+function is資源名(value: string): value is 資源名 {
+  return valid資源名Set.has(value as 資源名);
+}
+
+function isロール(value: string): value is ロール {
+  return validロールSet.has(value as ロール);
+}
 
 /**
  * Supabase implementation of ユーザー管理Repository
@@ -75,10 +88,28 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
       }
 
       if (stockName) {
+        // Validate stockName and role before casting
+        if (!is資源名(stockName)) {
+          logger.warn("Invalid 資源名 from database, skipping", {
+            userId: userRole.user_id,
+            invalidValue: stockName,
+          });
+          continue;
+        }
+
+        const role = userRole.role as string;
+        if (!isロール(role)) {
+          logger.warn("Invalid ロール from database, skipping", {
+            userId: userRole.user_id,
+            invalidValue: role,
+          });
+          continue;
+        }
+
         const existing = roleMap.get(userRole.user_id) || [];
         existing.push({
-          資源名: stockName as 資源名,
-          ロール: userRole.role as ロール,
+          資源名: stockName,
+          ロール: role,
         });
         roleMap.set(userRole.user_id, existing);
       }
