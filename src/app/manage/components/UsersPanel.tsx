@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
-import { Button, Badge } from "@/components/atoms";
+import { Button, Badge, IconButton } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/molecules";
 import type { ユーザー情報 } from "@/domain/repositories";
 import { deleteUserAction } from "../actions";
 import type { UsersData } from "../types";
+import { UserEditDialog } from "./UserEditDialog";
 
 type DialogType = "invite" | "edit" | "delete" | null;
 
@@ -204,22 +205,20 @@ export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
                       <td className="p-3 text-right">
                         {!userIsAdmin && (
                           <div className="flex justify-end gap-1">
-                            <button
-                              type="button"
+                            <IconButton
+                              variant="primary"
                               onClick={() => openDialog("edit", u)}
-                              className="p-2 text-secondary hover:text-primary rounded hover:bg-secondary-light/50 transition-colors"
                               title="編集"
                             >
                               <FiEdit2 size={16} />
-                            </button>
-                            <button
-                              type="button"
+                            </IconButton>
+                            <IconButton
+                              variant="danger"
                               onClick={() => openDialog("delete", u)}
-                              className="p-2 text-secondary hover:text-danger rounded hover:bg-danger-light/50 transition-colors"
                               title="削除"
                             >
                               <FiTrash2 size={16} />
-                            </button>
+                            </IconButton>
                           </div>
                         )}
                       </td>
@@ -243,8 +242,15 @@ export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
         isLoading={isProcessing}
       />
 
+      <UserEditDialog
+        isOpen={dialogType === "edit"}
+        user={selectedUser}
+        stockGroups={stockGroups}
+        onClose={closeDialog}
+        onSaved={onRefresh}
+      />
+
       {/* TODO: Invite Dialog */}
-      {/* TODO: Edit Dialog */}
     </>
   );
 }

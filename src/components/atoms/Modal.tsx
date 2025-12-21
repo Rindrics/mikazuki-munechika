@@ -2,16 +2,26 @@
 
 import { type ReactNode, useEffect } from "react";
 
+type ModalSize = "sm" | "md" | "lg" | "xl";
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
+  size?: ModalSize;
 }
+
+const sizeClasses: Record<ModalSize, string> = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+};
 
 /**
  * Modal - Atom component for overlay dialogs
  */
-export function Modal({ isOpen, onClose, children }: ModalProps) {
+export function Modal({ isOpen, onClose, children, size = "md" }: ModalProps) {
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -39,7 +49,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       {/* Content */}
-      <div className="relative z-10 bg-background dark:bg-background-dark rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className={`relative z-10 bg-background dark:bg-background-dark rounded-lg shadow-xl ${sizeClasses[size]} w-full mx-4`}>
         {children}
       </div>
     </div>
