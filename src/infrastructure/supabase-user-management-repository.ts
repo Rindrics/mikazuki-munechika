@@ -136,7 +136,45 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     }
 
     // Assign stock roles
-    await this.assignStockRoles(userId, data.担当資源);
+    try {
+      await this.assignStockRoles(userId, data.担当資源);
+    } catch (assignError) {
+      logger.error("Failed to assign stock roles", { userId }, assignError as Error);
+
+      // Clean up: delete profile and user
+      try {
+        const { error: profileDeleteError } = await this.supabase
+          .from("user_profiles")
+          .delete()
+          .eq("id", userId);
+
+        if (profileDeleteError) {
+          logger.error(
+            "Cleanup failed: could not delete user profile",
+            { userId },
+            profileDeleteError as Error
+          );
+        } else {
+          logger.info("Cleanup: user profile deleted", { userId });
+        }
+
+        const { error: userDeleteError } = await this.supabase.auth.admin.deleteUser(userId);
+
+        if (userDeleteError) {
+          logger.error(
+            "Cleanup failed: could not delete user",
+            { userId },
+            userDeleteError as Error
+          );
+        } else {
+          logger.info("Cleanup: user deleted", { userId });
+        }
+      } catch (cleanupError) {
+        logger.error("Cleanup failed unexpectedly", { userId }, cleanupError as Error);
+      }
+
+      throw assignError;
+    }
 
     logger.info("User invited successfully", { userId, email: data.メールアドレス });
     return { userId };
