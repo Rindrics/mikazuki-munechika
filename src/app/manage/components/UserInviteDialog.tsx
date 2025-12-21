@@ -15,6 +15,7 @@ interface AssignmentRow {
 interface UserInviteDialogProps {
   isOpen: boolean;
   stockGroups: Array<{ id: string; name: string }>;
+  existingEmails: string[];
   onClose: () => void;
   onInvited: () => Promise<void>;
 }
@@ -25,6 +26,7 @@ const generateRowId = () => `invite-row-${++rowIdCounter}`;
 export function UserInviteDialog({
   isOpen,
   stockGroups,
+  existingEmails,
   onClose,
   onInvited,
 }: UserInviteDialogProps) {
@@ -34,6 +36,14 @@ export function UserInviteDialog({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Check if email already exists
+  const isDuplicateEmail = useMemo(() => {
+    const trimmedEmail = email.trim().toLowerCase();
+    return trimmedEmail !== "" && existingEmails.some(
+      (e) => e.toLowerCase() === trimmedEmail
+    );
+  }, [email, existingEmails]);
 
   // Reset form when dialog opens
   const resetForm = () => {
@@ -52,6 +62,21 @@ export function UserInviteDialog({
     return stockGroups.filter((sg) => !selectedStocks.includes(sg.name));
   };
 
+  // Clear error when form changes
+  const clearError = () => {
+    if (error) setError(null);
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    clearError();
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    clearError();
+  };
+
   const handleAddRow = () => {
     const availableStocks = getAvailableStocks("");
     if (availableStocks.length === 0) return;
@@ -64,27 +89,36 @@ export function UserInviteDialog({
         role: "副担当",
       },
     ]);
+    clearError();
   };
 
   const handleRemoveRow = (rowId: string) => {
     setRows((prev) => prev.filter((r) => r.id !== rowId));
+    clearError();
   };
 
   const handleStockChange = (rowId: string, stockName: string) => {
     setRows((prev) =>
       prev.map((r) => (r.id === rowId ? { ...r, stockName } : r))
     );
+    clearError();
   };
 
   const handleRoleChange = (rowId: string, role: "主担当" | "副担当") => {
     setRows((prev) =>
       prev.map((r) => (r.id === rowId ? { ...r, role } : r))
     );
+    clearError();
   };
 
   const isValidForm = useMemo(() => {
-    return name.trim() !== "" && email.trim() !== "" && email.includes("@");
-  }, [name, email]);
+    return (
+      name.trim() !== "" &&
+      email.trim() !== "" &&
+      email.includes("@") &&
+      !isDuplicateEmail
+    );
+  }, [name, email, isDuplicateEmail]);
 
   const handleSubmit = () => {
     if (!isValidForm) return;
@@ -230,7 +264,7 @@ export function UserInviteDialog({
               id="invite-name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder="例: 山田 太郎"
               className="w-full text-sm border rounded px-3 py-2 bg-white dark:bg-gray-800"
             />
@@ -245,10 +279,17 @@ export function UserInviteDialog({
               id="invite-email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder="例: taro.yamada@example.com"
-              className="w-full text-sm border rounded px-3 py-2 bg-white dark:bg-gray-800"
+              className={`w-full text-sm border rounded px-3 py-2 bg-white dark:bg-gray-800 ${
+                isDuplicateEmail ? "border-danger" : ""
+              }`}
             />
+            {isDuplicateEmail && (
+              <p className="mt-1 text-sm text-danger">
+                このメールアドレスは既に登録されています
+              </p>
+            )}
           </div>
 
           {/* Stock assignments */}

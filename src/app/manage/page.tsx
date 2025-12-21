@@ -5,7 +5,7 @@ import type { 認証済資源評価管理者, 認証済評価担当者 } from "@
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
 import { useState, useEffect, useCallback, Suspense, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   getFiscalYearsAction,
@@ -18,9 +18,25 @@ import type { Tab, FiscalYearData, UsersData } from "./types";
 
 function ManagePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tab = (searchParams.get("tab") as Tab) || "fiscal-year";
+  const action = searchParams.get("action");
   const { user, isLoading: isAuthLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Update URL action parameter
+  const setAction = useCallback(
+    (newAction: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newAction) {
+        params.set("action", newAction);
+      } else {
+        params.delete("action");
+      }
+      router.replace(`/manage?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
 
   // Data state
   const [fiscalYearData, setFiscalYearData] = useState<FiscalYearData | null>(null);
@@ -166,7 +182,9 @@ function ManagePageContent() {
           data={usersData}
           isLoading={isUsersLoading}
           onRefresh={fetchUsersData}
-      />
+          action={action}
+          onActionChange={setAction}
+        />
       )}
     </main>
   );

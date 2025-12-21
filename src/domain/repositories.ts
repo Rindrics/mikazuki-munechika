@@ -33,8 +33,10 @@ export interface ユーザー管理Repository {
 
   /**
    * Invite a new user by email (sends invitation email via Supabase)
+   * @param data User data to invite
+   * @param inviterEmail Email of the admin who is inviting (for email template)
    */
-  invite(data: ユーザー招待データ): Promise<{ userId: string }>;
+  invite(data: ユーザー招待データ, inviterEmail?: string): Promise<{ userId: string }>;
 
   /**
    * Update user's stock assignments

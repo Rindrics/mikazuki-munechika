@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { Button, Badge, IconButton } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/molecules";
@@ -16,13 +16,28 @@ interface UsersPanelProps {
   data: UsersData | null;
   isLoading: boolean;
   onRefresh: () => Promise<void>;
+  action?: string | null;
+  onActionChange?: (action: string | null) => void;
 }
 
-export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
+export function UsersPanel({
+  data,
+  isLoading,
+  onRefresh,
+  action,
+  onActionChange,
+}: UsersPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [dialogType, setDialogType] = useState<DialogType>(null);
   const [selectedUser, setSelectedUser] = useState<ユーザー情報 | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Sync dialog state with URL action parameter
+  useEffect(() => {
+    if (action === "invite" && dialogType !== "invite") {
+      setDialogType("invite");
+    }
+  }, [action, dialogType]);
 
   // Filter state
   const [stockFilter, setStockFilter] = useState<string>("");
@@ -56,11 +71,19 @@ export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
   const openDialog = (type: DialogType, targetUser?: ユーザー情報) => {
     setDialogType(type);
     setSelectedUser(targetUser || null);
+    // Update URL for invite action only (shareable)
+    if (type === "invite" && onActionChange) {
+      onActionChange("invite");
+    }
   };
 
   const closeDialog = () => {
     setDialogType(null);
     setSelectedUser(null);
+    // Clear URL action parameter
+    if (onActionChange) {
+      onActionChange(null);
+    }
   };
 
   const handleDeleteUser = async () => {
@@ -254,6 +277,7 @@ export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
       <UserInviteDialog
         isOpen={dialogType === "invite"}
         stockGroups={stockGroups}
+        existingEmails={allUsers.map((u) => u.メールアドレス)}
         onClose={closeDialog}
         onInvited={onRefresh}
       />

@@ -92,14 +92,31 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     return users;
   }
 
-  async invite(data: ユーザー招待データ): Promise<{ userId: string }> {
+  async invite(
+    data: ユーザー招待データ,
+    inviterEmail?: string
+  ): Promise<{ userId: string }> {
     logger.debug("invite called", { email: data.メールアドレス, name: data.氏名 });
+
+    // Build assignment description for email
+    const assignmentDescriptions = data.担当資源.map(
+      (r) => `${r.資源名}の${r.ロール}`
+    );
+    const assignmentText =
+      assignmentDescriptions.length > 0
+        ? assignmentDescriptions.join("、")
+        : "";
 
     // Invite user via Supabase Auth Admin API
     const { data: inviteData, error: inviteError } = await this.supabase.auth.admin.inviteUserByEmail(
       data.メールアドレス,
       {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+        data: {
+          inviter_email: inviterEmail || "管理者",
+          assignment_text: assignmentText,
+          invited_name: data.氏名,
+        },
       }
     );
 

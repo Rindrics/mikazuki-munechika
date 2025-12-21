@@ -283,19 +283,22 @@ export async function inviteUserAction(data: {
   stockAssignments: Array<{ stockName: 資源名; role: ロール }>;
 }): Promise<void> {
   const supabase = await getSupabaseServerClient();
-  await requireAdmin(supabase);
+  const admin = await requireAdmin(supabase);
 
   const repository = new Supabaseユーザー管理Repository();
-  await repository.invite({
-    氏名: data.name,
-    メールアドレス: data.email,
-    担当資源: data.stockAssignments.map((a) => ({
-      資源名: a.stockName,
-      ロール: a.role,
-    })),
-  });
+  await repository.invite(
+    {
+      氏名: data.name,
+      メールアドレス: data.email,
+      担当資源: data.stockAssignments.map((a) => ({
+        資源名: a.stockName,
+        ロール: a.role,
+      })),
+    },
+    admin.email
+  );
 
-  logger.info("User invited", { email: data.email });
+  logger.info("User invited", { email: data.email, invitedBy: admin.email });
 }
 
 /**
