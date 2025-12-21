@@ -186,13 +186,8 @@ export function UsersPanel({
                           : "hover:bg-secondary-light/30"
                       }`}
                     >
-                      <td className="p-3">
+                      <td className="p-3 whitespace-nowrap">
                         {u.氏名 || "（未設定）"}
-                        {userIsAdmin && (
-                          <Badge variant="primary" className="ml-2">
-                            管理者
-                          </Badge>
-                        )}
                       </td>
                       <td className="p-3">{u.メールアドレス}</td>
                       <td className="p-3">
@@ -210,7 +205,9 @@ export function UsersPanel({
                       </td>
                       <td className="p-3">
                         <div className="flex flex-wrap gap-1">
-                          {nonAdminAssignments.length === 0 ? (
+                          {userIsAdmin ? (
+                            <Badge variant="info">管理者</Badge>
+                          ) : nonAdminAssignments.length === 0 ? (
                             <span className="text-secondary text-sm">—</span>
                           ) : (
                             [...new Set(nonAdminAssignments.map((r) => r.ロール))].map(

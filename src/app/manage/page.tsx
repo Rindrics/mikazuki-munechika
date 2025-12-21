@@ -121,7 +121,7 @@ function ManagePageContent() {
 
   if (isAuthLoading) {
     return (
-      <main className="p-8 max-w-4xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <h1 className="mb-8">管理画面</h1>
         <p className="text-secondary">読み込み中...</p>
       </main>
@@ -130,7 +130,7 @@ function ManagePageContent() {
 
   if (!user) {
     return (
-      <main className="p-8 max-w-4xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <h1 className="mb-8">管理画面</h1>
         <p className="text-secondary">
           <button
@@ -147,7 +147,7 @@ function ManagePageContent() {
 
   if (!is資源評価管理者) {
     return (
-      <main className="p-8 max-w-4xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <ErrorCard title="アクセス拒否（403）">
           <p className="mb-4">この機能は管理者のみ利用できます。</p>
           <Link href="/" className="underline hover:opacity-80">
@@ -159,7 +159,7 @@ function ManagePageContent() {
   }
 
   return (
-    <main className="p-8 max-w-4xl mx-auto">
+    <main className="p-8 max-w-5xl mx-auto">
       <div className="mb-4">
         <Link href="/" className="text-link hover:text-link-hover underline text-sm">
           ← ホームに戻る
