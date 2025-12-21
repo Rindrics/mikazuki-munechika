@@ -196,6 +196,24 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
   ): Promise<void> {
     logger.debug("updateAssignments called", { userId, 担当資源 });
 
+    // NOTE: Supabase JS client does not support transactions directly.
+    // We implement a manual rollback strategy: save existing roles before delete,
+    // and restore them if assignStockRoles fails.
+
+    // Fetch and save existing roles for potential rollback
+    const { data: existingRoles, error: fetchError } = await this.supabase
+      .from("user_stock_group_roles")
+      .select("stock_group_id, role")
+      .eq("user_id", userId);
+
+    if (fetchError) {
+      logger.error("Failed to fetch existing roles", { userId }, fetchError as Error);
+      throw new Error(`Failed to fetch existing roles: ${fetchError.message}`);
+    }
+
+    const savedRoles = existingRoles || [];
+    logger.debug("Saved existing roles for rollback", { userId, roleCount: savedRoles.length });
+
     // Delete all existing roles for this user
     const { error: deleteError } = await this.supabase
       .from("user_stock_group_roles")
@@ -207,8 +225,37 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
       throw new Error(`Failed to delete existing roles: ${deleteError.message}`);
     }
 
-    // Assign new roles
-    await this.assignStockRoles(userId, 担当資源);
+    // Assign new roles, with rollback on failure
+    try {
+      await this.assignStockRoles(userId, 担当資源);
+    } catch (assignError) {
+      logger.error("Failed to assign new roles, attempting rollback", { userId }, assignError as Error);
+
+      // Restore saved roles
+      if (savedRoles.length > 0) {
+        const rolesToRestore = savedRoles.map((r) => ({
+          user_id: userId,
+          stock_group_id: r.stock_group_id,
+          role: r.role,
+        }));
+
+        const { error: restoreError } = await this.supabase
+          .from("user_stock_group_roles")
+          .insert(rolesToRestore);
+
+        if (restoreError) {
+          logger.error(
+            "Rollback failed: could not restore previous roles",
+            { userId },
+            restoreError as Error
+          );
+        } else {
+          logger.info("Rollback successful: restored previous roles", { userId, roleCount: savedRoles.length });
+        }
+      }
+
+      throw assignError;
+    }
 
     logger.info("User assignments updated", { userId });
   }
