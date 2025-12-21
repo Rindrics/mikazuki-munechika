@@ -1,6 +1,54 @@
-import { ユーザー, 認証済ユーザー, 資源名 } from "./models";
+import { ユーザー, 認証済ユーザー, 資源名, ロール } from "./models";
 import type { 評価ステータス, 再検討前ステータス } from "./models/stock/status";
 import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
+
+/**
+ * User information for management display
+ */
+export interface ユーザー情報 {
+  id: string;
+  氏名: string;
+  メールアドレス: string;
+  担当資源: Array<{ 資源名: 資源名; ロール: ロール }>;
+}
+
+/**
+ * Input data for inviting a new user
+ */
+export interface ユーザー招待データ {
+  氏名: string;
+  メールアドレス: string;
+  担当資源: Array<{ 資源名: 資源名; ロール: ロール }>;
+}
+
+/**
+ * Repository for user management operations (server-side only)
+ * Uses Supabase Admin API for user creation/deletion
+ */
+export interface ユーザー管理Repository {
+  /**
+   * Get all users with their profile and assignments
+   */
+  findAll(): Promise<ユーザー情報[]>;
+
+  /**
+   * Invite a new user by email (sends invitation email via Supabase)
+   */
+  invite(data: ユーザー招待データ): Promise<{ userId: string }>;
+
+  /**
+   * Update user's stock assignments
+   */
+  updateAssignments(
+    userId: string,
+    担当資源: Array<{ 資源名: 資源名; ロール: ロール }>
+  ): Promise<void>;
+
+  /**
+   * Delete a user from the system
+   */
+  delete(userId: string): Promise<void>;
+}
 
 /**
  * Input parameters for assessment calculation (ADR 0018)
