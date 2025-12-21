@@ -160,13 +160,13 @@ function ManagePageContent() {
           isLoading={isFiscalYearLoading}
           onRefresh={fetchFiscalYearData}
         />
-      )}
+        )}
       {tab === "users" && (
         <UsersPanel
           data={usersData}
           isLoading={isUsersLoading}
           onRefresh={fetchUsersData}
-        />
+      />
       )}
     </main>
   );

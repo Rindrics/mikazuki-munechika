@@ -78,13 +78,15 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
       }
     }
 
-    // Combine data
-    const users: ユーザー情報[] = authUsers.users.map((authUser) => ({
-      id: authUser.id,
-      氏名: profileMap.get(authUser.id) || "",
-      メールアドレス: authUser.email || "",
-      担当資源: roleMap.get(authUser.id) || [],
-    }));
+    // Combine data and sort by email address
+    const users: ユーザー情報[] = authUsers.users
+      .map((authUser) => ({
+        id: authUser.id,
+        氏名: profileMap.get(authUser.id) || "",
+        メールアドレス: authUser.email || "",
+        担当資源: roleMap.get(authUser.id) || [],
+      }))
+      .sort((a, b) => a.メールアドレス.localeCompare(b.メールアドレス));
 
     logger.debug("findAll completed", { count: users.length });
     return users;
