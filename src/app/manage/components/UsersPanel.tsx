@@ -8,6 +8,7 @@ import type { ユーザー情報 } from "@/domain/repositories";
 import { deleteUserAction } from "../actions";
 import type { UsersData } from "../types";
 import { UserEditDialog } from "./UserEditDialog";
+import { UserInviteDialog } from "./UserInviteDialog";
 
 type DialogType = "invite" | "edit" | "delete" | null;
 
@@ -250,7 +251,12 @@ export function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
         onSaved={onRefresh}
       />
 
-      {/* TODO: Invite Dialog */}
+      <UserInviteDialog
+        isOpen={dialogType === "invite"}
+        stockGroups={stockGroups}
+        onClose={closeDialog}
+        onInvited={onRefresh}
+      />
     </>
   );
 }
