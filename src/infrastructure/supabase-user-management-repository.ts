@@ -316,14 +316,25 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
       stockGroupIdMap.set(sg.name, sg.id);
     }
 
+    // Check for unmatched stock names
+    const missingStockNames = stockNames.filter((name) => !stockGroupIdMap.has(name));
+    if (missingStockNames.length > 0) {
+      logger.error("Some requested stock names not found in database", {
+        userId,
+        missingStockNames,
+        requestedStockNames: stockNames,
+      });
+      throw new Error(
+        `Stock groups not found: ${missingStockNames.join(", ")}. Role assignment aborted.`
+      );
+    }
+
     // Insert roles
-    const rolesToInsert = 担当資源
-      .filter((r) => stockGroupIdMap.has(r.資源名))
-      .map((r) => ({
-        user_id: userId,
-        stock_group_id: stockGroupIdMap.get(r.資源名)!,
-        role: r.ロール,
-      }));
+    const rolesToInsert = 担当資源.map((r) => ({
+      user_id: userId,
+      stock_group_id: stockGroupIdMap.get(r.資源名)!,
+      role: r.ロール,
+    }));
 
     if (rolesToInsert.length > 0) {
       const { error: insertError } = await this.supabase
