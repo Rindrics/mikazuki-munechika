@@ -277,11 +277,31 @@ function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
   const [selectedUser, setSelectedUser] = useState<ユーザー情報 | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const users = data?.users ?? [];
+  // Filter state
+  const [stockFilter, setStockFilter] = useState<string>("");
+  const [roleFilter, setRoleFilter] = useState<string>("");
+
+  const allUsers = data?.users ?? [];
   const stockGroups = data?.stockGroups ?? [];
 
   // Helper to check if user is admin
   const isAdmin = (u: ユーザー情報) => u.担当資源.some((r) => r.ロール === "管理者");
+
+  // Get unique stock names and roles for filter options
+  const uniqueStocks = Array.from(
+    new Set(allUsers.flatMap((u) => u.担当資源.map((r) => r.資源名)))
+  ).sort();
+  const uniqueRoles = Array.from(
+    new Set(allUsers.flatMap((u) => u.担当資源.map((r) => r.ロール)))
+  ).filter((r) => r !== "管理者").sort();
+
+  // Filter users
+  const users = allUsers.filter((u) => {
+    const nonAdminAssignments = u.担当資源.filter((r) => r.ロール !== "管理者");
+    const matchesStock = !stockFilter || nonAdminAssignments.some((r) => r.資源名 === stockFilter);
+    const matchesRole = !roleFilter || nonAdminAssignments.some((r) => r.ロール === roleFilter);
+    return matchesStock && matchesRole;
+  });
 
   const openDialog = (type: UserDialogType, targetUser?: ユーザー情報) => {
     setDialogType(type);
@@ -327,7 +347,7 @@ function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
 
       {isLoading ? (
         <p className="text-secondary">読み込み中...</p>
-      ) : users.length === 0 ? (
+      ) : allUsers.length === 0 ? (
         <p className="text-secondary">登録されているユーザーはいません。</p>
       ) : (
         <div className="overflow-x-auto">
@@ -336,71 +356,124 @@ function UsersPanel({ data, isLoading, onRefresh }: UsersPanelProps) {
               <tr className="border-b">
                 <th className="text-left p-3">氏名</th>
                 <th className="text-left p-3">メールアドレス</th>
-                <th className="text-left p-3">担当資源</th>
+                <th className="text-left p-3">
+                  <div className="flex flex-col gap-1">
+                    <span>資源</span>
+                    <select
+                      value={stockFilter}
+                      onChange={(e) => setStockFilter(e.target.value)}
+                      className="text-sm font-normal border rounded px-2 py-1 bg-white dark:bg-gray-800"
+                    >
+                      <option value="">すべて</option>
+                      {uniqueStocks.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </th>
+                <th className="text-left p-3">
+                  <div className="flex flex-col gap-1">
+                    <span>ロール</span>
+                    <select
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="text-sm font-normal border rounded px-2 py-1 bg-white dark:bg-gray-800"
+                    >
+                      <option value="">すべて</option>
+                      {uniqueRoles.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </th>
                 <th className="text-right p-3">操作</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => {
-                const userIsAdmin = isAdmin(u);
-                return (
-                  <tr
-                    key={u.id}
-                    className={`border-b ${
-                      userIsAdmin
-                        ? "bg-secondary-light/20 text-secondary"
-                        : "hover:bg-secondary-light/30"
-                    }`}
-                  >
-                    <td className="p-3">
-                      {u.氏名 || "（未設定）"}
-                      {userIsAdmin && (
-                        <Badge variant="primary" className="ml-2">
-                          管理者
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="p-3">{u.メールアドレス}</td>
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-1">
-                        {u.担当資源.filter((r) => r.ロール !== "管理者").length === 0 ? (
-                          <span className="text-secondary text-sm">—</span>
-                        ) : (
-                          u.担当資源
-                            .filter((r) => r.ロール !== "管理者")
-                            .map((r, i) => (
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-3 text-center text-secondary">
+                    該当するユーザーがいません
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => {
+                  const userIsAdmin = isAdmin(u);
+                  const nonAdminAssignments = u.担当資源.filter((r) => r.ロール !== "管理者");
+                  return (
+                    <tr
+                      key={u.id}
+                      className={`border-b ${
+                        userIsAdmin
+                          ? "bg-secondary-light/20 text-secondary"
+                          : "hover:bg-secondary-light/30"
+                      }`}
+                    >
+                      <td className="p-3">
+                        {u.氏名 || "（未設定）"}
+                        {userIsAdmin && (
+                          <Badge variant="primary" className="ml-2">
+                            管理者
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="p-3">{u.メールアドレス}</td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1">
+                          {nonAdminAssignments.length === 0 ? (
+                            <span className="text-secondary text-sm">—</span>
+                          ) : (
+                            nonAdminAssignments.map((r, i) => (
                               <Badge key={i} variant="secondary">
-                                {r.資源名}（{r.ロール}）
+                                {r.資源名}
                               </Badge>
                             ))
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3 text-right">
-                      {!userIsAdmin && (
-                        <div className="flex justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => openDialog("edit", u)}
-                            className="p-2 text-secondary hover:text-primary rounded hover:bg-secondary-light/50 transition-colors"
-                            title="編集"
-                          >
-                            <FiEdit2 size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => openDialog("delete", u)}
-                            className="p-2 text-secondary hover:text-danger rounded hover:bg-danger-light/50 transition-colors"
-                            title="削除"
-                          >
-                            <FiTrash2 size={16} />
-                          </button>
+                          )}
                         </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1">
+                          {nonAdminAssignments.length === 0 ? (
+                            <span className="text-secondary text-sm">—</span>
+                          ) : (
+                            [...new Set(nonAdminAssignments.map((r) => r.ロール))].map((role, i) => (
+                              <Badge key={i} variant={role === "主担当" ? "primary" : "secondary"}>
+                                {role}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-right">
+                        {!userIsAdmin && (
+                          <div className="flex justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openDialog("edit", u)}
+                              className="p-2 text-secondary hover:text-primary rounded hover:bg-secondary-light/50 transition-colors"
+                              title="編集"
+                            >
+                              <FiEdit2 size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDialog("delete", u)}
+                              className="p-2 text-secondary hover:text-danger rounded hover:bg-danger-light/50 transition-colors"
+                              title="削除"
+                            >
+                              <FiTrash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
