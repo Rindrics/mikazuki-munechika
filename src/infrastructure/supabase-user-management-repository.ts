@@ -229,7 +229,11 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     try {
       await this.assignStockRoles(userId, 担当資源);
     } catch (assignError) {
-      logger.error("Failed to assign new roles, attempting rollback", { userId }, assignError as Error);
+      logger.error(
+        "Failed to assign new roles, attempting rollback",
+        { userId },
+        assignError as Error
+      );
 
       // Restore saved roles
       if (savedRoles.length > 0) {
@@ -250,7 +254,10 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
             restoreError as Error
           );
         } else {
-          logger.info("Rollback successful: restored previous roles", { userId, roleCount: savedRoles.length });
+          logger.info("Rollback successful: restored previous roles", {
+            userId,
+            roleCount: savedRoles.length,
+          });
         }
       }
 
