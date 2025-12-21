@@ -40,9 +40,7 @@ function calculateDiff(
   // Filter out admin roles from original
   const originalFiltered = original.filter((r) => r.ロール !== "管理者");
 
-  const originalMap = new Map(
-    originalFiltered.map((r) => [r.資源名, r.ロール])
-  );
+  const originalMap = new Map(originalFiltered.map((r) => [r.資源名, r.ロール]));
   const newMap = new Map(newRows.map((r) => [r.stockName, r.role]));
 
   const added: AssignmentDiff["added"] = [];
@@ -106,9 +104,7 @@ export function UserEditDialog({
 
   // Get available stock names (not already selected)
   const getAvailableStocks = (currentRowId: string) => {
-    const selectedStocks = rows
-      .filter((r) => r.id !== currentRowId)
-      .map((r) => r.stockName);
+    const selectedStocks = rows.filter((r) => r.id !== currentRowId).map((r) => r.stockName);
     return stockGroups.filter((sg) => !selectedStocks.includes(sg.name));
   };
 
@@ -131,15 +127,11 @@ export function UserEditDialog({
   };
 
   const handleStockChange = (rowId: string, stockName: string) => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, stockName } : r))
-    );
+    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, stockName } : r)));
   };
 
   const handleRoleChange = (rowId: string, role: "主担当" | "副担当") => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, role } : r))
-    );
+    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, role } : r)));
   };
 
   const handleSave = () => {
@@ -235,7 +227,10 @@ export function UserEditDialog({
                 </p>
                 <div className="pl-5 space-y-1">
                   {diff.removed.map((item) => (
-                    <div key={item.stockName} className="flex items-center gap-2 text-sm text-secondary line-through">
+                    <div
+                      key={item.stockName}
+                      className="flex items-center gap-2 text-sm text-secondary line-through"
+                    >
                       <span>{item.stockName}</span>
                       <Badge variant="secondary">{item.role}</Badge>
                     </div>
@@ -298,15 +293,14 @@ export function UserEditDialog({
 
         <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
           {rows.length === 0 ? (
-            <p className="text-sm text-secondary py-4 text-center">
-              担当資源がありません
-            </p>
+            <p className="text-sm text-secondary py-4 text-center">担当資源がありません</p>
           ) : (
             rows.map((row) => {
               const availableStocks = getAvailableStocks(row.id);
               // Include current selection in available options
               const stockOptions = stockGroups.filter(
-                (sg) => sg.name === row.stockName || availableStocks.some((as) => as.name === sg.name)
+                (sg) =>
+                  sg.name === row.stockName || availableStocks.some((as) => as.name === sg.name)
               );
 
               return (
@@ -337,11 +331,7 @@ export function UserEditDialog({
                     <option value="副担当">副担当</option>
                   </select>
 
-                  <IconButton
-                    variant="danger"
-                    onClick={() => handleRemoveRow(row.id)}
-                    title="削除"
-                  >
+                  <IconButton variant="danger" onClick={() => handleRemoveRow(row.id)} title="削除">
                     <FiTrash2 size={16} />
                   </IconButton>
                 </div>

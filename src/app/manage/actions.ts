@@ -261,10 +261,7 @@ export async function getStockGroupsAction(): Promise<Array<{ id: string; name: 
   const supabase = await getSupabaseServerClient();
   await requireAdmin(supabase);
 
-  const { data, error } = await supabase
-    .from("stock_groups")
-    .select("id, name")
-    .order("name");
+  const { data, error } = await supabase.from("stock_groups").select("id, name").order("name");
 
   if (error) {
     logger.error("Failed to fetch stock groups", {}, error as Error);

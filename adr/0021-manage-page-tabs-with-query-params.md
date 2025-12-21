@@ -57,11 +57,11 @@ router.push(`/manage?tab=${tabId}`);
 
 ### URL Examples
 
-| URL | Tab |
-|-----|-----|
-| `/manage` | 年度管理 (default) |
-| `/manage?tab=fiscal-year` | 年度管理 |
-| `/manage?tab=users` | ユーザー管理 |
+| URL                       | Tab                |
+| ------------------------- | ------------------ |
+| `/manage`                 | 年度管理 (default) |
+| `/manage?tab=fiscal-year` | 年度管理           |
+| `/manage?tab=users`       | ユーザー管理       |
 
 ## Consequences
 

@@ -53,17 +53,14 @@ export function UsersPanel({
   const uniqueStocks = Array.from(
     new Set(allUsers.flatMap((u) => u.担当資源.map((r) => r.資源名)))
   ).sort();
-  const uniqueRoles = Array.from(
-    new Set(allUsers.flatMap((u) => u.担当資源.map((r) => r.ロール)))
-  )
+  const uniqueRoles = Array.from(new Set(allUsers.flatMap((u) => u.担当資源.map((r) => r.ロール))))
     .filter((r) => r !== "管理者")
     .sort();
 
   // Filter users
   const users = allUsers.filter((u) => {
     const nonAdminAssignments = u.担当資源.filter((r) => r.ロール !== "管理者");
-    const matchesStock =
-      !stockFilter || nonAdminAssignments.some((r) => r.資源名 === stockFilter);
+    const matchesStock = !stockFilter || nonAdminAssignments.some((r) => r.資源名 === stockFilter);
     const matchesRole = !roleFilter || nonAdminAssignments.some((r) => r.ロール === roleFilter);
     return matchesStock && matchesRole;
   });
@@ -186,9 +183,7 @@ export function UsersPanel({
                           : "hover:bg-secondary-light/30"
                       }`}
                     >
-                      <td className="p-3 whitespace-nowrap">
-                        {u.氏名 || "（未設定）"}
-                      </td>
+                      <td className="p-3 whitespace-nowrap">{u.氏名 || "（未設定）"}</td>
                       <td className="p-3">{u.メールアドレス}</td>
                       <td className="p-3">
                         <div className="flex flex-wrap gap-1">

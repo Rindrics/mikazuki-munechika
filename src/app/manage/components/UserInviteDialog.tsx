@@ -40,9 +40,7 @@ export function UserInviteDialog({
   // Check if email already exists
   const isDuplicateEmail = useMemo(() => {
     const trimmedEmail = email.trim().toLowerCase();
-    return trimmedEmail !== "" && existingEmails.some(
-      (e) => e.toLowerCase() === trimmedEmail
-    );
+    return trimmedEmail !== "" && existingEmails.some((e) => e.toLowerCase() === trimmedEmail);
   }, [email, existingEmails]);
 
   // Reset form when dialog opens
@@ -56,9 +54,7 @@ export function UserInviteDialog({
 
   // Get available stock names (not already selected)
   const getAvailableStocks = (currentRowId: string) => {
-    const selectedStocks = rows
-      .filter((r) => r.id !== currentRowId)
-      .map((r) => r.stockName);
+    const selectedStocks = rows.filter((r) => r.id !== currentRowId).map((r) => r.stockName);
     return stockGroups.filter((sg) => !selectedStocks.includes(sg.name));
   };
 
@@ -98,26 +94,17 @@ export function UserInviteDialog({
   };
 
   const handleStockChange = (rowId: string, stockName: string) => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, stockName } : r))
-    );
+    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, stockName } : r)));
     clearError();
   };
 
   const handleRoleChange = (rowId: string, role: "主担当" | "副担当") => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, role } : r))
-    );
+    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, role } : r)));
     clearError();
   };
 
   const isValidForm = useMemo(() => {
-    return (
-      name.trim() !== "" &&
-      email.trim() !== "" &&
-      email.includes("@") &&
-      !isDuplicateEmail
-    );
+    return name.trim() !== "" && email.trim() !== "" && email.includes("@") && !isDuplicateEmail;
   }, [name, email, isDuplicateEmail]);
 
   const handleSubmit = () => {
@@ -286,17 +273,13 @@ export function UserInviteDialog({
               }`}
             />
             {isDuplicateEmail && (
-              <p className="mt-1 text-sm text-danger">
-                このメールアドレスは既に登録されています
-              </p>
+              <p className="mt-1 text-sm text-danger">このメールアドレスは既に登録されています</p>
             )}
           </div>
 
           {/* Stock assignments */}
           <div>
-            <label className="block text-sm font-medium mb-2">
-              担当資源（任意）
-            </label>
+            <label className="block text-sm font-medium mb-2">担当資源（任意）</label>
             <div className="space-y-2 mb-2 max-h-40 overflow-y-auto">
               {rows.length === 0 ? (
                 <p className="text-sm text-secondary py-2">
@@ -307,8 +290,7 @@ export function UserInviteDialog({
                   const availableStocks = getAvailableStocks(row.id);
                   const stockOptions = stockGroups.filter(
                     (sg) =>
-                      sg.name === row.stockName ||
-                      availableStocks.some((as) => as.name === sg.name)
+                      sg.name === row.stockName || availableStocks.some((as) => as.name === sg.name)
                   );
 
                   return (

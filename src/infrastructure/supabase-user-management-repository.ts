@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ユーザー管理Repository, ユーザー情報, ユーザー招待データ } from "@/domain/repositories";
+import type {
+  ユーザー管理Repository,
+  ユーザー情報,
+  ユーザー招待データ,
+} from "@/domain/repositories";
 import type { 資源名, ロール } from "@/domain";
 import { getSupabaseServiceRoleClient } from "./supabase-server-client";
 import { logger } from "@/utils/logger";
@@ -37,9 +41,9 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     }
 
     // Get all user roles with stock group names
-    const { data: userRoles, error: rolesError } = await this.supabase
-      .from("user_stock_group_roles")
-      .select(`
+    const { data: userRoles, error: rolesError } = await this.supabase.from(
+      "user_stock_group_roles"
+    ).select(`
         user_id,
         role,
         stock_groups!inner(name)
@@ -92,33 +96,24 @@ export class Supabaseユーザー管理Repository implements ユーザー管理R
     return users;
   }
 
-  async invite(
-    data: ユーザー招待データ,
-    inviterEmail?: string
-  ): Promise<{ userId: string }> {
+  async invite(data: ユーザー招待データ, inviterEmail?: string): Promise<{ userId: string }> {
     logger.debug("invite called", { email: data.メールアドレス, name: data.氏名 });
 
     // Build assignment description for email
-    const assignmentDescriptions = data.担当資源.map(
-      (r) => `${r.資源名}の${r.ロール}`
-    );
+    const assignmentDescriptions = data.担当資源.map((r) => `${r.資源名}の${r.ロール}`);
     const assignmentText =
-      assignmentDescriptions.length > 0
-        ? assignmentDescriptions.join("、")
-        : "";
+      assignmentDescriptions.length > 0 ? assignmentDescriptions.join("、") : "";
 
     // Invite user via Supabase Auth Admin API
-    const { data: inviteData, error: inviteError } = await this.supabase.auth.admin.inviteUserByEmail(
-      data.メールアドレス,
-      {
+    const { data: inviteData, error: inviteError } =
+      await this.supabase.auth.admin.inviteUserByEmail(data.メールアドレス, {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/`,
         data: {
           inviter_email: inviterEmail || "管理者",
           assignment_text: assignmentText,
           invited_name: data.氏名,
         },
-      }
-    );
+      });
 
     if (inviteError || !inviteData.user) {
       logger.error("Failed to invite user", { email: data.メールアドレス }, inviteError as Error);

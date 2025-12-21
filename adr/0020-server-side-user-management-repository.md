@@ -42,7 +42,10 @@ Create a separate `ユーザー管理Repository` interface for user management o
 export interface ユーザー管理Repository {
   findAll(): Promise<ユーザー情報[]>;
   invite(data: ユーザー招待データ): Promise<{ userId: string }>;
-  updateAssignments(userId: string, 担当資源: Array<{ 資源名: 資源名; ロール: ロール }>): Promise<void>;
+  updateAssignments(
+    userId: string,
+    担当資源: Array<{ 資源名: 資源名; ロール: ロール }>
+  ): Promise<void>;
   delete(userId: string): Promise<void>;
 }
 ```

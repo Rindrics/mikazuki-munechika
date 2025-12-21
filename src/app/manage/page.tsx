@@ -68,10 +68,7 @@ function ManagePageContent() {
   // Fetch users data
   const fetchUsersData = useCallback(async () => {
     try {
-      const [users, stockGroups] = await Promise.all([
-        getUsersAction(),
-        getStockGroupsAction(),
-      ]);
+      const [users, stockGroups] = await Promise.all([getUsersAction(), getStockGroupsAction()]);
       setUsersData({ users, stockGroups });
     } catch (err) {
       console.error("Failed to fetch users data:", err);
@@ -176,7 +173,7 @@ function ManagePageContent() {
           isLoading={isFiscalYearLoading}
           onRefresh={fetchFiscalYearData}
         />
-        )}
+      )}
       {tab === "users" && (
         <UsersPanel
           data={usersData}

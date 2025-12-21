@@ -49,7 +49,9 @@ export function Modal({ isOpen, onClose, children, size = "md" }: ModalProps) {
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       {/* Content */}
-      <div className={`relative z-10 bg-background dark:bg-background-dark rounded-lg shadow-xl ${sizeClasses[size]} w-full mx-4`}>
+      <div
+        className={`relative z-10 bg-background dark:bg-background-dark rounded-lg shadow-xl ${sizeClasses[size]} w-full mx-4`}
+      >
         {children}
       </div>
     </div>
