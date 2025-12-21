@@ -43,6 +43,8 @@ function ManagePageContent() {
   const [usersData, setUsersData] = useState<UsersData | null>(null);
   const [isFiscalYearLoading, setIsFiscalYearLoading] = useState(true);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [fiscalYearError, setFiscalYearError] = useState<string | null>(null);
+  const [usersError, setUsersError] = useState<string | null>(null);
 
   // Track if prefetch has been triggered
   const prefetchTriggered = useRef(false);
@@ -52,6 +54,8 @@ function ManagePageContent() {
 
   // Fetch fiscal year data
   const fetchFiscalYearData = useCallback(async () => {
+    setIsFiscalYearLoading(true);
+    setFiscalYearError(null);
     try {
       const [fiscalYears, currentYear] = await Promise.all([
         getFiscalYearsAction(),
@@ -59,7 +63,7 @@ function ManagePageContent() {
       ]);
       setFiscalYearData({ fiscalYears, currentYear });
     } catch (err) {
-      console.error("Failed to fetch fiscal year data:", err);
+      setFiscalYearError(err instanceof Error ? err.message : "年度データの取得に失敗しました");
     } finally {
       setIsFiscalYearLoading(false);
     }
@@ -67,11 +71,13 @@ function ManagePageContent() {
 
   // Fetch users data
   const fetchUsersData = useCallback(async () => {
+    setIsUsersLoading(true);
+    setUsersError(null);
     try {
       const [users, stockGroups] = await Promise.all([getUsersAction(), getStockGroupsAction()]);
       setUsersData({ users, stockGroups });
     } catch (err) {
-      console.error("Failed to fetch users data:", err);
+      setUsersError(err instanceof Error ? err.message : "ユーザーデータの取得に失敗しました");
     } finally {
       setIsUsersLoading(false);
     }
@@ -168,20 +174,34 @@ function ManagePageContent() {
       <TabNavigation currentTab={tab} />
 
       {tab === "fiscal-year" && (
-        <FiscalYearPanel
-          data={fiscalYearData}
-          isLoading={isFiscalYearLoading}
-          onRefresh={fetchFiscalYearData}
-        />
+        <>
+          {fiscalYearError && (
+            <div className="mb-4 p-4 border border-danger rounded-lg bg-danger-light">
+              <p className="text-danger-dark">{fiscalYearError}</p>
+            </div>
+          )}
+          <FiscalYearPanel
+            data={fiscalYearData}
+            isLoading={isFiscalYearLoading}
+            onRefresh={fetchFiscalYearData}
+          />
+        </>
       )}
       {tab === "users" && (
-        <UsersPanel
-          data={usersData}
-          isLoading={isUsersLoading}
-          onRefresh={fetchUsersData}
-          action={action}
-          onActionChange={setAction}
-        />
+        <>
+          {usersError && (
+            <div className="mb-4 p-4 border border-danger rounded-lg bg-danger-light">
+              <p className="text-danger-dark">{usersError}</p>
+            </div>
+          )}
+          <UsersPanel
+            data={usersData}
+            isLoading={isUsersLoading}
+            onRefresh={fetchUsersData}
+            action={action}
+            onActionChange={setAction}
+          />
+        </>
       )}
     </main>
   );
