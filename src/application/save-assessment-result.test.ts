@@ -62,6 +62,7 @@ describe("SaveAssessmentResultService", () => {
         呼称: "マイワシ",
         系群名: "テスト系群",
         資源タイプ: 1,
+        slug: "maiwashi_test",
         equals: vi.fn(),
         toString: () => name,
         toDisplayString: vi.fn(),
