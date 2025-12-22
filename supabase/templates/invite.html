@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>資源評価 Web - 招待</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2563eb;
+        margin-bottom: 20px;
+      }
+      .message {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .button {
+        display: inline-block;
+        background-color: #2563eb;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+      .button:hover {
+        background-color: #1d4ed8;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">[資源評価 Web]</div>
+
+    <div class="message">
+      <p>{{ .Data.inviter_email }} さんが、あなたを資源評価 Web に招待しています。</p>
+      {{ if .Data.assignment_text }}
+      <p><strong>担当: {{ .Data.assignment_text }}</strong></p>
+      {{ end }}
+    </div>
+
+    <p>下記のリンクをクリックして、アカウントを有効化してください。</p>
+
+    <p>
+      <a href="{{ .ConfirmationURL }}" class="button">アカウントを有効化</a>
+    </p>
+
+    <div class="footer">
+      <p>このリンクは 24 時間有効です。</p>
+      <p>心当たりがない場合は、このメールを無視してください。</p>
+    </div>
+  </body>
+</html>

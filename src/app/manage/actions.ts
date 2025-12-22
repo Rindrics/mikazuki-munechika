@@ -2,6 +2,9 @@
 
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
 import { SupabaseAuditLogRepository } from "@/infrastructure/supabase-audit-log-repository";
+import { Supabaseユーザー管理Repository } from "@/infrastructure/supabase-user-management-repository";
+import type { ユーザー情報 } from "@/domain/repositories";
+import type { 資源名, ロール } from "@/domain";
 import { logger } from "@/utils/logger";
 
 const CURRENT_FISCAL_YEAR_KEY = "current_fiscal_year";
@@ -234,4 +237,103 @@ export async function deleteFiscalYearAction(year: number): Promise<void> {
   }
 
   logger.info("Fiscal year deleted", { year, userId: user.id });
+}
+
+// =============================================================================
+// User Management Actions
+// =============================================================================
+
+/**
+ * Get all users with their profiles and stock assignments
+ */
+export async function getUsersAction(): Promise<ユーザー情報[]> {
+  const supabase = await getSupabaseServerClient();
+  await requireAdmin(supabase);
+
+  const repository = new Supabaseユーザー管理Repository();
+  return repository.findAll();
+}
+
+/**
+ * Get all stock groups for assignment selection
+ */
+export async function getStockGroupsAction(): Promise<Array<{ id: string; name: string }>> {
+  const supabase = await getSupabaseServerClient();
+  await requireAdmin(supabase);
+
+  const { data, error } = await supabase.from("stock_groups").select("id, name").order("name");
+
+  if (error) {
+    logger.error("Failed to fetch stock groups", {}, error as Error);
+    throw new Error("資源グループの取得に失敗しました");
+  }
+
+  return data || [];
+}
+
+/**
+ * Invite a new user by email
+ */
+export async function inviteUserAction(data: {
+  name: string;
+  email: string;
+  stockAssignments: Array<{ stockName: 資源名; role: ロール }>;
+}): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  const admin = await requireAdmin(supabase);
+
+  const repository = new Supabaseユーザー管理Repository();
+  await repository.invite(
+    {
+      氏名: data.name,
+      メールアドレス: data.email,
+      担当資源: data.stockAssignments.map((a) => ({
+        資源名: a.stockName,
+        ロール: a.role,
+      })),
+    },
+    admin.email
+  );
+
+  logger.info("User invited", { email: data.email, invitedBy: admin.email });
+}
+
+/**
+ * Update user's stock assignments
+ */
+export async function updateUserAssignmentsAction(
+  userId: string,
+  stockAssignments: Array<{ stockName: 資源名; role: ロール }>
+): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  await requireAdmin(supabase);
+
+  const repository = new Supabaseユーザー管理Repository();
+  await repository.updateAssignments(
+    userId,
+    stockAssignments.map((a) => ({
+      資源名: a.stockName,
+      ロール: a.role,
+    }))
+  );
+
+  logger.info("User assignments updated", { userId });
+}
+
+/**
+ * Delete a user from the system
+ */
+export async function deleteUserAction(userId: string): Promise<void> {
+  const supabase = await getSupabaseServerClient();
+  const admin = await requireAdmin(supabase);
+
+  // Prevent self-deletion
+  if (admin.id === userId) {
+    throw new Error("自分自身は削除できません");
+  }
+
+  const repository = new Supabaseユーザー管理Repository();
+  await repository.delete(userId);
+
+  logger.info("User deleted", { userId, deletedBy: admin.id });
 }

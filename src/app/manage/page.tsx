@@ -4,120 +4,127 @@ import { useAuth } from "@/contexts/auth-context";
 import type { 認証済資源評価管理者, 認証済評価担当者 } from "@/domain";
 import ErrorCard from "@/components/error-card";
 import AuthModal from "@/components/auth-modal";
-import { Button, Badge } from "@/components/atoms";
-import { ConfirmDialog } from "@/components/molecules";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   getFiscalYearsAction,
   getCurrentFiscalYearAction,
-  setCurrentFiscalYearAction,
-  createFiscalYearAction,
-  deleteFiscalYearAction,
-  type FiscalYearInfo,
+  getUsersAction,
+  getStockGroupsAction,
 } from "./actions";
+import { TabNavigation, FiscalYearPanel, UsersPanel } from "./components";
+import type { Tab, FiscalYearData, UsersData } from "./types";
 
-type DialogType = "switch" | "create" | "delete" | null;
-
-export default function ManagePage() {
-  const { user, isLoading } = useAuth();
-  const [fiscalYears, setFiscalYears] = useState<FiscalYearInfo[]>([]);
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Dialog state
-  const [dialogType, setDialogType] = useState<DialogType>(null);
-  const [dialogYear, setDialogYear] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+function ManagePageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tab = (searchParams.get("tab") as Tab) || "fiscal-year";
+  const action = searchParams.get("action");
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setError(null);
-      const [years, current] = await Promise.all([
-        getFiscalYearsAction(),
-        getCurrentFiscalYearAction(),
-      ]);
-      setFiscalYears(years);
-      setCurrentYear(current);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "データの取得に失敗しました");
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, []);
+  // Update URL action parameter
+  const setAction = useCallback(
+    (newAction: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newAction) {
+        params.set("action", newAction);
+      } else {
+        params.delete("action");
+      }
+      router.replace(`/manage?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
+
+  // Data state
+  const [fiscalYearData, setFiscalYearData] = useState<FiscalYearData | null>(null);
+  const [usersData, setUsersData] = useState<UsersData | null>(null);
+  const [isFiscalYearLoading, setIsFiscalYearLoading] = useState(true);
+  const [isUsersLoading, setIsUsersLoading] = useState(true);
+  const [fiscalYearError, setFiscalYearError] = useState<string | null>(null);
+  const [usersError, setUsersError] = useState<string | null>(null);
+
+  // Track if prefetch has been triggered
+  const prefetchTriggered = useRef(false);
 
   const is資源評価管理者 =
     user && (user as 認証済資源評価管理者 | 認証済評価担当者).種別 === "資源評価管理者";
 
+  // Fetch fiscal year data
+  const fetchFiscalYearData = useCallback(async () => {
+    setIsFiscalYearLoading(true);
+    setFiscalYearError(null);
+    try {
+      const [fiscalYears, currentYear] = await Promise.all([
+        getFiscalYearsAction(),
+        getCurrentFiscalYearAction(),
+      ]);
+      setFiscalYearData({ fiscalYears, currentYear });
+    } catch (err) {
+      setFiscalYearError(err instanceof Error ? err.message : "年度データの取得に失敗しました");
+    } finally {
+      setIsFiscalYearLoading(false);
+    }
+  }, []);
+
+  // Fetch users data
+  const fetchUsersData = useCallback(async () => {
+    setIsUsersLoading(true);
+    setUsersError(null);
+    try {
+      const [users, stockGroups] = await Promise.all([getUsersAction(), getStockGroupsAction()]);
+      setUsersData({ users, stockGroups });
+    } catch (err) {
+      setUsersError(err instanceof Error ? err.message : "ユーザーデータの取得に失敗しました");
+    } finally {
+      setIsUsersLoading(false);
+    }
+  }, []);
+
+  // Initial data fetch based on current tab
   useEffect(() => {
-    if (!isLoading && is資源評価管理者) {
-      fetchData();
+    if (!isAuthLoading && is資源評価管理者) {
+      if (tab === "fiscal-year") {
+        fetchFiscalYearData();
+      } else if (tab === "users") {
+        fetchUsersData();
+      }
     }
-  }, [isLoading, is資源評価管理者, fetchData]);
+  }, [isAuthLoading, is資源評価管理者, tab, fetchFiscalYearData, fetchUsersData]);
 
-  const openDialog = (type: DialogType, year: number) => {
-    setDialogType(type);
-    setDialogYear(year);
-  };
+  // Prefetch other tab's data in idle time
+  useEffect(() => {
+    if (!isAuthLoading && is資源評価管理者 && !prefetchTriggered.current) {
+      const prefetch = () => {
+        prefetchTriggered.current = true;
+        if (tab === "fiscal-year" && usersData === null) {
+          fetchUsersData();
+        } else if (tab === "users" && fiscalYearData === null) {
+          fetchFiscalYearData();
+        }
+      };
 
-  const closeDialog = () => {
-    setDialogType(null);
-    setDialogYear(null);
-  };
-
-  const handleSwitchYear = async () => {
-    if (!dialogYear) return;
-    setIsProcessing(true);
-    try {
-      await setCurrentFiscalYearAction(dialogYear);
-      setCurrentYear(dialogYear);
-      closeDialog();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "年度の切り替えに失敗しました");
-    } finally {
-      setIsProcessing(false);
+      if (typeof requestIdleCallback !== "undefined") {
+        requestIdleCallback(prefetch, { timeout: 2000 });
+      } else {
+        setTimeout(prefetch, 100);
+      }
     }
-  };
+  }, [
+    isAuthLoading,
+    is資源評価管理者,
+    tab,
+    usersData,
+    fiscalYearData,
+    fetchUsersData,
+    fetchFiscalYearData,
+  ]);
 
-  const handleCreateYear = async () => {
-    if (!dialogYear) return;
-    setIsProcessing(true);
-    try {
-      await createFiscalYearAction(dialogYear);
-      await fetchData();
-      closeDialog();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "年度の作成に失敗しました");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Calculate next year to create (latest year + 1, or current calendar year if no years exist)
-  const nextYearToCreate =
-    fiscalYears.length > 0
-      ? Math.max(...fiscalYears.map((fy) => fy.year)) + 1
-      : new Date().getFullYear();
-
-  const handleDeleteYear = async () => {
-    if (!dialogYear) return;
-    setIsProcessing(true);
-    try {
-      await deleteFiscalYearAction(dialogYear);
-      await fetchData();
-      closeDialog();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "年度の削除に失敗しました");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  if (isLoading) {
+  if (isAuthLoading) {
     return (
-      <main className="p-8 max-w-3xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <h1 className="mb-8">管理画面</h1>
         <p className="text-secondary">読み込み中...</p>
       </main>
@@ -126,7 +133,7 @@ export default function ManagePage() {
 
   if (!user) {
     return (
-      <main className="p-8 max-w-3xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <h1 className="mb-8">管理画面</h1>
         <p className="text-secondary">
           <button
@@ -143,7 +150,7 @@ export default function ManagePage() {
 
   if (!is資源評価管理者) {
     return (
-      <main className="p-8 max-w-3xl mx-auto">
+      <main className="p-8 max-w-5xl mx-auto">
         <ErrorCard title="アクセス拒否（403）">
           <p className="mb-4">この機能は管理者のみ利用できます。</p>
           <Link href="/" className="underline hover:opacity-80">
@@ -155,122 +162,55 @@ export default function ManagePage() {
   }
 
   return (
-    <main className="p-8 max-w-3xl mx-auto">
+    <main className="p-8 max-w-5xl mx-auto">
       <div className="mb-4">
         <Link href="/" className="text-link hover:text-link-hover underline text-sm">
           ← ホームに戻る
         </Link>
       </div>
 
-      <h1 className="mb-8">管理画面</h1>
+      <h1 className="mb-6">管理画面</h1>
 
-      {error && (
-        <div className="mb-6 p-4 border border-danger rounded-lg bg-danger-light">
-          <p className="text-danger-dark">{error}</p>
-          <button type="button" className="mt-2 text-sm underline" onClick={() => setError(null)}>
-            閉じる
-          </button>
-        </div>
+      <TabNavigation currentTab={tab} />
+
+      {tab === "fiscal-year" && (
+        <>
+          {fiscalYearError && (
+            <div className="mb-4 p-4 border border-danger rounded-lg bg-danger-light">
+              <p className="text-danger-dark">{fiscalYearError}</p>
+            </div>
+          )}
+          <FiscalYearPanel
+            data={fiscalYearData}
+            isLoading={isFiscalYearLoading}
+            onRefresh={fetchFiscalYearData}
+          />
+        </>
       )}
-
-      <section className="mb-8">
-        <h2 className="mb-4">年度管理</h2>
-
-        {isDataLoading ? (
-          <p className="text-secondary">読み込み中...</p>
-        ) : (
-          <ul className="space-y-2">
-            {/* Existing years */}
-            {fiscalYears.map((fy) => (
-              <li
-                key={fy.year}
-                className={`flex items-center justify-between p-4 border rounded-lg ${
-                  currentYear === fy.year ? "border-primary bg-primary/5" : ""
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{fy.year}年度</span>
-                  <span className="text-sm text-secondary">（{fy.assessmentCount}件の評価）</span>
-                  {fy.allNotStarted && <Badge variant="secondary">すべて未着手</Badge>}
-                </div>
-                <div className="flex gap-2">
-                  {currentYear === fy.year ? (
-                    <Badge variant="primary">選択中</Badge>
-                  ) : (
-                    <>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => openDialog("switch", fy.year)}
-                      >
-                        切り替え
-                      </Button>
-                      {fy.allNotStarted && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => openDialog("delete", fy.year)}
-                        >
-                          削除
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </li>
-            ))}
-
-            {/* Next year to create (inactive style) */}
-            <li className="flex items-center justify-between p-4 border border-dashed rounded-lg bg-secondary-light/50 dark:bg-secondary-dark/50 text-secondary">
-              <div className="flex items-center gap-3">
-                <span className="font-medium">{nextYearToCreate}年度</span>
-                <span className="text-sm">（未作成）</span>
-              </div>
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => openDialog("create", nextYearToCreate)}
-              >
-                作成する
-              </Button>
-            </li>
-          </ul>
-        )}
-      </section>
-
-      {/* Confirmation Dialogs */}
-      <ConfirmDialog
-        isOpen={dialogType === "switch"}
-        title="年度を切り替えますか？"
-        message={`${dialogYear}年度に切り替えます。全ユーザーのヘッダ表示が変更されます。`}
-        confirmLabel="切り替える"
-        confirmVariant="primary"
-        onConfirm={handleSwitchYear}
-        onCancel={closeDialog}
-        isLoading={isProcessing}
-      />
-
-      <ConfirmDialog
-        isOpen={dialogType === "create"}
-        title="新しい年度を作成しますか？"
-        message={`${dialogYear}年度の資源評価を初期化します。すべての資源の評価が「未着手」ステータスで作成されます。`}
-        confirmLabel="作成する"
-        confirmVariant="success"
-        onConfirm={handleCreateYear}
-        onCancel={closeDialog}
-        isLoading={isProcessing}
-      />
-
-      <ConfirmDialog
-        isOpen={dialogType === "delete"}
-        title="年度を削除しますか？"
-        message={`${dialogYear}年度の資源評価をすべて削除します。この操作は取り消せません。`}
-        confirmLabel="削除する"
-        confirmVariant="danger"
-        onConfirm={handleDeleteYear}
-        onCancel={closeDialog}
-        isLoading={isProcessing}
-      />
+      {tab === "users" && (
+        <>
+          {usersError && (
+            <div className="mb-4 p-4 border border-danger rounded-lg bg-danger-light">
+              <p className="text-danger-dark">{usersError}</p>
+            </div>
+          )}
+          <UsersPanel
+            data={usersData}
+            isLoading={isUsersLoading}
+            onRefresh={fetchUsersData}
+            action={action}
+            onActionChange={setAction}
+          />
+        </>
+      )}
     </main>
+  );
+}
+
+export default function ManagePage() {
+  return (
+    <Suspense fallback={<div className="p-8">読み込み中...</div>}>
+      <ManagePageContent />
+    </Suspense>
   );
 }
