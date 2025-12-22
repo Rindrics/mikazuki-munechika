@@ -22,6 +22,14 @@ export interface 漁獲量データ {
 }
 
 /**
+ * 資源量指標値データ
+ */
+export interface 資源量指標値データ {
+  /** 資源量指標値の値 */
+  value: string;
+}
+
+/**
  * 資源評価に使用する年齢組成、成長率、自然死亡率などのデータ
  */
 export interface 生物学的データ {
