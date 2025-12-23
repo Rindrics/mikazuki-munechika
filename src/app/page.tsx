@@ -27,6 +27,11 @@ export default function Home() {
       href: undefined,
       description: "詳細版の計算結果を公開データを使って検証するための環境を提供する",
     },
+    {
+      text: "資源基本情報ページ（一般ユーザー向け）",
+      href: "/reference",
+      description: "評価対象資源の生態や資源評価法などの基本情報を提供する",
+    },
   ];
 
   return (
