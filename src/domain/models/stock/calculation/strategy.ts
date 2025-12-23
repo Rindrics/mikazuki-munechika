@@ -96,16 +96,15 @@ export interface 確率分布 {
  * ```
  */
 export function 正規分布(平均値: number, 標準偏差: number): 確率分布 {
-  const 分散 = 標準偏差 * 標準偏差;
   return {
     分布名: "正規分布",
     平均値: 平均値,
-    分散: 分散,
+    分散: 標準偏差 * 標準偏差,
     sample(): number {
       const u1 = Math.random();
       const u2 = Math.random();
       const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      return 平均値 + 分散 * z;
+      return 平均値 + 標準偏差 * z;
     },
   };
 }
