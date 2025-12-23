@@ -27,9 +27,13 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@opentelemetry/api-logs": "^0.208.0",
+    "@opentelemetry/instrumentation": "^0.208.0",
+    "@opentelemetry/sdk-logs": "^0.208.0",
     "@sentry/nextjs": "^10",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.1",
+    "@vercel/otel": "^2.1.0",
     "mermaid": "^11.12.2",
     "next": "^16.0.10",
     "react": "^19.2.1",
