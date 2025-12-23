@@ -24,9 +24,7 @@ export default function ReferenceListPage() {
                       className="flex items-center justify-between p-3 bg-secondary-light dark:bg-secondary-dark rounded-lg hover:bg-secondary dark:hover:bg-secondary transition-colors"
                     >
                       <span className="font-medium">{regionInfo.系群名}</span>
-                      <span className="text-secondary text-sm">
-                        {regionInfo.資源タイプ} 系資源
-                      </span>
+                      <span className="text-secondary text-sm">{regionInfo.資源タイプ} 系資源</span>
                     </Link>
                   </li>
                 ))}

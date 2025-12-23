@@ -427,9 +427,7 @@ export function generateMermaidFlowchart(steps: PipelineStep[]): string {
     const outputId = `O${stepNum}`;
 
     // Add subgraph for this step (methodName is used as label)
-    lines.push(
-      `    subgraph step${stepNum}["Step ${stepNum}: ${step.methodName}"]`
-    );
+    lines.push(`    subgraph step${stepNum}["Step ${stepNum}: ${step.methodName}"]`);
     lines.push(`        ${stepId}[${step.methodName}]`);
     lines.push(`        ${outputId}[${step.outputName}]`);
     lines.push(`    end`);

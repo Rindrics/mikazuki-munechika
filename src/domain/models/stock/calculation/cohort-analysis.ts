@@ -153,10 +153,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     } as 前年までの資源計算結果;
   };
 
-  const 前進計算 = (
-    前年結果: 前年までの資源計算結果,
-    残差: 再生産関係残差
-  ): 翌年資源計算結果 => {
+  const 前進計算 = (前年結果: 前年までの資源計算結果, 残差: 再生産関係残差): 翌年資源計算結果 => {
     logger.info("前進計算を開始します", { 前年最終年: 前年結果.最終年 });
     logger.debug("前進計算の入力", {
       前年最終年: 前年結果.最終年,
@@ -201,11 +198,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     } as 翌年資源計算結果;
   };
 
-  const 将来予測 = (
-    翌年結果: 翌年資源計算結果,
-    F: F,
-    予測年数: number
-  ): 将来予測結果 => {
+  const 将来予測 = (翌年結果: 翌年資源計算結果, F: F, 予測年数: number): 将来予測結果 => {
     logger.info("将来予測を開始します", {
       翌年最終年: 翌年結果.最終年,
       予測年数,
@@ -248,11 +241,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     };
   };
 
-  const ABC決定 = (
-    予測結果: 将来予測結果,
-    規則: 漁獲管理規則,
-    β: 調整係数β
-  ): ABC算定結果 => {
+  const ABC決定 = (予測結果: 将来予測結果, 規則: 漁獲管理規則, β: 調整係数β): ABC算定結果 => {
     logger.info("ABC決定を開始します", {
       将来予測終了年: 予測結果.将来予測終了年,
     });
@@ -328,11 +317,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
       inputNames: ["将来予測結果", "漁獲管理規則", "調整係数β"],
       outputName: "ABC算定結果",
       execute: (ctx) =>
-        ABC決定(
-          ctx["将来予測結果"] as 将来予測結果,
-          ctx.params.漁獲管理規則,
-          ctx.params.調整係数β
-        ),
+        ABC決定(ctx["将来予測結果"] as 将来予測結果, ctx.params.漁獲管理規則, ctx.params.調整係数β),
     },
   ];
 

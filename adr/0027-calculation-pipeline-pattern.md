@@ -15,6 +15,7 @@ The ABC calculation process consists of multiple steps that must be executed in 
 5. ABC決定 (ABC Determination)
 
 We need to:
+
 - Execute these steps in the correct order
 - Generate a flowchart showing the calculation flow for users
 - Ensure the flowchart always reflects the actual implementation
@@ -45,7 +46,7 @@ interface PipelineStep<TInput, TOutput> {
 
 interface Pipeline {
   steps: PipelineStep[];
-  
+
   // Single source of truth for both:
   execute(input: コホート解析入力): ABC算定結果;
   generateFlowchart(): string;
@@ -62,13 +63,17 @@ function createコホート解析Strategy(): コホート解析Strategy {
       name: "一次処理",
       inputNames: ["漁獲量データ", "生物学的データ"],
       outputName: "コホート解析用データ",
-      execute: (input) => { /* ... */ },
+      execute: (input) => {
+        /* ... */
+      },
     })
     .addStep({
       name: "前年までのコホート解析",
       inputNames: ["コホート解析用データ", "M", "資源量指標値"],
       outputName: "前年までの資源計算結果",
-      execute: (prev, ctx) => { /* ... */ },
+      execute: (prev, ctx) => {
+        /* ... */
+      },
     })
     // ... more steps
     .build();
@@ -109,8 +114,8 @@ const defaultParameters: Required<CalculationParameters> = {
 
 // Usage: only override what user specified
 pipeline.execute(入力, {
-  M: userSelectedM,        // User specified
-  将来予測年数: 15,         // User specified
+  M: userSelectedM, // User specified
+  将来予測年数: 15, // User specified
   // Other parameters use defaults
 });
 ```
