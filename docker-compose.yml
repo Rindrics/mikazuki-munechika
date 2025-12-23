@@ -3,7 +3,7 @@
 #
 # Port allocation (30300 series):
 #   30300: Next.js dev server
-#   30301: Grafana (reserved)
+#   30301: Grafana
 #   30302: Jaeger UI
 #   30317: OTel Collector gRPC
 #   30318: OTel Collector HTTP
@@ -27,3 +27,12 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
 
+  grafana:
+    image: grafana/grafana-enterprise:latest
+    ports:
+      - "30301:3000" # Grafana UI
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+volumes:
+  grafana-storage:

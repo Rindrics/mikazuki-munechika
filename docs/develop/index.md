@@ -86,7 +86,7 @@ To enable local tracing with OpenTelemetry:
 1. Start the OTel infrastructure:
 
 ```sh
-docker-compose up -d
+pnpm run otel:start
 ```
 
 2. Add the following to your `.env.local`:
@@ -99,7 +99,9 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
 NEXT_OTEL_VERBOSE=1
 ```
 
-3. View traces in Jaeger UI: <http://localhost:30302>
+3. View traces:
+   - Jaeger UI: <http://localhost:30302>
+   - Grafana: <http://localhost:30301>
 
 See [ADR 0028](https://github.com/Rindrics/mikazuki-munechika/blob/main/adr/0028-opentelemetry-grafana-integration.md) for details.
 
