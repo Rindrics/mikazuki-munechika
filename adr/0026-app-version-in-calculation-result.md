@@ -28,7 +28,7 @@ export interface ABC算定結果 {
   value: string;
   unit: "トン";
   資源量?: 資源量;
-  appVersion: string;  // Added
+  appVersion: string; // Added
 }
 
 // Calculation logic returns the version
@@ -36,7 +36,7 @@ return {
   value: `ABC calculated via: ${processPath}`,
   unit: "トン",
   資源量: { 値: "dummy", 単位: "トン" },
-  appVersion: APP_VERSION,  // Set at calculation time
+  appVersion: APP_VERSION, // Set at calculation time
 };
 ```
 

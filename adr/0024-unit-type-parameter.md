@@ -73,10 +73,11 @@ export type 単位 = "トン" | "千尾" | "尾" | "無次元";
 
 // Formatter for each unit
 export const 単位フォーマッタ: Record<単位, (値: number) => string> = {
-  "トン": (値) => 値 >= 1000 ? `${(値 / 1000).toFixed(1)} 千トン` : `${値.toFixed(1)} トン`,
-  "千尾": (値) => 値 >= 1000 ? `${(値 / 1000).toFixed(2)} 百万尾` : `${値.toFixed(1)} 千尾`,
-  "尾": (値) => 値 >= 1_000_000 ? `${(値 / 1_000_000).toFixed(2)} 百万尾` : `${値.toLocaleString()} 尾`,
-  "無次元": (値) => 値.toFixed(3),
+  トン: (値) => (値 >= 1000 ? `${(値 / 1000).toFixed(1)} 千トン` : `${値.toFixed(1)} トン`),
+  千尾: (値) => (値 >= 1000 ? `${(値 / 1000).toFixed(2)} 百万尾` : `${値.toFixed(1)} 千尾`),
+  尾: (値) =>
+    値 >= 1_000_000 ? `${(値 / 1_000_000).toFixed(2)} 百万尾` : `${値.toLocaleString()} 尾`,
+  無次元: (値) => 値.toFixed(3),
 };
 
 // Matrix with unit type parameter

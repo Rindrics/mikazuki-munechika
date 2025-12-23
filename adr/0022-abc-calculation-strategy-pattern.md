@@ -10,11 +10,11 @@ The current ABC (Acceptable Biological Catch) calculation is a dummy implementat
 
 Different calculation methods are required for each stock type:
 
-| Stock Type | Method | Description |
-| ---------- | ------ | ----------- |
-| Type 1 (1系) | Cohort Analysis | Future projection based on stock-recruitment relationship |
-| Type 2 (2系) | Empirical Method with CPUE | Future projection without stock-recruitment relationship |
-| Type 3 (3系) | Empirical Catch Analysis | Empirical analysis based on catch variation only |
+| Stock Type   | Method                     | Description                                               |
+| ------------ | -------------------------- | --------------------------------------------------------- |
+| Type 1 (1系) | Cohort Analysis            | Future projection based on stock-recruitment relationship |
+| Type 2 (2系) | Empirical Method with CPUE | Future projection without stock-recruitment relationship  |
+| Type 3 (3系) | Empirical Catch Analysis   | Empirical analysis based on catch variation only          |
 
 Furthermore, we may want to use different calculation methods for the same stock type in the future (e.g., switching to Stock Synthesis).
 
