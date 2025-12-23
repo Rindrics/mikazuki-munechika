@@ -9,7 +9,7 @@ import { 資源グループs } from "@/domain/constants";
 export default function ReferenceListPage() {
   return (
     <main className="p-8 max-w-4xl mx-auto">
-      <h1 className="mb-6">各資源の基本情報</h1>
+      <h1 className="mb-6">評価対象資源の基本情報</h1>
 
       <section className="mb-8">
         <ul className="space-y-6">

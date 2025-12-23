@@ -418,6 +418,7 @@ export interface ExecutablePipelineStep extends PipelineStep {
  */
 export function generateMermaidFlowchart(steps: PipelineStep[]): string {
   const lines: string[] = ["flowchart TD"];
+  const inputIds: string[] = [];
 
   // Generate nodes and connections
   steps.forEach((step, index) => {
@@ -444,6 +445,7 @@ export function generateMermaidFlowchart(steps: PipelineStep[]): string {
       } else {
         // It's an external input/parameter
         const inputId = `I${stepNum}_${inputIndex}`;
+        inputIds.push(inputId);
         lines.push(`    ${inputId}[${input}] --> ${stepId}`);
       }
     });
@@ -453,15 +455,25 @@ export function generateMermaidFlowchart(steps: PipelineStep[]): string {
     lines.push("");
   });
 
-  // Add styling
+  // Add styling (grayscale)
   lines.push("    %% Styling");
-  lines.push("    classDef process fill:#fff3e0,stroke:#e65100");
-  lines.push("    classDef output fill:#e8f5e9,stroke:#1b5e20");
+  lines.push("    classDef process fill:#f5f5f5,stroke:#616161");
+  lines.push("    classDef output fill:#e0e0e0,stroke:#424242");
+  lines.push("    classDef input fill:#fafafa,stroke:#9e9e9e");
 
   const processIds = steps.map((_, i) => `S${i + 1}`).join(",");
   const outputIds = steps.map((_, i) => `O${i + 1}`).join(",");
   lines.push(`    class ${processIds} process`);
   lines.push(`    class ${outputIds} output`);
+  if (inputIds.length > 0) {
+    lines.push(`    class ${inputIds.join(",")} input`);
+  }
+
+  // Style subgraphs (grayscale)
+  steps.forEach((_, index) => {
+    const stepNum = index + 1;
+    lines.push(`    style step${stepNum} fill:#fafafa,stroke:#bdbdbd`);
+  });
 
   return lines.join("\n");
 }
