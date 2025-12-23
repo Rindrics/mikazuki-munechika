@@ -71,9 +71,13 @@ describe("create資源評価", () => {
     it("1系資源", () => {
       const stockGroup = create資源情報(資源名s.マイワシ太平洋);
       const stock = create資源評価(stockGroup);
-      expect(stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定().value).toBe(
-        'Simulated WITH recruitment using its abundance "estimated using 100 and 100"'
-      );
+      const result = stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定();
+
+      // Verify that the result shows the cohort analysis processing path
+      expect(result.value).toContain("[一次処理]");
+      expect(result.value).toContain("[前進計算]");
+      expect(result.value).toContain("[将来予測]");
+      expect(result.value).toContain("[ABC決定]");
       expect(stock.対象.資源タイプ).toBe(資源タイプs["1系"]);
     });
 

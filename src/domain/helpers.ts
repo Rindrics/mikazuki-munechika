@@ -5,6 +5,9 @@ import {
   type 未着手資源評価,
   type 文献情報,
   文献リスト,
+  createコホート解析Strategy,
+  type コホート解析入力,
+  固定値,
 } from "./models";
 import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
 import { 資源グループs } from "./constants";
@@ -72,13 +75,19 @@ export function create資源情報(name: 資源名 | string): 資源情報 {
 }
 
 function createType1Stock(stockGroup: 資源情報): 未着手資源評価 {
+  const strategy = createコホート解析Strategy();
+
   return createStock(stockGroup, {
     資源量推定方法の参照URL: "https://abchan.fra.go.jp/references_list/FRA-SA2024-ABCWG02-01.pdf",
-    ABC算定: (abundance) => ({
-      value: `Simulated WITH recruitment using its abundance "${abundance}"`,
-      unit: "トン",
-      資源量: { 値: abundance, 単位: "トン" },
-    }),
+    ABC算定: (abundance) => {
+      // Use the cohort analysis strategy
+      const 入力: コホート解析入力 = {
+        漁獲量: { value: abundance },
+        生物データ: { value: "biological data" },
+        M: (_年齢) => 固定値(0.4),
+      };
+      return strategy.算定(入力);
+    },
   });
 }
 

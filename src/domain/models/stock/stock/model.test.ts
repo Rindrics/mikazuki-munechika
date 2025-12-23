@@ -1,5 +1,5 @@
-import { 資源名s, 資源タイプs } from "../../../constants";
-import { create資源情報 } from "../../../helpers";
+import { 資源名s, 資源タイプs } from "@/domain/constants";
+import { create資源情報 } from "@/domain/helpers";
 import { describe, it, expect } from "vitest";
 
 describe("資源情報", () => {
