@@ -14,6 +14,12 @@ resource "vercel_project_environment_variables" "production" {
       target = ["production"]
     },
     {
+      key       = "SUPABASE_SERVICE_ROLE_KEY"
+      value     = var.supabase_service_role_key_production
+      target    = ["production"]
+      sensitive = true
+    },
+    {
       key    = "LOG_LEVEL"
       value  = "ERROR"
       target = ["production"]
@@ -60,6 +66,11 @@ resource "vercel_project_environment_variables" "preview" {
       target = ["preview"]
     },
     {
+      key    = "SUPABASE_SERVICE_ROLE_KEY"
+      value  = var.supabase_service_role_key_preview
+      target = ["preview"]
+    },
+    {
       key    = "LOG_LEVEL"
       value  = "DEBUG"
       target = ["preview"]
@@ -103,6 +114,11 @@ resource "vercel_project_environment_variables" "development" {
     {
       key    = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
       value  = var.supabase_anon_key_development
+      target = ["development"]
+    },
+    {
+      key    = "SUPABASE_SERVICE_ROLE_KEY"
+      value  = var.supabase_service_role_key_development
       target = ["development"]
     },
     {
