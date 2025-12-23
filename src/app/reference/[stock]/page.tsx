@@ -1,9 +1,29 @@
 import { get資源名BySlug, create資源情報 } from "@/domain";
+import { createコホート解析Strategy } from "@/domain/models";
 import ErrorCard from "@/components/error-card";
+import { MermaidDiagram } from "@/components/atoms";
 import Link from "next/link";
 
 interface ReferencePageProps {
   params: Promise<{ stock: string }>;
+}
+
+/**
+ * Get calculation flowchart based on resource type
+ */
+function getCalculationFlowchart(resourceType: number): string | null {
+  switch (resourceType) {
+    case 1: {
+      const strategy = createコホート解析Strategy();
+      return strategy.generateFlowchart();
+    }
+    case 2:
+    case 3:
+      // Not implemented yet
+      return null;
+    default:
+      return null;
+  }
 }
 
 /**
@@ -30,6 +50,7 @@ export default async function ReferencePage({ params }: ReferencePageProps) {
   }
 
   const stockInfo = create資源情報(stockGroupName);
+  const flowchart = getCalculationFlowchart(stockInfo.資源タイプ);
 
   return (
     <main className="p-8 max-w-4xl mx-auto">
@@ -61,6 +82,19 @@ export default async function ReferencePage({ params }: ReferencePageProps) {
             <dd className="font-mono text-sm">{stockInfo.slug}</dd>
           </div>
         </dl>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-4">ABC 算定フロー</h2>
+        {flowchart ? (
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+            <MermaidDiagram chart={flowchart} />
+          </div>
+        ) : (
+          <p className="text-secondary italic">
+            {stockInfo.資源タイプ} 系資源の計算ロジックは準備中です
+          </p>
+        )}
       </section>
     </main>
   );
