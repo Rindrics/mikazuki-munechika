@@ -41,6 +41,68 @@ const defaultParameters: Required<CalculationParameters> = {
 };
 
 /**
+ * Check if value is a plain object (not array, null, or function)
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof value !== "function"
+  );
+}
+
+/**
+ * Deep merge two objects, preserving nested defaults
+ *
+ * - Does not mutate original objects
+ * - Recursively merges nested plain objects
+ * - Override values take precedence over defaults
+ * - Functions and arrays are not recursively merged (replaced entirely)
+ */
+function deepMergeImpl(
+  defaults: Record<string, unknown>,
+  overrides: Record<string, unknown>
+): Record<string, unknown> {
+  const result = { ...defaults };
+
+  for (const key of Object.keys(overrides)) {
+    const defaultValue = defaults[key];
+    const overrideValue = overrides[key];
+
+    if (overrideValue === undefined) {
+      continue;
+    }
+
+    if (isPlainObject(defaultValue) && isPlainObject(overrideValue)) {
+      // Recursively merge nested objects
+      result[key] = deepMergeImpl(defaultValue, overrideValue);
+    } else {
+      // Replace primitive values, arrays, and functions
+      result[key] = overrideValue;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Deep merge CalculationParameters with defaults
+ */
+function deepMerge(
+  defaults: Required<CalculationParameters>,
+  overrides?: CalculationParameters
+): Required<CalculationParameters> {
+  if (!overrides) {
+    return { ...defaults };
+  }
+  return deepMergeImpl(
+    defaults as unknown as Record<string, unknown>,
+    overrides as unknown as Record<string, unknown>
+  ) as Required<CalculationParameters>;
+}
+
+/**
  * コホート解析 Strategy のダミー実装
  *
  * 各メソッドを通過したことがわかるようにログを残す。
@@ -341,8 +403,8 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     算定(入力: コホート解析入力, params?: CalculationParameters): ABC算定結果 {
       logger.info("コホート解析による ABC 算定を開始します");
 
-      // Merge user parameters with defaults
-      const p = { ...defaultParameters, ...params };
+      // Deep merge user parameters with defaults (preserves nested fields)
+      const p = deepMerge(defaultParameters, params);
       logger.debug("使用するパラメータ", {
         M平均値: p.M(0).平均値,
         将来予測年数: p.将来予測年数,
