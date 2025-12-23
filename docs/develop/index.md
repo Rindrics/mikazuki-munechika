@@ -79,6 +79,30 @@ See [this file](https://github.com/Rindrics/mikazuki-munechika/blob/main/scripts
 pnpm dev
 ```
 
+### OpenTelemetry Setup (Optional)
+
+To enable local tracing with OpenTelemetry:
+
+1. Start the OTel infrastructure:
+
+```sh
+docker-compose up -d
+```
+
+2. Add the following to your `.env.local`:
+
+```sh
+# OTel endpoint (local)
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
+
+# Enable verbose spans (recommended for development)
+NEXT_OTEL_VERBOSE=1
+```
+
+3. View traces in Jaeger UI: <http://localhost:30302>
+
+See [ADR 0028](https://github.com/Rindrics/mikazuki-munechika/blob/main/adr/0028-opentelemetry-grafana-integration.md) for details.
+
 ## Documentation
 
 This project has two types of documents:

@@ -49,6 +49,18 @@ resource "vercel_project_environment_variables" "production" {
       value  = var.vercel_flags_secret
       target = ["production"]
     },
+    {
+      key       = "OTEL_EXPORTER_OTLP_ENDPOINT"
+      value     = var.grafana_otlp_endpoint
+      target    = ["production"]
+      sensitive = true
+    },
+    {
+      key       = "OTEL_EXPORTER_OTLP_HEADERS"
+      value     = var.grafana_otlp_headers
+      target    = ["production"]
+      sensitive = true
+    },
   ]
 }
 
@@ -98,6 +110,23 @@ resource "vercel_project_environment_variables" "preview" {
     {
       key    = "FLAGS_SECRET"
       value  = var.vercel_flags_secret
+      target = ["preview"]
+    },
+    {
+      key       = "OTEL_EXPORTER_OTLP_ENDPOINT"
+      value     = var.grafana_otlp_endpoint
+      target    = ["preview"]
+      sensitive = true
+    },
+    {
+      key       = "OTEL_EXPORTER_OTLP_HEADERS"
+      value     = var.grafana_otlp_headers
+      target    = ["preview"]
+      sensitive = true
+    },
+    {
+      key    = "NEXT_OTEL_VERBOSE"
+      value  = "1"
       target = ["preview"]
     },
   ]
