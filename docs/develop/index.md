@@ -23,13 +23,13 @@ This project uses three environments below:
 
 This project uses ports in the 30300 series:
 
-| Port  | Service              |
-|-------|----------------------|
-| 30300 | Next.js dev server   |
-| 30301 | Grafana (reserved)   |
-| 30302 | Jaeger UI            |
-| 30317 | OTel Collector gRPC  |
-| 30318 | OTel Collector HTTP  |
+| Port  | Service             |
+| ----- | ------------------- |
+| 30300 | Next.js dev server  |
+| 30301 | Grafana (reserved)  |
+| 30302 | Jaeger UI           |
+| 30317 | OTel Collector gRPC |
+| 30318 | OTel Collector HTTP |
 
 ### Setup
 

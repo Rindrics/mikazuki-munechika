@@ -33,6 +33,7 @@ In Vercel's serverless environment, standard OpenTelemetry SDK configuration may
 **Use `@vercel/otel` for both Vercel and local environments.**
 
 Rationale:
+
 - `@vercel/otel` is required for Vercel environment
 - Using the same SDK locally maintains code consistency
 - `@vercel/otel` wraps the standard OpenTelemetry SDK internally and supports destination switching via `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable
@@ -66,11 +67,11 @@ Rationale:
 
 ### 3. Environment-specific Configuration
 
-| Environment | `OTEL_EXPORTER_OTLP_ENDPOINT` | Auth | Visualization |
-|-------------|-------------------------------|------|---------------|
-| Vercel (production) | Grafana Cloud OTLP endpoint | API Key (env var) | Grafana Cloud |
-| Vercel (preview) | Grafana Cloud OTLP endpoint | API Key (env var) | Grafana Cloud |
-| Local | `http://localhost:30318` | None | Jaeger (:30302) |
+| Environment         | `OTEL_EXPORTER_OTLP_ENDPOINT` | Auth              | Visualization   |
+| ------------------- | ----------------------------- | ----------------- | --------------- |
+| Vercel (production) | Grafana Cloud OTLP endpoint   | API Key (env var) | Grafana Cloud   |
+| Vercel (preview)    | Grafana Cloud OTLP endpoint   | API Key (env var) | Grafana Cloud   |
+| Local               | `http://localhost:30318`      | None              | Jaeger (:30302) |
 
 ### 4. Local Environment Infrastructure
 
@@ -85,8 +86,8 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "30317:4317"  # OTLP gRPC
-      - "30318:4318"  # OTLP HTTP
+      - "30317:4317" # OTLP gRPC
+      - "30318:4318" # OTLP HTTP
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -120,6 +121,7 @@ service:
 ```
 
 This starts:
+
 - **OpenTelemetry Collector**: OTLP receiver (port 30317, 30318)
 - **Jaeger**: Trace visualization UI (port 30302)
 
@@ -139,13 +141,13 @@ docker-compose up -d
 
 ### 6. Role Separation with Sentry
 
-| Function | Tool |
-|----------|------|
-| Error tracking | Sentry |
-| Session Replay | Sentry |
+| Function            | Tool           |
+| ------------------- | -------------- |
+| Error tracking      | Sentry         |
+| Session Replay      | Sentry         |
 | Distributed tracing | Grafana (OTel) |
-| Metrics | Grafana (OTel) |
-| Dashboards | Grafana |
+| Metrics             | Grafana (OTel) |
+| Dashboards          | Grafana        |
 
 ## Consequences
 
@@ -225,32 +227,32 @@ Next.js automatically generates the following spans:
 ### Custom Span Example
 
 ```typescript
-import { trace } from '@opentelemetry/api'
+import { trace } from "@opentelemetry/api";
 
 export async function calculateABC(stockId: string) {
   return await trace
-    .getTracer('mikazuki-munechika')
-    .startActiveSpan('calculateABC', async (span) => {
+    .getTracer("mikazuki-munechika")
+    .startActiveSpan("calculateABC", async (span) => {
       try {
-        span.setAttribute('stock.id', stockId)
+        span.setAttribute("stock.id", stockId);
         // ... calculation logic ...
-        return result
+        return result;
       } finally {
-        span.end()
+        span.end();
       }
-    })
+    });
 }
 ```
 
 ### Update instrumentation.ts
 
 ```typescript
-import { registerOTel } from '@vercel/otel';
+import { registerOTel } from "@vercel/otel";
 import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
   // OpenTelemetry initialization
-  registerOTel({ serviceName: 'mikazuki-munechika' });
+  registerOTel({ serviceName: "mikazuki-munechika" });
 
   // Sentry initialization (existing)
   if (process.env.NEXT_RUNTIME === "nodejs") {
