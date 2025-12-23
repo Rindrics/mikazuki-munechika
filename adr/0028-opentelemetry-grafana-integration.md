@@ -60,7 +60,7 @@ Rationale:
 │         │           │                   │         │           │
 │         ▼           │                   │         ▼           │
 │  Grafana Cloud      │                   │  OTel Collector     │
-│  (OTLP endpoint)    │                   │  → Jaeger (:16686)  │
+│  (OTLP endpoint)    │                   │  → Jaeger (:30302)  │
 └─────────────────────┘                   └─────────────────────┘
 ```
 
@@ -70,7 +70,7 @@ Rationale:
 |-------------|-------------------------------|------|---------------|
 | Vercel (production) | Grafana Cloud OTLP endpoint | API Key (env var) | Grafana Cloud |
 | Vercel (preview) | Grafana Cloud OTLP endpoint | API Key (env var) | Grafana Cloud |
-| Local | `http://localhost:4318` | None | Jaeger (:16686) |
+| Local | `http://localhost:30318` | None | Jaeger (:30302) |
 
 ### 4. Local Environment Infrastructure
 
@@ -85,14 +85,13 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+      - "30317:4317"  # OTLP gRPC
+      - "30318:4318"  # OTLP HTTP
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "16686:16686" # Jaeger UI
-      - "14250:14250" # gRPC
+      - "30302:16686" # Jaeger UI
     environment:
       - COLLECTOR_OTLP_ENABLED=true
 ```
@@ -121,8 +120,8 @@ service:
 ```
 
 This starts:
-- **OpenTelemetry Collector**: OTLP receiver (port 4317, 4318)
-- **Jaeger**: Trace visualization UI (port 16686)
+- **OpenTelemetry Collector**: OTLP receiver (port 30317, 30318)
+- **Jaeger**: Trace visualization UI (port 30302)
 
 Startup command:
 
@@ -283,7 +282,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-xx-xxx.grafana.net/otlp
 OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64-encoded-credentials>"
 
 # Local (.env.local)
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
 
 # Enable verbose spans (recommended for development)
 NEXT_OTEL_VERBOSE=1

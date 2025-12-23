@@ -1,0 +1,29 @@
+# Local OpenTelemetry infrastructure for development
+# See ADR 0028 for details
+#
+# Port allocation (30300 series):
+#   30300: Next.js dev server
+#   30301: Grafana (reserved)
+#   30302: Jaeger UI
+#   30317: OTel Collector gRPC
+#   30318: OTel Collector HTTP
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "30317:4317" # OTLP gRPC
+      - "30318:4318" # OTLP HTTP
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "30302:16686" # Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
