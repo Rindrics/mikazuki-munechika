@@ -26,8 +26,9 @@ This project uses ports in the 30300 series:
 | Port  | Service             |
 | ----- | ------------------- |
 | 30300 | Next.js dev server  |
-| 30301 | Grafana (reserved)  |
+| 30301 | Grafana             |
 | 30302 | Jaeger UI           |
+| 30303 | Jekyll (docs)       |
 | 30317 | OTel Collector gRPC |
 | 30318 | OTel Collector HTTP |
 
