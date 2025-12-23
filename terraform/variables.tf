@@ -21,6 +21,11 @@ variable "supabase_anon_key_production" {
   type        = string
 }
 
+variable "supabase_service_role_key_production" {
+  description = "Supabase service role key for production"
+  type        = string
+}
+
 variable "supabase_url_preview" {
   description = "Supabase project URL for preview"
   type        = string
@@ -29,6 +34,12 @@ variable "supabase_url_preview" {
 
 variable "supabase_anon_key_preview" {
   description = "Supabase anonymous key for preview"
+  type        = string
+  default     = "dummy" # no need to set in preview because it uses in-memory database
+}
+
+variable "supabase_service_role_key_preview" {
+  description = "Supabase service role key for preview"
   type        = string
   default     = "dummy" # no need to set in preview because it uses in-memory database
 }
@@ -42,6 +53,12 @@ variable "supabase_url_development" {
 
 variable "supabase_anon_key_development" {
   description = "Supabase anonymous key for development"
+  type        = string
+  default     = "dummy" # will be updated by executing 'pnpm run sync-env'
+}
+
+variable "supabase_service_role_key_development" {
+  description = "Supabase service role key for development"
   type        = string
   default     = "dummy" # will be updated by executing 'pnpm run sync-env'
 }
