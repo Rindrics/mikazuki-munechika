@@ -22,6 +22,8 @@
     "docs:generate-watch": "typedoc --watch",
     "test": "vitest",
     "test:run": "vitest run",
+    "grafana:start": "docker run -d --name grafana -p 30301:3000 --restart unless-stopped grafana/grafana-enterprise",
+    "grafana:stop": "docker stop grafana && docker rm grafana",
     "prepare": "husky"
   },
   "dependencies": {
