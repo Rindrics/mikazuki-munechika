@@ -39,10 +39,11 @@ export interface 経験的解析CPUE入力 extends ABC算定入力 {
 
 /**
  * 経験的解析（漁獲量）の入力データ
+ *
+ * 漁獲量のみを使用するため、基底インターフェースと同じ構造。
+ * 型の区別のために別名を定義。
  */
-export interface 経験的解析漁獲量入力 extends ABC算定入力 {
-  // 漁獲量のみ（基底インターフェースと同じ）
-}
+export type 経験的解析漁獲量入力 = ABC算定入力;
 
 /**
  * ABC 算定の Strategy インターフェース
