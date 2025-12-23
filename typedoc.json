@@ -3,6 +3,7 @@
   "entryPoints": [
     "src/domain/models/stock/stock/index.ts",
     "src/domain/models/stock/status/index.ts",
+    "src/domain/models/stock/calculation/index.ts",
     "src/domain/models/user/index.ts",
     "src/domain/models/reference/index.ts",
     "src/domain/constants/index.ts",
