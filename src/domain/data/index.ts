@@ -11,6 +11,8 @@ export interface ABC算定結果 {
   unit: "トン";
   /** 資源量 */
   資源量?: 資源量;
+  /** 計算に使用したアプリのバージョン */
+  appVersion: string;
 }
 
 /**

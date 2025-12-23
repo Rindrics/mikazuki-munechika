@@ -11,7 +11,8 @@ import {
 } from "./models";
 import { ABC算定結果, 漁獲量データ, 生物学的データ } from "./data";
 import { 資源グループs } from "./constants";
-import { logger } from "../utils/logger";
+import { logger } from "@/utils/logger";
+import { APP_VERSION } from "@/utils/version";
 
 // Re-export user factory functions for backward compatibility
 export { to認証済ユーザー, get担当資源情報s } from "./models/user/factory";
@@ -98,6 +99,7 @@ function createType2Stock(stockGroup: 資源情報): 未着手資源評価 {
       value: `Simulated WITHOUT recruitment using its abundance "${abundance}"`,
       unit: "トン",
       資源量: { 値: abundance, 単位: "トン" },
+      appVersion: APP_VERSION,
     }),
   });
 }
@@ -109,6 +111,7 @@ function createType3Stock(stockGroup: 資源情報): 未着手資源評価 {
       value: `ABC estimated DIRECTLY using its abundance "${abundance}"`,
       unit: "トン",
       資源量: { 値: abundance, 単位: "トン" },
+      appVersion: APP_VERSION,
     }),
   });
 }

@@ -16,6 +16,9 @@ async function getServerClient() {
 /**
  * Parse result from database value
  * Handles both legacy string format and new JSON format
+ *
+ * For legacy data without appVersion, "unknown" is used as a fallback.
+ * @see ADR 0026 for design rationale
  */
 function parseResultFromDb(dbValue: unknown): ABC算定結果 {
   // If it's already an object (JSON from JSONB column), use it directly
@@ -25,6 +28,7 @@ function parseResultFromDb(dbValue: unknown): ABC算定結果 {
       value: String(obj.value ?? ""),
       unit: "トン",
       資源量: obj.資源量 as 資源量 | undefined,
+      appVersion: String(obj.appVersion ?? "unknown"),
     };
   }
 
@@ -37,6 +41,7 @@ function parseResultFromDb(dbValue: unknown): ABC算定結果 {
           value: String(parsed.value ?? ""),
           unit: "トン",
           資源量: parsed.資源量 as 資源量 | undefined,
+          appVersion: String(parsed.appVersion ?? "unknown"),
         };
       }
     } catch {
@@ -46,6 +51,7 @@ function parseResultFromDb(dbValue: unknown): ABC算定結果 {
     return {
       value: dbValue,
       unit: "トン",
+      appVersion: "unknown",
     };
   }
 
@@ -53,6 +59,7 @@ function parseResultFromDb(dbValue: unknown): ABC算定結果 {
   return {
     value: String(dbValue ?? ""),
     unit: "トン",
+    appVersion: "unknown",
   };
 }
 

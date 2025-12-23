@@ -1,4 +1,5 @@
 import type { ABC算定結果, 資源量指標値データ } from "@/domain/data";
+import { APP_VERSION } from "@/utils/version";
 import type {
   コホート解析Strategy,
   コホート解析入力,
@@ -237,6 +238,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
         value: `ABC calculated via: ${processPath}`,
         unit: "トン",
         資源量: { 値: "dummy", 単位: "トン" },
+        appVersion: APP_VERSION,
       };
     },
 
