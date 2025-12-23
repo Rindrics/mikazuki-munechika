@@ -1,4 +1,4 @@
-import { 資源名s, ロールs } from "../../../constants";
+import { 資源名s, ロールs } from "@/domain/constants";
 import {
   作業着手,
   内部査読依頼,

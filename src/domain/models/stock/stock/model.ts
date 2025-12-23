@@ -1,6 +1,6 @@
-import { 漁獲量データ, 生物学的データ, ABC算定結果 } from "../../../data";
-import { 資源タイプ, 資源名s, 資源グループ呼称s } from "../../../constants";
-import { create資源情報, create資源評価 } from "../../../helpers";
+import { 漁獲量データ, 生物学的データ, ABC算定結果 } from "@/domain/data";
+import { 資源タイプ, 資源名s, 資源グループ呼称s } from "@/domain/constants";
+import { create資源情報, create資源評価 } from "@/domain/helpers";
 import type { 評価ステータス } from "../status";
 
 /**
