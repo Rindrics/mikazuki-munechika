@@ -357,6 +357,125 @@ export interface 調整係数β {
   値: number;
 }
 
+// =============================================================================
+// Calculation Pipeline (ADR 0027)
+// =============================================================================
+
+/**
+ * Configurable parameters for ABC calculation
+ *
+ * All parameters are optional - defaults will be used if not specified.
+ * Users can override specific parameters from the UI.
+ *
+ * @see ADR 0027 for design rationale
+ */
+export interface CalculationParameters {
+  M?: M;
+  資源量指標値?: 資源量指標値データ;
+  再生産関係残差?: 再生産関係残差;
+  翌年のF?: F;
+  将来予測年数?: number;
+  漁獲管理規則?: 漁獲管理規則;
+  調整係数β?: 調整係数β;
+}
+
+/**
+ * Pipeline step definition
+ *
+ * Single source of truth for both execution and flowchart generation.
+ * methodName is used both as the execution target and as the label in flowcharts.
+ */
+export interface PipelineStep {
+  /** Method name to execute (also used as label in flowchart) */
+  methodName: string;
+  inputNames: string[];
+  outputName: string;
+}
+
+/**
+ * Pipeline context for passing data between steps
+ */
+export interface PipelineContext {
+  入力: コホート解析入力;
+  params: Required<CalculationParameters>;
+  [key: string]: unknown;
+}
+
+/**
+ * Executable pipeline step with execute function
+ *
+ * Extends PipelineStep with an execute function that takes context and returns result.
+ */
+export interface ExecutablePipelineStep extends PipelineStep {
+  execute: (context: PipelineContext) => unknown;
+}
+
+/**
+ * Generate Mermaid flowchart from pipeline steps
+ *
+ * @param steps - Pipeline step definitions
+ * @returns Mermaid flowchart definition string
+ */
+export function generateMermaidFlowchart(steps: PipelineStep[]): string {
+  const lines: string[] = ["flowchart TD"];
+  const inputIds: string[] = [];
+
+  // Generate nodes and connections
+  steps.forEach((step, index) => {
+    const stepNum = index + 1;
+    const stepId = `S${stepNum}`;
+    const outputId = `O${stepNum}`;
+
+    // Add subgraph for this step (methodName is used as label)
+    lines.push(`    subgraph step${stepNum}["Step ${stepNum}: ${step.methodName}"]`);
+    lines.push(`        ${stepId}[${step.methodName}]`);
+    lines.push(`        ${outputId}[${step.outputName}]`);
+    lines.push(`    end`);
+    lines.push("");
+
+    // Connect inputs to process
+    step.inputNames.forEach((input, inputIndex) => {
+      // Check if input is output from previous step
+      const prevStepIndex = steps.findIndex((s) => s.outputName === input);
+      if (prevStepIndex >= 0) {
+        // Connect from previous output
+        lines.push(`    O${prevStepIndex + 1} --> ${stepId}`);
+      } else {
+        // It's an external input/parameter
+        const inputId = `I${stepNum}_${inputIndex}`;
+        inputIds.push(inputId);
+        lines.push(`    ${inputId}[${input}] --> ${stepId}`);
+      }
+    });
+
+    // Connect process to output
+    lines.push(`    ${stepId} --> ${outputId}`);
+    lines.push("");
+  });
+
+  // Add styling (grayscale)
+  lines.push("    %% Styling");
+  lines.push("    classDef process fill:#f5f5f5,stroke:#616161");
+  lines.push("    classDef output fill:#e0e0e0,stroke:#424242");
+  lines.push("    classDef input fill:#fafafa,stroke:#9e9e9e");
+
+  const processIds = steps.map((_, i) => `S${i + 1}`).join(",");
+  const outputIds = steps.map((_, i) => `O${i + 1}`).join(",");
+  lines.push(`    class ${processIds} process`);
+  lines.push(`    class ${outputIds} output`);
+  if (inputIds.length > 0) {
+    lines.push(`    class ${inputIds.join(",")} input`);
+  }
+
+  // Style subgraphs (grayscale)
+  steps.forEach((_, index) => {
+    const stepNum = index + 1;
+    lines.push(`    style step${stepNum} fill:#fafafa,stroke:#bdbdbd`);
+  });
+
+  return lines.join("\n");
+}
+
 /**
  * コホート解析 Strategy
  *
@@ -368,9 +487,30 @@ export interface 調整係数β {
  * 5. ABC決定: 漁獲管理規則と調整係数βから ABC を決定
  *
  * @see ADR 0022 for design rationale
+ * @see ADR 0027 for pipeline pattern
  */
 export interface コホート解析Strategy extends ABC算定Strategy<コホート解析入力> {
   readonly 手法名: "コホート解析";
+
+  /**
+   * Get the pipeline steps (single source of truth)
+   */
+  readonly steps: PipelineStep[];
+
+  /**
+   * Generate a flowchart of the calculation process in Mermaid format
+   *
+   * @returns Mermaid flowchart definition string
+   */
+  generateFlowchart(): string;
+
+  /**
+   * Execute ABC calculation with optional parameter overrides
+   *
+   * @param 入力 - Input data
+   * @param params - Optional parameter overrides (defaults used if not specified)
+   */
+  算定(入力: コホート解析入力, params?: CalculationParameters): ABC算定結果;
 
   /**
    * Step 1: 一次処理

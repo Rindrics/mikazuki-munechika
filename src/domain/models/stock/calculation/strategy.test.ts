@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { 正規分布, 固定値, 単位フォーマッタ, create年齢年行列 } from "./strategy";
+import { createコホート解析Strategy } from "./cohort-analysis";
 
 describe("確率分布", () => {
   describe("固定値", () => {
@@ -175,5 +176,58 @@ describe("年齢年行列", () => {
       expect(tonnage.getFormatted(2020, 0)).toBe("1.0 千トン");
       expect(count.getFormatted(2020, 0)).toBe("500.0 千尾");
     });
+  });
+});
+
+describe("generateFlowchart", () => {
+  it("Mermaid フローチャートを生成する", () => {
+    const strategy = createコホート解析Strategy();
+    const flowchart = strategy.generateFlowchart();
+
+    // Check that it starts with flowchart definition
+    expect(flowchart).toContain("flowchart TD");
+
+    // Check that all step names are included
+    expect(flowchart).toContain("一次処理");
+    expect(flowchart).toContain("前年までのコホート解析");
+    expect(flowchart).toContain("前進計算");
+    expect(flowchart).toContain("将来予測");
+    expect(flowchart).toContain("ABC決定");
+
+    // Check that outputs are included
+    expect(flowchart).toContain("コホート解析用データ");
+    expect(flowchart).toContain("前年までの資源計算結果");
+    expect(flowchart).toContain("翌年資源計算結果");
+    expect(flowchart).toContain("将来予測結果");
+    expect(flowchart).toContain("ABC算定結果");
+
+    // Check that inputs are included
+    expect(flowchart).toContain("漁獲量データ");
+    expect(flowchart).toContain("生物学的データ");
+    expect(flowchart).toContain("M: 自然死亡係数");
+    expect(flowchart).toContain("資源量指標値");
+    expect(flowchart).toContain("再生産関係残差");
+    expect(flowchart).toContain("漁獲管理規則");
+    expect(flowchart).toContain("調整係数β");
+
+    // Check that it has proper Mermaid syntax (arrows)
+    expect(flowchart).toContain("-->");
+  });
+
+  it("ステップ間の接続が正しい", () => {
+    const strategy = createコホート解析Strategy();
+    const flowchart = strategy.generateFlowchart();
+
+    // Output of step 1 should connect to step 2
+    expect(flowchart).toContain("O1 --> S2");
+
+    // Output of step 2 should connect to step 3
+    expect(flowchart).toContain("O2 --> S3");
+
+    // Output of step 3 should connect to step 4
+    expect(flowchart).toContain("O3 --> S4");
+
+    // Output of step 4 should connect to step 5
+    expect(flowchart).toContain("O4 --> S5");
   });
 });
