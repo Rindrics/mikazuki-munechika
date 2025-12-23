@@ -11,6 +11,8 @@ export interface ABC算定結果 {
   unit: "トン";
   /** 資源量 */
   資源量?: 資源量;
+  /** 計算に使用したアプリのバージョン */
+  appVersion: string;
 }
 
 /**
@@ -18,6 +20,14 @@ export interface ABC算定結果 {
  */
 export interface 漁獲量データ {
   /** 漁獲データの値 */
+  value: string;
+}
+
+/**
+ * 資源量指標値データ
+ */
+export interface 資源量指標値データ {
+  /** 資源量指標値の値 */
   value: string;
 }
 
