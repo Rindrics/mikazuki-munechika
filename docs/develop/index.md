@@ -86,21 +86,21 @@ To enable local tracing with OpenTelemetry:
 
 1. Start the OTel infrastructure:
 
-```sh
-pnpm run otel:start
-```
+   ```sh
+   pnpm run otel:start
+   ```
 
-2. Add the following to your `.env.local`:
+1. Add the following to your `.env.local`:
 
-```sh
-# OTel endpoint (local)
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
+   ```sh
+   # OTel endpoint (local)
+   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
 
-# Enable verbose spans (recommended for development)
-NEXT_OTEL_VERBOSE=1
-```
+   # Enable verbose spans (recommended for development)
+   NEXT_OTEL_VERBOSE=1
+   ```
 
-3. View metrics and traces in Grafana: <http://localhost:30301>
+1. View metrics and traces in Grafana: <http://localhost:30301>
 
 See [ADR 0028](https://github.com/Rindrics/mikazuki-munechika/blob/main/adr/0028-opentelemetry-grafana-integration.md) for details.
 
