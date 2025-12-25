@@ -23,14 +23,14 @@ This project uses three environments below:
 
 This project uses ports in the 30300 series:
 
-| Port  | Service                       |
-| ----- | ----------------------------- |
-| 30300 | Next.js dev server            |
-| 30301 | Grafana                       |
-| 30303 | Jekyll (docs)                 |
-| 30304 | OTel Collector Prometheus     |
-| 30317 | OTel Collector gRPC           |
-| 30318 | OTel Collector HTTP           |
+| Port  | Service                   |
+| ----- | ------------------------- |
+| 30300 | Next.js dev server        |
+| 30301 | Grafana                   |
+| 30303 | Jekyll (docs)             |
+| 30304 | OTel Collector Prometheus |
+| 30317 | OTel Collector gRPC       |
+| 30318 | OTel Collector HTTP       |
 
 ### Setup
 

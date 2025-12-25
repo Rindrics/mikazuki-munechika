@@ -41,4 +41,3 @@ server:
 store_gateway:
   sharding_ring:
     replication_factor: 1
-

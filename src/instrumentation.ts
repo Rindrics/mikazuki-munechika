@@ -22,11 +22,7 @@ export async function register() {
   }
 }
 
-export const onRequestError: typeof Sentry.captureRequestError = (
-  error,
-  request,
-  context
-) => {
+export const onRequestError: typeof Sentry.captureRequestError = (error, request, context) => {
   // Send to Sentry
   Sentry.captureRequestError(error, request, context);
 
