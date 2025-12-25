@@ -4,8 +4,8 @@
 # Port allocation (30300 series):
 #   30300: Next.js dev server
 #   30301: Grafana
-#   30302: Jaeger UI
 #   30303: Jekyll (docs)
+#   30309: Mimir
 #   30317: OTel Collector gRPC
 #   30318: OTel Collector HTTP
 
@@ -19,14 +19,16 @@ services:
       - "30317:4317" # OTLP gRPC
       - "30318:4318" # OTLP HTTP
     depends_on:
-      - jaeger
+      - mimir
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir/mimir.yaml"]
+    volumes:
+      - ./mimir.yaml:/etc/mimir/mimir.yaml
+      - mimir-data:/data
     ports:
-      - "30302:16686" # Jaeger UI
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - "30309:9009" # Mimir API
 
   grafana:
     image: grafana/grafana-enterprise:latest
@@ -34,6 +36,10 @@ services:
       - "30301:3000" # Grafana UI
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - mimir
 
 volumes:
   grafana-storage:
+  mimir-data:

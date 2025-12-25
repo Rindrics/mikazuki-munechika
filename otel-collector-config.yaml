@@ -10,13 +10,13 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 exporters:
-  otlp/jaeger:
-    endpoint: jaeger:4317
-    tls:
-      insecure: true
+  otlphttp/mimir:
+    endpoint: http://mimir:9009/otlp
+  debug:
+    verbosity: detailed
 
 service:
   pipelines:
-    traces:
+    metrics:
       receivers: [otlp]
-      exporters: [otlp/jaeger]
+      exporters: [otlphttp/mimir, debug]
