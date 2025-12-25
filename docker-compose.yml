@@ -1,0 +1,45 @@
+# Local OpenTelemetry infrastructure for development
+# See ADR 0028 for details
+#
+# Port allocation (30300 series):
+#   30300: Next.js dev server
+#   30301: Grafana
+#   30303: Jekyll (docs)
+#   30309: Mimir
+#   30317: OTel Collector gRPC
+#   30318: OTel Collector HTTP
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "30317:4317" # OTLP gRPC
+      - "30318:4318" # OTLP HTTP
+    depends_on:
+      - mimir
+
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir/mimir.yaml"]
+    volumes:
+      - ./mimir.yaml:/etc/mimir/mimir.yaml
+      - mimir-data:/data
+    ports:
+      - "30309:9009" # Mimir API
+
+  grafana:
+    image: grafana/grafana-enterprise:latest
+    ports:
+      - "30301:3000" # Grafana UI
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - mimir
+
+volumes:
+  grafana-storage:
+  mimir-data:

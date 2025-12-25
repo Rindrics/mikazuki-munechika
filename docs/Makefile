@@ -14,7 +14,7 @@ build-pages: install-pages-ruby
 
 # Serve Jekyll site locally
 pages: build-pages
-	bundle exec jekyll serve
+	bundle exec jekyll serve --port 30303
 
 # Lint files
 lint:

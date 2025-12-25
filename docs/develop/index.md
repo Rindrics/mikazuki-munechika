@@ -19,6 +19,19 @@ This project uses three environments below:
 - [Node.js](https://nodejs.org/en) 24 or later
 - [Docker](https://www.docker.com/) (for Supabase local server)
 
+### Port Allocation
+
+This project uses ports in the 30300 series:
+
+| Port  | Service                   |
+| ----- | ------------------------- |
+| 30300 | Next.js dev server        |
+| 30301 | Grafana                   |
+| 30303 | Jekyll (docs)             |
+| 30304 | OTel Collector Prometheus |
+| 30317 | OTel Collector gRPC       |
+| 30318 | OTel Collector HTTP       |
+
 ### Setup
 
 #### Install dependencies
@@ -66,6 +79,30 @@ See [this file](https://github.com/Rindrics/mikazuki-munechika/blob/main/scripts
 ```sh
 pnpm dev
 ```
+
+### OpenTelemetry Setup (Optional)
+
+To enable local tracing with OpenTelemetry:
+
+1. Start the OTel infrastructure:
+
+   ```sh
+   pnpm run otel:start
+   ```
+
+1. Add the following to your `.env.local`:
+
+   ```sh
+   # OTel endpoint (local)
+   OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
+
+   # Enable verbose spans (recommended for development)
+   NEXT_OTEL_VERBOSE=1
+   ```
+
+1. View metrics and traces in Grafana: <http://localhost:30301>
+
+See [ADR 0028](https://github.com/Rindrics/mikazuki-munechika/blob/main/adr/0028-opentelemetry-grafana-integration.md) for details.
 
 ## Documentation
 

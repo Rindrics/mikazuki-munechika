@@ -74,3 +74,16 @@ variable "vercel_flags_secret" {
   type        = string
   sensitive   = true
 }
+
+# OpenTelemetry / Grafana Cloud
+variable "grafana_otlp_endpoint" {
+  description = "Grafana Cloud OTLP endpoint URL"
+  type        = string
+  sensitive   = true
+}
+
+variable "grafana_otlp_headers" {
+  description = "Grafana Cloud OTLP authorization headers (e.g., 'Authorization=Basic <base64>')"
+  type        = string
+  sensitive   = true
+}
