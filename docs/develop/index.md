@@ -23,14 +23,14 @@ This project uses three environments below:
 
 This project uses ports in the 30300 series:
 
-| Port  | Service             |
-| ----- | ------------------- |
-| 30300 | Next.js dev server  |
-| 30301 | Grafana             |
-| 30302 | Jaeger UI           |
-| 30303 | Jekyll (docs)       |
-| 30317 | OTel Collector gRPC |
-| 30318 | OTel Collector HTTP |
+| Port  | Service                       |
+| ----- | ----------------------------- |
+| 30300 | Next.js dev server            |
+| 30301 | Grafana                       |
+| 30303 | Jekyll (docs)                 |
+| 30304 | OTel Collector Prometheus     |
+| 30317 | OTel Collector gRPC           |
+| 30318 | OTel Collector HTTP           |
 
 ### Setup
 
@@ -100,9 +100,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:30318
 NEXT_OTEL_VERBOSE=1
 ```
 
-3. View traces:
-   - Jaeger UI: <http://localhost:30302>
-   - Grafana: <http://localhost:30301>
+3. View metrics and traces in Grafana: <http://localhost:30301>
 
 See [ADR 0028](https://github.com/Rindrics/mikazuki-munechika/blob/main/adr/0028-opentelemetry-grafana-integration.md) for details.
 
