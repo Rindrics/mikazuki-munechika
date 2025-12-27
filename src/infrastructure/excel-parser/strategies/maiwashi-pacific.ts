@@ -104,7 +104,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     const 年齢別資源尾数 = this.parseAgeYearMatrix(
       sheet,
       yearColumns,
-      38, // Start row for this table
+      37, // Start row for this table
       年齢範囲,
       1000 // Convert 百万尾 → 千尾
     );

@@ -143,19 +143,70 @@ export function 固定値(value: number): 確率分布 {
  *
  * @see ADR 0024 for design rationale
  */
-export type 単位 = "トン" | "千尾" | "尾" | "無次元";
+export type 単位 = "トン" | "千尾" | "百万尾" | "尾" | "無次元";
 
 /**
  * 単位ごとのフォーマット関数
  *
- * 値を人間が読みやすい形式に変換する。
+ * 値を指定された単位のまま表示する。暗黙の単位変換は行わない。
+ * 単位変換が必要な場合は、明示的に変換関数を使用すること。
  */
 export const 単位フォーマッタ: Record<単位, (値: number) => string> = {
   トン: (値) => `${値.toLocaleString()} トン`,
   千尾: (値) => `${値.toLocaleString()} 千尾`,
+  百万尾: (値) => `${値.toLocaleString()} 百万尾`,
   尾: (値) => `${値.toLocaleString()} 尾`,
   無次元: (値) => 値.toFixed(3),
 };
+
+/**
+ * 単位変換係数（基準単位への変換）
+ *
+ * 尾系: 基準 = 尾
+ * トン系: 基準 = トン
+ * 無次元: 変換なし
+ */
+const 単位変換係数: Record<単位, number> = {
+  尾: 1,
+  千尾: 1_000,
+  百万尾: 1_000_000,
+  トン: 1,
+  無次元: 1,
+};
+
+/**
+ * 単位間の変換係数を計算
+ *
+ * @param from - 変換元の単位
+ * @param to - 変換先の単位
+ * @returns 変換係数（from × 係数 = to）
+ * @throws 異なる系統の単位間での変換はエラー
+ */
+export function 単位変換係数を取得(from: 単位, to: 単位): number {
+  // Same unit, no conversion
+  if (from === to) return 1;
+
+  // Check if units are in the same family
+  const 尾系 = ["尾", "千尾", "百万尾"];
+  const fromIs尾系 = 尾系.includes(from);
+  const toIs尾系 = 尾系.includes(to);
+
+  if (fromIs尾系 !== toIs尾系) {
+    throw new Error(`異なる系統の単位間での変換はできません: ${from} → ${to}`);
+  }
+  if (from === "トン" && to !== "トン") {
+    throw new Error(`異なる系統の単位間での変換はできません: ${from} → ${to}`);
+  }
+  if (from === "無次元" && to !== "無次元") {
+    throw new Error(`異なる系統の単位間での変換はできません: ${from} → ${to}`);
+  }
+
+  // Convert: from → base → to
+  // value_in_base = value_in_from × 単位変換係数[from]
+  // value_in_to = value_in_base / 単位変換係数[to]
+  // So: coefficient = 単位変換係数[from] / 単位変換係数[to]
+  return 単位変換係数[from] / 単位変換係数[to];
+}
 
 // =============================================================================
 // 年齢年行列（Age-Year Matrix）
@@ -180,7 +231,7 @@ export const 単位フォーマッタ: Record<単位, (値: number) => string> =
  *   年齢範囲: { 最小年齢: 0, 最大年齢: 10 },
  *   データ: [[...], [...], ...],
  * });
- * matrix.get(2020, 3);          // 15000 (number)
+ * matrix.get(2020, 3, "トン");   // 15000 (number)
  * matrix.getFormatted(2020, 3); // "15.0 千トン" (string)
  * ```
  */
@@ -195,10 +246,12 @@ export interface 年齢年行列<U extends 単位 = 単位> {
    *
    * @param 年 - 対象年
    * @param 年齢 - 対象年齢
-   * @returns 値
+   * @param 出力単位 - 出力単位（同じ系統の単位なら変換される）
+   * @returns 値（指定単位に変換済み）
    * @throws 範囲外の年・年齢を指定した場合
+   * @throws 異なる系統の単位を指定した場合
    */
-  get(年: number, 年齢: number): number;
+  get(年: number, 年齢: number, 出力単位: 単位): number;
 
   /**
    * 指定した年・年齢の値をフォーマットして取得
@@ -230,7 +283,7 @@ export function create年齢年行列<U extends 単位>(params: {
     年範囲,
     年齢範囲,
     データ,
-    get(年: number, 年齢: number): number {
+    get(年: number, 年齢: number, 出力単位: 単位): number {
       const 年インデックス = 年 - 年範囲.開始年;
       const 年齢インデックス = 年齢 - 年齢範囲.最小年齢;
 
@@ -241,10 +294,12 @@ export function create年齢年行列<U extends 単位>(params: {
         throw new Error(`年齢 ${年齢} は範囲外です（${年齢範囲.最小年齢}〜${年齢範囲.最大年齢}）`);
       }
 
-      return データ[年インデックス][年齢インデックス];
+      const 生値 = データ[年インデックス][年齢インデックス];
+      const 係数 = 単位変換係数を取得(unit, 出力単位);
+      return 生値 * 係数;
     },
     getFormatted(年: number, 年齢: number): string {
-      return formatter(this.get(年, 年齢));
+      return formatter(this.get(年, 年齢, unit));
     },
   };
 }
