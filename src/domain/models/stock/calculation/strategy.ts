@@ -297,24 +297,21 @@ interface 資源計算結果Base {
  * 前年までの資源計算結果
  *
  * 前年までのコホート解析（VPA）の出力。
- * Branded Type により翌年資源計算結果と型レベルで区別される。
+ * Branded Type により当年までの資源計算結果と型レベルで区別される。
  *
  * @see ADR 0025 for design rationale
  */
 export type 前年までの資源計算結果 = 資源計算結果Base & { readonly __kind: "前年まで" };
 
 /**
- * 翌年までの資源計算結果
+ * 当年までの資源計算結果
  *
- * 前進計算の出力。Branded Type により前年までの資源計算結果と型レベルで区別される。
+ * 前進計算の出力、または公開データに含まれる評価結果。
+ * Branded Type により前年までの資源計算結果と型レベルで区別される。
  *
  * @see ADR 0025 for design rationale
  */
-export type 翌年資源計算結果 = 資源計算結果Base & { readonly __kind: "翌年" };
-
-// Backward compatibility alias
-/** @deprecated Use 前年までの資源計算結果 instead */
-export type 当年資源計算結果 = 前年までの資源計算結果;
+export type 当年までの資源計算結果 = 資源計算結果Base & { readonly __kind: "当年まで" };
 
 /**
  * 再生産関係の残差
@@ -373,7 +370,7 @@ export interface CalculationParameters {
   M?: M;
   資源量指標値?: 資源量指標値データ;
   再生産関係残差?: 再生産関係残差;
-  翌年のF?: F;
+  当年のF?: F;
   将来予測年数?: number;
   漁獲管理規則?: 漁獲管理規則;
   調整係数β?: 調整係数β;
@@ -537,14 +534,14 @@ export interface コホート解析Strategy extends ABC算定Strategy<コホー�
   /**
    * Step 3: 前進計算
    *
-   * 前年までの結果に再生産関係の残差をリサンプリングして翌年までの資源計算結果を得る。
+   * 前年までの結果に再生産関係の残差をリサンプリングして当年までの資源計算結果を得る。
    */
-  前進計算(前年結果: 前年までの資源計算結果, 残差: 再生産関係残差): 翌年資源計算結果;
+  前進計算(前年結果: 前年までの資源計算結果, 残差: 再生産関係残差): 当年までの資源計算結果;
 
   /**
    * Step 4: 将来予測
    */
-  将来予測(翌年結果: 翌年資源計算結果, F: F, 予測年数: number): 将来予測結果;
+  将来予測(当年結果: 当年までの資源計算結果, F: F, 予測年数: number): 将来予測結果;
 
   /**
    * Step 5: ABC 決定

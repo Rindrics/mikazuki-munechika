@@ -197,7 +197,7 @@ describe("generateFlowchart", () => {
     // Check that outputs are included
     expect(flowchart).toContain("コホート解析用データ");
     expect(flowchart).toContain("前年までの資源計算結果");
-    expect(flowchart).toContain("翌年資源計算結果");
+    expect(flowchart).toContain("当年までの資源計算結果");
     expect(flowchart).toContain("将来予測結果");
     expect(flowchart).toContain("ABC算定結果");
 
