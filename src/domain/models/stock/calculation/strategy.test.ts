@@ -42,38 +42,36 @@ describe("確率分布", () => {
 });
 
 describe("単位フォーマッタ", () => {
-  describe("トン", () => {
-    it("1000 未満はトン表記", () => {
-      expect(単位フォーマッタ["トン"](500)).toBe("500.0 トン");
-      expect(単位フォーマッタ["トン"](999.9)).toBe("999.9 トン");
-    });
+  // No implicit unit conversion - values are displayed in their specified unit
 
-    it("1000 以上は千トン表記", () => {
-      expect(単位フォーマッタ["トン"](1000)).toBe("1.0 千トン");
-      expect(単位フォーマッタ["トン"](15000)).toBe("15.0 千トン");
+  describe("トン", () => {
+    it("値をトン表記で返す（暗黙変換なし）", () => {
+      expect(単位フォーマッタ["トン"](500)).toBe("500 トン");
+      expect(単位フォーマッタ["トン"](1000)).toBe("1,000 トン");
+      expect(単位フォーマッタ["トン"](15000)).toBe("15,000 トン");
     });
   });
 
   describe("千尾", () => {
-    it("1000 未満は千尾表記", () => {
-      expect(単位フォーマッタ["千尾"](500)).toBe("500.0 千尾");
+    it("値を千尾表記で返す（暗黙変換なし）", () => {
+      expect(単位フォーマッタ["千尾"](500)).toBe("500 千尾");
+      expect(単位フォーマッタ["千尾"](1000)).toBe("1,000 千尾");
+      expect(単位フォーマッタ["千尾"](1500)).toBe("1,500 千尾");
     });
+  });
 
-    it("1000 以上は百万尾表記", () => {
-      expect(単位フォーマッタ["千尾"](1000)).toBe("1.00 百万尾");
-      expect(単位フォーマッタ["千尾"](1500)).toBe("1.50 百万尾");
+  describe("百万尾", () => {
+    it("値を百万尾表記で返す", () => {
+      expect(単位フォーマッタ["百万尾"](1)).toBe("1 百万尾");
+      expect(単位フォーマッタ["百万尾"](1.5)).toBe("1.5 百万尾");
     });
   });
 
   describe("尾", () => {
-    it("100 万未満は尾表記（カンマ区切り）", () => {
+    it("値を尾表記で返す（暗黙変換なし）", () => {
       expect(単位フォーマッタ["尾"](1000)).toBe("1,000 尾");
       expect(単位フォーマッタ["尾"](999999)).toBe("999,999 尾");
-    });
-
-    it("100 万以上は百万尾表記", () => {
-      expect(単位フォーマッタ["尾"](1_000_000)).toBe("1.00 百万尾");
-      expect(単位フォーマッタ["尾"](1_500_000)).toBe("1.50 百万尾");
+      expect(単位フォーマッタ["尾"](1_000_000)).toBe("1,000,000 尾");
     });
   });
 
@@ -113,37 +111,38 @@ describe("年齢年行列", () => {
     it("年と年齢から正しい値を取得できる", () => {
       const matrix = createTestMatrix();
 
-      expect(matrix.get(2020, 0)).toBe(100);
-      expect(matrix.get(2020, 1)).toBe(200);
-      expect(matrix.get(2020, 2)).toBe(300);
-      expect(matrix.get(2021, 0)).toBe(110);
-      expect(matrix.get(2022, 2)).toBe(320);
+      expect(matrix.get(2020, 0, "トン")).toBe(100);
+      expect(matrix.get(2020, 1, "トン")).toBe(200);
+      expect(matrix.get(2020, 2, "トン")).toBe(300);
+      expect(matrix.get(2021, 0, "トン")).toBe(110);
+      expect(matrix.get(2022, 2, "トン")).toBe(320);
     });
 
     it("範囲外の年を指定するとエラー", () => {
       const matrix = createTestMatrix();
 
-      expect(() => matrix.get(2019, 0)).toThrow("年 2019 は範囲外です（2020〜2022）");
-      expect(() => matrix.get(2023, 0)).toThrow("年 2023 は範囲外です（2020〜2022）");
+      expect(() => matrix.get(2019, 0, "トン")).toThrow("年 2019 は範囲外です（2020〜2022）");
+      expect(() => matrix.get(2023, 0, "トン")).toThrow("年 2023 は範囲外です（2020〜2022）");
     });
 
     it("範囲外の年齢を指定するとエラー", () => {
       const matrix = createTestMatrix();
 
-      expect(() => matrix.get(2020, -1)).toThrow("年齢 -1 は範囲外です（0〜2）");
-      expect(() => matrix.get(2020, 3)).toThrow("年齢 3 は範囲外です（0〜2）");
+      expect(() => matrix.get(2020, -1, "トン")).toThrow("年齢 -1 は範囲外です（0〜2）");
+      expect(() => matrix.get(2020, 3, "トン")).toThrow("年齢 3 は範囲外です（0〜2）");
     });
   });
 
   describe("getFormatted", () => {
-    it("値をフォーマットして返す", () => {
+    it("値を指定された単位のままフォーマットして返す", () => {
       const matrix = createTestMatrix();
 
-      expect(matrix.getFormatted(2020, 0)).toBe("100.0 トン");
-      expect(matrix.getFormatted(2020, 2)).toBe("300.0 トン");
+      // No implicit unit conversion
+      expect(matrix.getFormatted(2020, 0)).toBe("100 トン");
+      expect(matrix.getFormatted(2020, 2)).toBe("300 トン");
     });
 
-    it("1000 以上は千トン表記になる", () => {
+    it("大きな値でも単位変換しない", () => {
       const matrix = create年齢年行列({
         単位: "トン",
         年範囲: { 開始年: 2020, 終了年: 2020 },
@@ -151,7 +150,8 @@ describe("年齢年行列", () => {
         データ: [[15000]],
       });
 
-      expect(matrix.getFormatted(2020, 0)).toBe("15.0 千トン");
+      // No implicit conversion to 千トン
+      expect(matrix.getFormatted(2020, 0)).toBe("15,000 トン");
     });
   });
 
@@ -173,8 +173,9 @@ describe("年齢年行列", () => {
 
       expect(tonnage.単位).toBe("トン");
       expect(count.単位).toBe("千尾");
-      expect(tonnage.getFormatted(2020, 0)).toBe("1.0 千トン");
-      expect(count.getFormatted(2020, 0)).toBe("500.0 千尾");
+      // No implicit unit conversion
+      expect(tonnage.getFormatted(2020, 0)).toBe("1,000 トン");
+      expect(count.getFormatted(2020, 0)).toBe("500 千尾");
     });
   });
 });

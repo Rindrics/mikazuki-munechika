@@ -113,8 +113,8 @@ describe("コホート解析結果", () => {
     const result = createMockコホート解析結果();
 
     // Access data for specific year and age
-    expect(result.年齢別漁獲尾数.get(2020, 0)).toBe(100);
-    expect(result.年齢別漁獲量.get(2020, 0)).toBe(1000);
-    expect(result.年齢別漁獲係数.get(2020, 0)).toBeCloseTo(0.1);
+    expect(result.年齢別漁獲尾数.get(2020, 0, "千尾")).toBe(100);
+    expect(result.年齢別漁獲量.get(2020, 0, "トン")).toBe(1000);
+    expect(result.年齢別漁獲係数.get(2020, 0, "無次元")).toBeCloseTo(0.1);
   });
 });
