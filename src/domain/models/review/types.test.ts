@@ -43,7 +43,9 @@ function createMock資源計算結果(): 当年までの資源計算結果 {
 describe("create査読用資源評価", () => {
   it("should create 査読用資源評価 with all required fields", () => {
     const mockUUID = "test-uuid-1234";
-    vi.spyOn(crypto, "randomUUID").mockReturnValue(mockUUID as `${string}-${string}-${string}-${string}-${string}`);
+    vi.spyOn(crypto, "randomUUID").mockReturnValue(
+      mockUUID as `${string}-${string}-${string}-${string}-${string}`
+    );
 
     const params: 査読用資源評価作成パラメータ = {
       査読者ID: "reviewer-001",

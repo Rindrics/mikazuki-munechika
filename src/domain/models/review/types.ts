@@ -37,9 +37,7 @@ export interface 査読用資源評価作成パラメータ {
 /**
  * 査読用資源評価を作成する
  */
-export function create査読用資源評価(
-  params: 査読用資源評価作成パラメータ
-): 査読用資源評価 {
+export function create査読用資源評価(params: 査読用資源評価作成パラメータ): 査読用資源評価 {
   return {
     id: crypto.randomUUID(),
     査読者ID: params.査読者ID,

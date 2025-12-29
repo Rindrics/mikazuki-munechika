@@ -94,4 +94,3 @@ export class PublishedDataExcelParser implements ExcelParser {
 export function createExcelParser(): ExcelParser {
   return new PublishedDataExcelParser();
 }
-

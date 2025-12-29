@@ -10,19 +10,93 @@ import type { ParseStrategy } from "@/domain/models/published-data/strategy";
 import type { 公開データセット, コホート解析結果 } from "@/domain/models/published-data/types";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
 import { create年齢年行列 } from "@/domain/models/stock/calculation/strategy";
+import { detectTables, type DetectedTable, type DetectTablesOptions } from "../table-detector";
+import { parseMatrixData, parseRowByLabel } from "../table-parser";
+
+// =============================================================================
+// ドメイン固有の判定関数
+// =============================================================================
+
+/**
+ * 表タイトルかどうかを判定する（マイワシ太平洋系群固有）
+ */
+const isTableTitle = (value: string | undefined): boolean => {
+  if (!value) return false;
+  return (
+    value.startsWith("年齢別") || value.includes("年齢別漁獲係数") || value.includes("年齢別資源量")
+  );
+};
+
+/**
+ * ヘッダー行かどうかを判定する
+ */
+const isHeaderRow = (value: string | undefined): boolean => {
+  if (!value) return false;
+  return value === "年齢＼年" || value === "年齢\\年";
+};
+
+/**
+ * 年フィルタ（1900-2100 の数値を年として扱う）
+ */
+const yearFilter = (value: string): number | null => {
+  const numValue = parseInt(value, 10);
+  if (!isNaN(numValue) && numValue >= 1900 && numValue <= 2100) {
+    return numValue;
+  }
+  return null;
+};
+
+/**
+ * 年齢ラベルから年齢を抽出する
+ */
+const extractAge = (label: string): number | null => {
+  const match = label.match(/^(\d)歳/);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+};
+
+/**
+ * テーブルタイプ（マイワシ太平洋系群固有）
+ */
+type TableType =
+  | "年齢別漁獲尾数"
+  | "年齢別漁獲量"
+  | "年齢別漁獲係数"
+  | "年齢別資源尾数"
+  | "年齢別資源量"
+  | "年齢別平均体重"
+  | "unknown";
+
+/**
+ * 表タイトルから表タイプを判定する
+ */
+const getTableType = (title: string): TableType => {
+  if (title.includes("年齢別漁獲尾数")) return "年齢別漁獲尾数";
+  if (title.includes("年齢別漁獲量")) return "年齢別漁獲量";
+  if (title.includes("年齢別漁獲係数")) return "年齢別漁獲係数";
+  if (title.includes("年齢別資源尾数")) return "年齢別資源尾数";
+  if (title.includes("年齢別資源量")) return "年齢別資源量";
+  if (title.includes("年齢別平均体重")) return "年齢別平均体重";
+  return "unknown";
+};
+
+// =============================================================================
+// Strategy 実装
+// =============================================================================
 
 /**
  * マイワシ太平洋系群の Excel パース Strategy
  *
- * シート構成:
- * - 補足表2-1: コホート解析の詳細（年齢×年マトリックス）
+ * A 列を走査してテーブルを自動検出し、データを抽出する。
  */
 export class マイワシ太平洋系群Strategy implements ParseStrategy {
-  // Sheet name for cohort analysis data
-  private static readonly COHORT_SHEET_NAME = "補足表2-1";
-
-  // Row indices in the sheet (0-based)
-  private static readonly HEADER_ROW = 3; // Row with years
+  private readonly detectOptions: DetectTablesOptions = {
+    isTableTitle,
+    isHeaderRow,
+    labelColumn: "A",
+  };
 
   parse(workbook: WorkBook, 資源名: 資源名): 公開データセット {
     const 年度 = this.extract年度(workbook);
@@ -57,86 +131,86 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
   }
 
   /**
-   * 補足表2-1 からコホート解析結果をパース
+   * コホート解析の詳細シートを検出して結果をパース
    */
   private parseコホート解析結果(workbook: WorkBook): コホート解析結果 {
-    const sheet = workbook.Sheets[マイワシ太平洋系群Strategy.COHORT_SHEET_NAME];
+    // Find the sheet containing cohort analysis data
+    const sheet = this.findCohortAnalysisSheet(workbook);
 
-    if (!sheet) {
-      throw new Error(
-        `シート "${マイワシ太平洋系群Strategy.COHORT_SHEET_NAME}" が見つかりません。` +
-          `存在するシート: ${workbook.SheetNames.join(", ")}`
-      );
-    }
+    // Detect all tables in the sheet
+    const tables = detectTables(sheet, this.detectOptions);
 
-    // Parse year range from header row
-    const { 開始年, 終了年, yearColumns } = this.parseYearRange(sheet);
+    // Find required tables by type
+    const tableMap = this.mapTablesByType(tables);
 
-    // Age range is typically 0-5+ for マイワシ
-    const 年齢範囲 = { 最小年齢: 0, 最大年齢: 5 };
+    // Parse each table
+    const 年齢別漁獲尾数Table = this.getRequiredTable(tableMap, "年齢別漁獲尾数");
+    const 年齢別漁獲量Table = this.getRequiredTable(tableMap, "年齢別漁獲量");
+    const 年齢別漁獲係数Table = this.getRequiredTable(tableMap, "年齢別漁獲係数");
+    const 年齢別資源尾数Table = this.getRequiredTable(tableMap, "年齢別資源尾数");
 
-    // Parse each data table
-    // Note: Row positions may need adjustment based on actual Excel structure
-    const 年齢別漁獲尾数 = this.parseAgeYearMatrix(
-      sheet,
-      yearColumns,
-      5, // Start row for this table
-      年齢範囲,
-      1000 // Convert 百万尾 → 千尾
+    // Parse age-year matrices
+    // Note: Excel uses 百万尾, we convert to 千尾
+    const 年齢別漁獲尾数Data = parseMatrixData(
+      年齢別漁獲尾数Table,
+      yearFilter,
+      extractAge,
+      1000 // 百万尾 → 千尾
+    );
+    const 年齢別漁獲量Data = parseMatrixData(
+      年齢別漁獲量Table,
+      yearFilter,
+      extractAge,
+      1000 // 千トン → トン
+    );
+    const 年齢別漁獲係数Data = parseMatrixData(
+      年齢別漁獲係数Table,
+      yearFilter,
+      extractAge,
+      1
+    );
+    const 年齢別資源尾数Data = parseMatrixData(
+      年齢別資源尾数Table,
+      yearFilter,
+      extractAge,
+      1000 // 百万尾 → 千尾
     );
 
-    const 年齢別漁獲量 = this.parseAgeYearMatrix(
-      sheet,
-      yearColumns,
-      14, // Start row for this table
-      年齢範囲,
-      1000 // Convert 千トン → トン
-    );
+    // Parse SPR and F/Fmsy rows from 年齢別漁獲係数 table
+    const SPR = parseRowByLabel(年齢別漁獲係数Table, "%SPR", yearFilter);
+    const F_Fmsy = parseRowByLabel(年齢別漁獲係数Table, "F/Fmsy", yearFilter);
 
-    const 年齢別漁獲係数 = this.parseAgeYearMatrix(
-      sheet,
-      yearColumns,
-      25, // Start row for this table
-      年齢範囲,
-      1 // No conversion
-    );
+    // Derive ranges from parsed data
+    const years = 年齢別漁獲尾数Data.columns.sort((a, b) => a - b);
+    const ages = 年齢別漁獲尾数Data.rows.sort((a, b) => a - b);
 
-    const 年齢別資源尾数 = this.parseAgeYearMatrix(
-      sheet,
-      yearColumns,
-      37, // Start row for this table
-      年齢範囲,
-      1000 // Convert 百万尾 → 千尾
-    );
-
-    // Parse SPR and F/Fmsy (single row each)
-    const SPR = this.parseSingleRowData(sheet, yearColumns, 33);
-    const F_Fmsy = this.parseSingleRowData(sheet, yearColumns, 34);
+    const 年範囲 = { 開始年: years[0], 終了年: years[years.length - 1] };
+    const 年齢範囲 = { 最小年齢: ages[0], 最大年齢: ages[ages.length - 1] };
 
     return {
       年齢別漁獲尾数: create年齢年行列({
         単位: "千尾",
-        年範囲: { 開始年, 終了年 },
+        年範囲,
         年齢範囲,
-        データ: 年齢別漁獲尾数,
+        データ: 年齢別漁獲尾数Data.data,
       }),
       年齢別漁獲量: create年齢年行列({
         単位: "トン",
-        年範囲: { 開始年, 終了年 },
+        年範囲,
         年齢範囲,
-        データ: 年齢別漁獲量,
+        データ: 年齢別漁獲量Data.data,
       }),
       年齢別漁獲係数: create年齢年行列({
         単位: "無次元",
-        年範囲: { 開始年, 終了年 },
+        年範囲,
         年齢範囲,
-        データ: 年齢別漁獲係数,
+        データ: 年齢別漁獲係数Data.data,
       }),
       年齢別資源尾数: create年齢年行列({
         単位: "千尾",
-        年範囲: { 開始年, 終了年 },
+        年範囲,
         年齢範囲,
-        データ: 年齢別資源尾数,
+        データ: 年齢別資源尾数Data.data,
       }),
       SPR,
       F_Fmsy,
@@ -144,132 +218,61 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
   }
 
   /**
-   * ヘッダー行から年の範囲と列位置を取得
+   * コホート解析の詳細シートを検出する
+   *
+   * シート名に「コホート解析」を含むか、A1 セルにその文字列を含むシートを探す
    */
-  private parseYearRange(sheet: WorkSheet): {
-    開始年: number;
-    終了年: number;
-    yearColumns: Map<number, string>;
-  } {
-    const yearColumns = new Map<number, string>();
-    let 開始年 = Infinity;
-    let 終了年 = -Infinity;
+  private findCohortAnalysisSheet(workbook: WorkBook): WorkSheet {
+    // First, try to find by sheet name pattern
+    const cohortSheetName = workbook.SheetNames.find(
+      (name) => name.includes("コホート解析") || /補足表\d+-\d+/.test(name)
+    );
 
-    // Scan header row for year values (columns B onwards)
-    const range = sheet["!ref"];
-    if (!range) {
-      throw new Error("シートの範囲を取得できませんでした");
+    if (cohortSheetName) {
+      return workbook.Sheets[cohortSheetName];
     }
 
-    // Parse range like "A1:Z100"
-    const match = range.match(/([A-Z]+)\d+:([A-Z]+)\d+/);
-    if (!match) {
-      throw new Error(`範囲の形式が不正です: ${range}`);
-    }
-
-    const endCol = match[2];
-    const endColIndex = this.colToIndex(endCol);
-
-    // Scan columns B to end for years in header row
-    for (let colIndex = 1; colIndex <= endColIndex; colIndex++) {
-      const colName = this.indexToCol(colIndex);
-      const cellRef = `${colName}${マイワシ太平洋系群Strategy.HEADER_ROW + 1}`;
-      const cell = sheet[cellRef];
-
-      if (cell && typeof cell.v === "number" && cell.v >= 1900 && cell.v <= 2100) {
-        const year = cell.v;
-        yearColumns.set(year, colName);
-        開始年 = Math.min(開始年, year);
-        終了年 = Math.max(終了年, year);
+    // Fallback: check A1 cell content of each sheet
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const a1 = sheet["A1"];
+      if (a1?.v && String(a1.v).includes("コホート解析")) {
+        return sheet;
       }
     }
 
-    if (yearColumns.size === 0) {
-      throw new Error("年のヘッダーが見つかりませんでした");
-    }
-
-    return { 開始年, 終了年, yearColumns };
+    throw new Error(
+      `コホート解析のシートが見つかりません。存在するシート: ${workbook.SheetNames.join(", ")}`
+    );
   }
 
   /**
-   * 年齢×年のマトリックスデータをパース
+   * テーブルをタイプ別にマップする
    */
-  private parseAgeYearMatrix(
-    sheet: WorkSheet,
-    yearColumns: Map<number, string>,
-    startRow: number,
-    年齢範囲: { 最小年齢: number; 最大年齢: number },
-    multiplier: number
-  ): number[][] {
-    const years = Array.from(yearColumns.keys()).sort((a, b) => a - b);
-    const data: number[][] = [];
+  private mapTablesByType(tables: DetectedTable[]): Map<TableType, DetectedTable> {
+    const map = new Map<TableType, DetectedTable>();
 
-    // For each year, read the column of age data
-    for (const year of years) {
-      const colName = yearColumns.get(year)!;
-      const yearData: number[] = [];
-
-      // Read each age row
-      const numAges = 年齢範囲.最大年齢 - 年齢範囲.最小年齢 + 1;
-      for (let ageOffset = 0; ageOffset < numAges; ageOffset++) {
-        const rowNum = startRow + ageOffset;
-        const cellRef = `${colName}${rowNum}`;
-        const cell = sheet[cellRef];
-
-        const value = cell?.v ?? 0;
-        yearData.push(typeof value === "number" ? value * multiplier : 0);
-      }
-
-      data.push(yearData);
-    }
-
-    return data;
-  }
-
-  /**
-   * 単一行のデータ（SPR, F/Fmsy など）をパース
-   */
-  private parseSingleRowData(
-    sheet: WorkSheet,
-    yearColumns: Map<number, string>,
-    row: number
-  ): Map<number, number> {
-    const result = new Map<number, number>();
-
-    for (const [year, colName] of yearColumns) {
-      const cellRef = `${colName}${row}`;
-      const cell = sheet[cellRef];
-
-      if (cell && typeof cell.v === "number") {
-        result.set(year, cell.v);
+    for (const table of tables) {
+      const type = getTableType(table.title);
+      if (type !== "unknown") {
+        map.set(type, table);
       }
     }
 
-    return result;
+    return map;
   }
 
   /**
-   * Column letter to index (A=0, B=1, ..., Z=25, AA=26, ...)
+   * 必須テーブルを取得する（見つからない場合はエラー）
    */
-  private colToIndex(col: string): number {
-    let index = 0;
-    for (let i = 0; i < col.length; i++) {
-      index = index * 26 + (col.charCodeAt(i) - 64);
+  private getRequiredTable(
+    tableMap: Map<TableType, DetectedTable>,
+    type: TableType
+  ): DetectedTable {
+    const table = tableMap.get(type);
+    if (!table) {
+      throw new Error(`テーブル「${type}」が見つかりません`);
     }
-    return index - 1;
-  }
-
-  /**
-   * Index to column letter (0=A, 1=B, ..., 25=Z, 26=AA, ...)
-   */
-  private indexToCol(index: number): string {
-    let col = "";
-    index++;
-    while (index > 0) {
-      const remainder = (index - 1) % 26;
-      col = String.fromCharCode(65 + remainder) + col;
-      index = Math.floor((index - 1) / 26);
-    }
-    return col;
+    return table;
   }
 }

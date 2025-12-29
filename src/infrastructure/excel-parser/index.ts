@@ -7,4 +7,3 @@
 
 export { PublishedDataExcelParser, createExcelParser } from "./parser";
 export { マイワシ太平洋系群Strategy } from "./strategies";
-

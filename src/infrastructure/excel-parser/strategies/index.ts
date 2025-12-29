@@ -4,4 +4,3 @@
  */
 
 export { マイワシ太平洋系群Strategy } from "./maiwashi-pacific";
-

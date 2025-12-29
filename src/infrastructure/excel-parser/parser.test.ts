@@ -139,10 +139,23 @@ describe("マイワシ太平洋系群Strategy", () => {
       expect(コホート解析結果.SPR.size).toBe(48);
 
       // Verify specific values
-      expect(コホート解析結果.SPR.get(1976)).toBe(1.74);
-      expect(コホート解析結果.SPR.get(2023)).toBe(2.05);
+      expect(コホート解析結果.SPR.get(1976)).toBe(29.25);
+      expect(コホート解析結果.SPR.get(2023)).toBe(21.13);
     });
 
-    it.todo("should parse F/Fmsy as Map with values - requires row position adjustment");
+    it("should parse F/Fmsy as Map with values", () => {
+      const workbook = loadFixtureWorkbook();
+      const strategy = new マイワシ太平洋系群Strategy();
+
+      const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
+      const { コホート解析結果 } = result;
+
+      expect(コホート解析結果.F_Fmsy).toBeInstanceOf(Map);
+      expect(コホート解析結果.F_Fmsy.size).toBe(48);
+
+      // Verify specific values
+      expect(コホート解析結果.F_Fmsy.get(1976)).toBe(1.74);
+      expect(コホート解析結果.F_Fmsy.get(2023)).toBe(2.05);
+    });
   });
 });
