@@ -17,6 +17,7 @@ We are implementing a feature for reviewers to upload published stock assessment
 ### Problem
 
 If reviewers directly modify `資源評価` records:
+
 - Their experimental changes could corrupt official assessment data
 - Multiple reviewers could interfere with each other's work
 - There's no clear separation between "official" and "review" assessments
@@ -24,31 +25,37 @@ If reviewers directly modify `資源評価` records:
 ### Options Considered
 
 1. **Add user ID to 資源評価**
+
    ```typescript
    interface 資源評価 {
-     userId?: string;  // null = official, non-null = reviewer's copy
+     userId?: string; // null = official, non-null = reviewer's copy
      // ...existing fields
    }
    ```
+
    - Pros: Simple implementation
    - Cons: Pollutes the core domain model with access control concerns, queries become complex
 
 2. **Separate "査読用資源評価" concept**
+
    ```typescript
    interface 査読用資源評価 extends 資源評価 {
      readonly 査読者ID: string;
      readonly 元データ: "アップロード" | "公式データコピー";
    }
    ```
+
    - Pros: Clean separation, explicit intent, no pollution of core model
    - Cons: May need parallel repository/service implementations
 
 3. **Multi-tenant approach with tenant ID**
+
    ```typescript
    interface 資源評価 {
-     tenantId: "official" | string;  // string = reviewer user ID
+     tenantId: "official" | string; // string = reviewer user ID
    }
    ```
+
    - Pros: Generic, could support other use cases
    - Cons: Over-engineering for current needs, adds complexity
 
@@ -214,7 +221,7 @@ CREATE TABLE review_assessments (
 );
 
 -- Index for efficient per-reviewer queries
-CREATE INDEX idx_review_assessments_reviewer 
+CREATE INDEX idx_review_assessments_reviewer
   ON review_assessments(reviewer_id);
 ```
 
@@ -228,4 +235,3 @@ CREATE INDEX idx_review_assessments_reviewer
 - Could allow reviewers to "fork" official assessments for comparison
 - Could implement review comments/annotations
 - Could add approval workflow for promoting review assessments to official
-
