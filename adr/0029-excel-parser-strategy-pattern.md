@@ -195,19 +195,23 @@ interface 公開データセット {
 ### Alternatives Considered
 
 1. **Add stock type parameter to 年齢年行列**
+
    ```typescript
    interface 年齢年行列<U extends 単位, S extends 資源名>
    ```
+
    - Pros: Type-level stock tracking
    - Cons: Changes all existing usage, mixes concerns
    - Decision: Not adopted
 
 2. **Generic parser with configuration**
+
    ```typescript
    class ConfigurableParser {
      constructor(config: ParserConfig) {}
    }
    ```
+
    - Pros: Single class, configuration-driven
    - Cons: Complex config, harder to handle edge cases
    - Decision: Not adopted. Strategy pattern is simpler for varying formats
@@ -254,6 +258,7 @@ src/
 ```
 
 This separation ensures:
+
 - Domain layer remains pure (no external library dependencies)
 - xlsx library dependency is encapsulated in infrastructure layer
 - Easy to swap implementations (e.g., for testing)
