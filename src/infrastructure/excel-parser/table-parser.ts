@@ -3,11 +3,7 @@
  *
  * Extracts structured data from 2D table arrays.
  */
-import {
-  DetectedTable,
-  detectColumnMapping,
-  getDataRows,
-} from "./table-detector";
+import { DetectedTable, detectColumnMapping, getDataRows } from "./table-detector";
 
 /**
  * Parsed matrix data (row × column)

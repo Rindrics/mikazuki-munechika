@@ -66,10 +66,7 @@ const defaultIsTableTitle = (value: string | undefined): boolean => {
  * @param options - Detection options
  * @returns Array of detected tables
  */
-export function detectTables(
-  sheet: WorkSheet,
-  options: DetectTablesOptions = {}
-): DetectedTable[] {
+export function detectTables(sheet: WorkSheet, options: DetectTablesOptions = {}): DetectedTable[] {
   const {
     isTableTitle = defaultIsTableTitle,
     isHeaderRow,

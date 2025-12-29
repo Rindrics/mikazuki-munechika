@@ -163,12 +163,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
       extractAge,
       1000 // 千トン → トン
     );
-    const 年齢別漁獲係数Data = parseMatrixData(
-      年齢別漁獲係数Table,
-      yearFilter,
-      extractAge,
-      1
-    );
+    const 年齢別漁獲係数Data = parseMatrixData(年齢別漁獲係数Table, yearFilter, extractAge, 1);
     const 年齢別資源尾数Data = parseMatrixData(
       年齢別資源尾数Table,
       yearFilter,

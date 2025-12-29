@@ -47,7 +47,7 @@ const extractAge = (label: string): number | null => {
 };
 
 // Extract only age rows
-const ageRows = data.filter(row => extractAge(row[0]) !== null);
+const ageRows = data.filter((row) => extractAge(row[0]) !== null);
 ```
 
 ### Rationale
@@ -92,7 +92,7 @@ const ageRows = data.filter(row => extractAge(row[0]) !== null);
 
    ```typescript
    const data = extractBlockData(sheet, block, {
-     rowFilter: (row) => /^\d歳/.test(row[0])
+     rowFilter: (row) => /^\d歳/.test(row[0]),
    });
    ```
 
@@ -104,7 +104,7 @@ const ageRows = data.filter(row => extractAge(row[0]) !== null);
 
    ```typescript
    const { dataRows, additionalRows } = extractBlockData(sheet, block, {
-     additionalRowPatterns: [/^計$/, /^%SPR$/]
+     additionalRowPatterns: [/^計$/, /^%SPR$/],
    });
    ```
 
