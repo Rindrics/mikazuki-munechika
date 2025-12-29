@@ -35,6 +35,7 @@
     "@opentelemetry/sdk-logs": "^0.208.0",
     "@opentelemetry/sdk-metrics": "^2.2.0",
     "@opentelemetry/semantic-conventions": "^1.38.0",
+    "@rindrics/tblparse": "^0.0.6",
     "@sentry/nextjs": "^10",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.1",
