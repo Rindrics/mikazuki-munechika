@@ -98,7 +98,6 @@ export function detectTables(sheet: WorkSheet, options: DetectTablesOptions = {}
     const data = extractBlockData(sheet, block);
 
     // Calculate indices within data array
-    const titleRowIndex = structure.titleRow ? 0 : -1;
     const headerIndex = calculateHeaderIndex(structure, block);
     const dataStartIndex = headerIndex + 1;
 
