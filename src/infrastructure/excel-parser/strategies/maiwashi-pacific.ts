@@ -175,9 +175,26 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     const SPR = parseRowByLabel(年齢別漁獲係数Table, "%SPR", yearFilter);
     const F_Fmsy = parseRowByLabel(年齢別漁獲係数Table, "F/Fmsy", yearFilter);
 
-    // Derive ranges from parsed data
-    const years = 年齢別漁獲尾数Data.columns.sort((a, b) => a - b);
-    const ages = 年齢別漁獲尾数Data.rows.sort((a, b) => a - b);
+    // Validate and derive ranges from parsed data
+    const { columns, rows } = 年齢別漁獲尾数Data;
+    const bugReportUrl = "https://github.com/Rindrics/mikazuki-munechika/issues";
+
+    if (!Array.isArray(columns) || columns.length === 0) {
+      throw new Error(
+        "データの読み取りに失敗しました（年データが見つかりません）。\n" +
+          `この問題が続く場合は、バグ報告をお願いします: ${bugReportUrl}`
+      );
+    }
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error(
+        "データの読み取りに失敗しました（年齢データが見つかりません）。\n" +
+          `この問題が続く場合は、バグ報告をお願いします: ${bugReportUrl}`
+      );
+    }
+
+    const years = [...columns].sort((a, b) => a - b);
+    const ages = [...rows].sort((a, b) => a - b);
 
     const 年範囲 = { 開始年: years[0], 終了年: years[years.length - 1] };
     const 年齢範囲 = { 最小年齢: ages[0], 最大年齢: ages[ages.length - 1] };
