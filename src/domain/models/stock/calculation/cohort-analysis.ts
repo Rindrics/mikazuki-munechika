@@ -5,7 +5,7 @@ import type {
   コホート解析入力,
   コホート解析用データ,
   前年までの資源計算結果,
-  翌年資源計算結果,
+  当年までの資源計算結果,
   再生産関係残差,
   F,
   将来予測結果,
@@ -29,7 +29,7 @@ const defaultParameters: Required<CalculationParameters> = {
   M: () => 固定値(0.4),
   資源量指標値: { value: "default CPUE" },
   再生産関係残差: { 残差: [0.1, -0.1, 0.05] },
-  翌年のF: { 値: 0.5 },
+  当年のF: { 値: 0.5 },
   将来予測年数: 10,
   漁獲管理規則: {
     目標F: 0.5,
@@ -215,7 +215,10 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     } as 前年までの資源計算結果;
   };
 
-  const 前進計算 = (前年結果: 前年までの資源計算結果, 残差: 再生産関係残差): 翌年資源計算結果 => {
+  const 前進計算 = (
+    前年結果: 前年までの資源計算結果,
+    残差: 再生産関係残差
+  ): 当年までの資源計算結果 => {
     logger.info("前進計算を開始します", { 前年最終年: 前年結果.最終年 });
     logger.debug("前進計算の入力", {
       前年最終年: 前年結果.最終年,
@@ -227,13 +230,13 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     logs.push(log);
 
     // Extend the year range by 1
-    const 翌年 = 前年結果.最終年 + 1;
+    const 当年 = 前年結果.最終年 + 1;
     const 開始年 = 前年結果.年齢別資源尾数.年範囲.開始年;
-    const 年数 = 翌年 - 開始年 + 1;
+    const 年数 = 当年 - 開始年 + 1;
 
     const dummyMatrix千尾 = create年齢年行列({
       単位: "千尾",
-      年範囲: { 開始年, 終了年: 翌年 },
+      年範囲: { 開始年, 終了年: 当年 },
       年齢範囲: 前年結果.年齢別資源尾数.年齢範囲,
       データ: Array(年数)
         .fill(null)
@@ -242,43 +245,43 @@ export function createコホート解析Strategy(): コホート解析Strategy {
 
     const dummyMatrixトン = create年齢年行列({
       単位: "トン",
-      年範囲: { 開始年, 終了年: 翌年 },
+      年範囲: { 開始年, 終了年: 当年 },
       年齢範囲: 前年結果.年齢別資源尾数.年齢範囲,
       データ: Array(年数)
         .fill(null)
         .map(() => Array(6).fill(1000)),
     });
 
-    logger.info("前進計算が完了しました", { 翌年最終年: 翌年 });
+    logger.info("前進計算が完了しました", { 当年最終年: 当年 });
 
     return {
-      最終年: 翌年,
+      最終年: 当年,
       年齢別資源尾数: dummyMatrix千尾,
       親魚量: dummyMatrixトン,
       加入量: dummyMatrix千尾,
-      __kind: "翌年",
-    } as 翌年資源計算結果;
+      __kind: "当年まで",
+    } as 当年までの資源計算結果;
   };
 
-  const 将来予測 = (翌年結果: 翌年資源計算結果, F: F, 予測年数: number): 将来予測結果 => {
+  const 将来予測 = (当年結果: 当年までの資源計算結果, F: F, 予測年数: number): 将来予測結果 => {
     logger.info("将来予測を開始します", {
-      翌年最終年: 翌年結果.最終年,
+      当年最終年: 当年結果.最終年,
       予測年数,
     });
     logger.debug("将来予測の入力", {
-      翌年最終年: 翌年結果.最終年,
+      当年最終年: 当年結果.最終年,
       F: F.値,
       予測年数,
     });
 
-    const log = `[将来予測] 翌年最終年=${翌年結果.最終年}, F=${F.値}, 予測年数=${予測年数}`;
+    const log = `[将来予測] 当年最終年=${当年結果.最終年}, F=${F.値}, 予測年数=${予測年数}`;
     logs.push(log);
 
-    const endYear = 翌年結果.最終年 + 予測年数;
+    const endYear = 当年結果.最終年 + 予測年数;
 
     const dummyMatrixトン = create年齢年行列({
       単位: "トン",
-      年範囲: { 開始年: 翌年結果.最終年, 終了年: endYear },
+      年範囲: { 開始年: 当年結果.最終年, 終了年: endYear },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
       データ: Array(予測年数 + 1)
         .fill(null)
@@ -287,7 +290,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
 
     const dummyMatrix千尾 = create年齢年行列({
       単位: "千尾",
-      年範囲: { 開始年: 翌年結果.最終年, 終了年: endYear },
+      年範囲: { 開始年: 当年結果.最終年, 終了年: endYear },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
       データ: Array(予測年数 + 1)
         .fill(null)
@@ -356,7 +359,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     {
       methodName: "前進計算",
       inputNames: ["前年までの資源計算結果", "再生産関係残差"],
-      outputName: "翌年資源計算結果",
+      outputName: "当年までの資源計算結果",
       execute: (ctx) =>
         前進計算(
           ctx["前年までの資源計算結果"] as 前年までの資源計算結果,
@@ -365,12 +368,12 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     },
     {
       methodName: "将来予測",
-      inputNames: ["翌年資源計算結果", "翌年のF", "将来予測年数"],
+      inputNames: ["当年までの資源計算結果", "当年のF", "将来予測年数"],
       outputName: "将来予測結果",
       execute: (ctx) =>
         将来予測(
-          ctx["翌年資源計算結果"] as 翌年資源計算結果,
-          ctx.params.翌年のF,
+          ctx["当年までの資源計算結果"] as 当年までの資源計算結果,
+          ctx.params.当年のF,
           ctx.params.将来予測年数
         ),
     },
