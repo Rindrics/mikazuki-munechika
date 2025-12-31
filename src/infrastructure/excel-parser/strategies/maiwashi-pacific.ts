@@ -148,6 +148,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     const 年齢別漁獲量Table = this.getRequiredTable(tableMap, "年齢別漁獲量");
     const 年齢別漁獲係数Table = this.getRequiredTable(tableMap, "年齢別漁獲係数");
     const 年齢別資源尾数Table = this.getRequiredTable(tableMap, "年齢別資源尾数");
+    const 年齢別資源量Table = this.getRequiredTable(tableMap, "年齢別資源量");
 
     // Parse age-year matrices
     // Note: Excel uses 百万尾, we convert to 千尾
@@ -169,6 +170,12 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
       yearFilter,
       extractAge,
       1000 // 百万尾 → 千尾
+    );
+    const 年齢別資源量Data = parseMatrixData(
+      年齢別資源量Table,
+      yearFilter,
+      extractAge,
+      1000 // 千トン → トン
     );
 
     // Parse SPR and F/Fmsy rows from 年齢別漁獲係数 table
@@ -198,8 +205,16 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
 
     const 年範囲 = { 開始年: years[0], 終了年: years[years.length - 1] };
     const 年齢範囲 = { 最小年齢: ages[0], 最大年齢: ages[ages.length - 1] };
+    const 最終年 = years[years.length - 1];
+
+    // Derive 親魚量 (sum of 年齢別資源量 for each year)
+    const 親魚量データ = this.derive親魚量(年齢別資源量Data.data, years);
+
+    // Derive 加入量 (0-year-old from 年齢別資源尾数)
+    const 加入量データ = this.derive加入量(年齢別資源尾数Data.data, ages);
 
     return {
+      最終年,
       年齢別漁獲尾数: create年齢年行列({
         単位: "千尾",
         年範囲,
@@ -224,9 +239,62 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
         年齢範囲,
         データ: 年齢別資源尾数Data.data,
       }),
+      年齢別資源量: create年齢年行列({
+        単位: "トン",
+        年範囲,
+        年齢範囲,
+        データ: 年齢別資源量Data.data,
+      }),
+      親魚量: create年齢年行列({
+        単位: "トン",
+        年範囲,
+        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single row for totals
+        データ: [親魚量データ],
+      }),
+      加入量: create年齢年行列({
+        単位: "千尾",
+        年範囲,
+        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single row for 0-year-old
+        データ: [加入量データ],
+      }),
       SPR,
       F_Fmsy,
     };
+  }
+
+  /**
+   * 年齢別資源量から親魚量を計算（各年の合計）
+   */
+  private derive親魚量(data: number[][], years: number[]): number[] {
+    // Sum all ages for each year (column)
+    const numYears = years.length;
+    const result: number[] = [];
+
+    for (let yearIdx = 0; yearIdx < numYears; yearIdx++) {
+      let sum = 0;
+      for (const row of data) {
+        sum += row[yearIdx] ?? 0;
+      }
+      result.push(sum);
+    }
+
+    return result;
+  }
+
+  /**
+   * 年齢別資源尾数から加入量を計算（0歳の資源尾数）
+   */
+  private derive加入量(data: number[][], ages: number[]): number[] {
+    // Find the row index for age 0
+    const zeroAgeIndex = ages.indexOf(0);
+
+    if (zeroAgeIndex === -1) {
+      // If no 0-year-old, return empty array filled with zeros
+      return data[0]?.map(() => 0) ?? [];
+    }
+
+    // Return the 0-year-old row
+    return data[zeroAgeIndex] ?? [];
   }
 
   /**

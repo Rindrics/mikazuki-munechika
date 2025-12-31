@@ -15,38 +15,61 @@ import { 資源名s } from "@/domain/constants";
  * Create a mock コホート解析結果 for testing
  */
 function createMockコホート解析結果(): コホート解析結果 {
+  const 年範囲 = { 開始年: 2020, 終了年: 2023 };
+  const 年齢範囲 = { 最小年齢: 0, 最大年齢: 5 };
+
   const matrix千尾 = create年齢年行列({
     単位: "千尾",
-    年範囲: { 開始年: 2020, 終了年: 2023 },
-    年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-    データ: Array(4)
+    年範囲,
+    年齢範囲,
+    データ: Array(6)
       .fill(null)
-      .map(() => Array(6).fill(100)),
+      .map(() => Array(4).fill(100)),
   });
 
   const matrixトン = create年齢年行列({
     単位: "トン",
-    年範囲: { 開始年: 2020, 終了年: 2023 },
-    年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-    データ: Array(4)
+    年範囲,
+    年齢範囲,
+    データ: Array(6)
       .fill(null)
-      .map(() => Array(6).fill(1000)),
+      .map(() => Array(4).fill(1000)),
   });
 
   const matrix無次元 = create年齢年行列({
     単位: "無次元",
-    年範囲: { 開始年: 2020, 終了年: 2023 },
-    年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-    データ: Array(4)
+    年範囲,
+    年齢範囲,
+    データ: Array(6)
       .fill(null)
-      .map(() => Array(6).fill(0.1)),
+      .map(() => Array(4).fill(0.1)),
+  });
+
+  // Single row for 親魚量 (sum of all ages per year)
+  const 親魚量 = create年齢年行列({
+    単位: "トン",
+    年範囲,
+    年齢範囲: { 最小年齢: 0, 最大年齢: 0 },
+    データ: [[6000, 6000, 6000, 6000]], // 1000 * 6 ages
+  });
+
+  // Single row for 加入量 (0-year-old)
+  const 加入量 = create年齢年行列({
+    単位: "千尾",
+    年範囲,
+    年齢範囲: { 最小年齢: 0, 最大年齢: 0 },
+    データ: [[100, 100, 100, 100]],
   });
 
   return {
+    最終年: 2023,
     年齢別漁獲尾数: matrix千尾,
     年齢別漁獲量: matrixトン,
     年齢別漁獲係数: matrix無次元,
     年齢別資源尾数: matrix千尾,
+    年齢別資源量: matrixトン,
+    親魚量,
+    加入量,
     SPR: new Map([
       [2020, 20],
       [2021, 21],
