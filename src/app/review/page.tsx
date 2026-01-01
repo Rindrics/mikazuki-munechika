@@ -106,9 +106,7 @@ export default function ReviewPage() {
       <section className="mb-8">
         <h2 className="mb-4">データ表をアップロード</h2>
         <p className="text-secondary mb-4">
-          <a href="https://abchan.fra.go.jp/hyouka/datatable/">
-          資源評価結果ページ
-          </a>
+          <a href="https://abchan.fra.go.jp/hyouka/datatable/">資源評価結果ページ</a>
           からダウンロードした資源評価報告書のデータ表（Excel 形式）をアップロードしてください
         </p>
 
