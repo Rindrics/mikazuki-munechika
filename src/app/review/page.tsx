@@ -49,6 +49,7 @@ export default function ReviewPage() {
 
     setIsSaving(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const formData = new FormData();
