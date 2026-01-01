@@ -248,14 +248,14 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
       親魚量: create年齢年行列({
         単位: "トン",
         年範囲,
-        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single row for totals
-        データ: [親魚量データ],
+        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single age per year
+        データ: 親魚量データ.map((value) => [value]), // Transform to [[v0],[v1],...]
       }),
       加入量: create年齢年行列({
         単位: "千尾",
         年範囲,
-        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single row for 0-year-old
-        データ: [加入量データ],
+        年齢範囲: { 最小年齢: 0, 最大年齢: 0 }, // Single age (0-year-old) per year
+        データ: 加入量データ.map((value) => [value]), // Transform to [[v0],[v1],...]
       }),
       SPR,
       F_Fmsy,

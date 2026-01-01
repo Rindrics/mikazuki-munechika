@@ -49,20 +49,20 @@ function createMockコホート解析結果(): コホート解析結果 {
       .map(() => Array(numAges).fill(0.1)),
   });
 
-  // Single row for 親魚量 (sum of all ages per year)
+  // Single-age matrices: 4 years × 1 age (data[yearIndex][ageIndex])
   const 親魚量 = create年齢年行列({
     単位: "トン",
     年範囲,
     年齢範囲: { 最小年齢: 0, 最大年齢: 0 },
-    データ: [[6000, 6000, 6000, 6000]], // 1000 * 6 ages
+    データ: [[6000], [6000], [6000], [6000]], // 1000 * 6 ages per year
   });
 
-  // Single row for 加入量 (0-year-old)
+  // Single-age matrix for 加入量 (0-year-old)
   const 加入量 = create年齢年行列({
     単位: "千尾",
     年範囲,
     年齢範囲: { 最小年齢: 0, 最大年齢: 0 },
-    データ: [[100, 100, 100, 100]],
+    データ: [[100], [100], [100], [100]],
   });
 
   return {
