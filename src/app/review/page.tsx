@@ -15,6 +15,7 @@ export default function ReviewPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [inputKey, setInputKey] = useState(Date.now());
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -63,6 +64,7 @@ export default function ReviewPage() {
         setSuccess("保存しました");
         setParsedData(null);
         setFile(null);
+        setInputKey(Date.now()); // Reset input to allow reselecting the same file
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存中にエラーが発生しました");
@@ -114,6 +116,7 @@ export default function ReviewPage() {
 
         <div className="space-y-4">
           <input
+            key={inputKey}
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileChange}
