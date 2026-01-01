@@ -18,31 +18,35 @@ function createMockコホート解析結果(): コホート解析結果 {
   const 年範囲 = { 開始年: 2020, 終了年: 2023 };
   const 年齢範囲 = { 最小年齢: 0, 最大年齢: 5 };
 
+  // Calculate dimensions: data[yearIndex][ageIndex]
+  const numYears = 年範囲.終了年 - 年範囲.開始年 + 1; // 4 years
+  const numAges = 年齢範囲.最大年齢 - 年齢範囲.最小年齢 + 1; // 6 ages
+
   const matrix千尾 = create年齢年行列({
     単位: "千尾",
     年範囲,
     年齢範囲,
-    データ: Array(6)
+    データ: Array(numYears)
       .fill(null)
-      .map(() => Array(4).fill(100)),
+      .map(() => Array(numAges).fill(100)),
   });
 
   const matrixトン = create年齢年行列({
     単位: "トン",
     年範囲,
     年齢範囲,
-    データ: Array(6)
+    データ: Array(numYears)
       .fill(null)
-      .map(() => Array(4).fill(1000)),
+      .map(() => Array(numAges).fill(1000)),
   });
 
   const matrix無次元 = create年齢年行列({
     単位: "無次元",
     年範囲,
     年齢範囲,
-    データ: Array(6)
+    データ: Array(numYears)
       .fill(null)
-      .map(() => Array(4).fill(0.1)),
+      .map(() => Array(numAges).fill(0.1)),
   });
 
   // Single row for 親魚量 (sum of all ages per year)
