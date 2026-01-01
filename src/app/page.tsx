@@ -24,7 +24,7 @@ export default function Home() {
     },
     {
       text: "レビュー機能（第三者向け）",
-      href: undefined,
+      href: "/review",
       description: "詳細版の計算結果を公開データを使って検証するための環境を提供する",
     },
     {
