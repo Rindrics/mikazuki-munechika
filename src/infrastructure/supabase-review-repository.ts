@@ -17,7 +17,7 @@ async function getServerClient() {
 }
 
 /**
- * Database row type for reviews table
+ * Database row type for review_assessments table
  */
 interface ReviewRow {
   id: string;
@@ -57,7 +57,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
     const supabase = await getServerClient();
 
     // Upsert to handle both insert and update
-    const { error } = await supabase.from("reviews").upsert(
+    const { error } = await supabase.from("review_assessments").upsert(
       {
         id: 評価.id,
         reviewer_id: 評価.査読者ID,
@@ -84,7 +84,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
     const supabase = await getServerClient();
 
     const { data, error } = await supabase
-      .from("reviews")
+      .from("review_assessments")
       .select("*")
       .eq("reviewer_id", 査読者ID)
       .order("updated_at", { ascending: false });
@@ -117,7 +117,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
     const supabase = await getServerClient();
 
     const { data, error } = await supabase
-      .from("reviews")
+      .from("review_assessments")
       .select("*")
       .eq("reviewer_id", 査読者ID)
       .eq("stock_name", 資源名)
@@ -158,7 +158,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
 
     const supabase = await getServerClient();
 
-    const { data, error } = await supabase.from("reviews").select("*").eq("id", id).single();
+    const { data, error } = await supabase.from("review_assessments").select("*").eq("id", id).single();
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -180,7 +180,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
 
     const supabase = await getServerClient();
 
-    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    const { error } = await supabase.from("review_assessments").delete().eq("id", id);
 
     if (error) {
       logger.error("SupabaseReviewRepository.delete failed", { id }, error);
@@ -195,7 +195,7 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
 
     const supabase = await getServerClient();
 
-    const { error } = await supabase.from("reviews").delete().eq("reviewer_id", 査読者ID);
+    const { error } = await supabase.from("review_assessments").delete().eq("reviewer_id", 査読者ID);
 
     if (error) {
       logger.error("SupabaseReviewRepository.deleteBy査読者ID failed", { 査読者ID }, error);
