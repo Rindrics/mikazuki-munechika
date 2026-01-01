@@ -158,7 +158,11 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
 
     const supabase = await getServerClient();
 
-    const { data, error } = await supabase.from("review_assessments").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("review_assessments")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -195,7 +199,10 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
 
     const supabase = await getServerClient();
 
-    const { error } = await supabase.from("review_assessments").delete().eq("reviewer_id", 査読者ID);
+    const { error } = await supabase
+      .from("review_assessments")
+      .delete()
+      .eq("reviewer_id", 査読者ID);
 
     if (error) {
       logger.error("SupabaseReviewRepository.deleteBy査読者ID failed", { 査読者ID }, error);
