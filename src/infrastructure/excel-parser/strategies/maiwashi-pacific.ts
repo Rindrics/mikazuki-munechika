@@ -266,15 +266,13 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
    * 年齢別資源量から親魚量を計算（各年の合計）
    */
   private derive親魚量(data: number[][], years: number[]): number[] {
-    // Sum all ages for each year (column)
-    const numYears = years.length;
+    // Sum all ages for each year
+    // data is indexed as data[yearIndex][ageIndex]
     const result: number[] = [];
 
-    for (let yearIdx = 0; yearIdx < numYears; yearIdx++) {
-      let sum = 0;
-      for (const row of data) {
-        sum += row[yearIdx] ?? 0;
-      }
+    for (let yearIdx = 0; yearIdx < years.length; yearIdx++) {
+      const yearData = data[yearIdx] ?? [];
+      const sum = yearData.reduce((acc, val) => acc + (val ?? 0), 0);
       result.push(sum);
     }
 
@@ -285,16 +283,17 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
    * 年齢別資源尾数から加入量を計算（0歳の資源尾数）
    */
   private derive加入量(data: number[][], ages: number[]): number[] {
-    // Find the row index for age 0
-    const zeroAgeIndex = ages.indexOf(0);
+    // Find the age index for age 0
+    const ageIndex = ages.indexOf(0);
 
-    if (zeroAgeIndex === -1) {
-      // If no 0-year-old, return empty array filled with zeros
-      return data[0]?.map(() => 0) ?? [];
+    if (ageIndex === -1) {
+      // If no 0-year-old, return array of zeros for each year
+      return data.map(() => 0);
     }
 
-    // Return the 0-year-old row
-    return data[zeroAgeIndex] ?? [];
+    // Extract age-0 values across all years
+    // data is indexed as data[yearIndex][ageIndex]
+    return data.map((yearData) => yearData[ageIndex] ?? 0);
   }
 
   /**
