@@ -86,12 +86,13 @@ export default function ReviewPage() {
       <main className="p-8 max-w-3xl mx-auto">
         <h1 className="mb-8">査読用データアップロード</h1>
         <p className="text-secondary">
-          <span
+          <button
+            type="button"
             onClick={() => setIsAuthModalOpen(true)}
-            className="text-link hover:text-link-hover underline cursor-pointer"
+            className="text-link hover:text-link-hover underline cursor-pointer bg-transparent border-0 p-0 font-inherit"
           >
             ログイン
-          </span>
+          </button>
           してください。
         </p>
         <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
