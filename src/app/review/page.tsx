@@ -174,7 +174,7 @@ export default function ReviewPage() {
             className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-dark cursor-pointer disabled:opacity-50"
           />
 
-          {isParsing && <p className="text-sm text-secondary">パース中...</p>}
+          {isParsing && <p className="text-sm text-secondary">読み込み中...</p>}
         </div>
       </section>
 
@@ -187,7 +187,7 @@ export default function ReviewPage() {
       {parsedData && (
         <>
           <section className="mb-8">
-            <h2 className="mb-4">パース結果</h2>
+            <h2 className="mb-4">データ表の要約</h2>
 
             <div className="p-4 border rounded-lg space-y-4">
               <div>
