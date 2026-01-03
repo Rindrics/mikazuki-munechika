@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
 import {
@@ -32,6 +32,16 @@ export default function ReviewPage() {
     生物学的データ: string;
   } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Check if parameters have changed since calculation
+  const hasParametersChanged = useMemo(() => {
+    return !!(
+      abcResult &&
+      calculatedParams &&
+      (calculatedParams.漁獲データ !== 漁獲データValue ||
+        calculatedParams.生物学的データ !== 生物学的データValue)
+    );
+  }, [abcResult, calculatedParams, 漁獲データValue, 生物学的データValue]);
 
   const handleCalculate = useCallback(async () => {
     if (!parsedData) return;
@@ -270,33 +280,18 @@ export default function ReviewPage() {
                 )}
               </div>
 
-              {abcResult &&
-                calculatedParams &&
-                (calculatedParams.漁獲データ !== 漁獲データValue ||
-                  calculatedParams.生物学的データ !== 生物学的データValue) && (
-                  <p className="text-secondary text-sm">
-                    パラメータが変更されました。保存するには再計算してください。
-                  </p>
-                )}
+              {hasParametersChanged && (
+                <p className="text-secondary text-sm">
+                  パラメータが変更されました。保存するには再計算してください。
+                </p>
+              )}
             </div>
           </section>
 
           <section className="mb-8">
             <h2 className="mb-4">保存</h2>
 
-            <Button
-              onClick={handleSave}
-              disabled={
-                isSaving ||
-                // Disable if ABC was calculated but parameters have changed
-                !!(
-                  abcResult &&
-                  calculatedParams &&
-                  (calculatedParams.漁獲データ !== 漁獲データValue ||
-                    calculatedParams.生物学的データ !== 生物学的データValue)
-                )
-              }
-            >
+            <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
               {isSaving ? "保存中..." : "保存する"}
             </Button>
           </section>
