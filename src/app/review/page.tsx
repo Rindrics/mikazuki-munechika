@@ -21,7 +21,6 @@ export default function ReviewPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [inputKey, setInputKey] = useState(Date.now());
 
   // ABC calculation state
   const [漁獲データValue, set漁獲データValue] = useState("");
@@ -117,13 +116,6 @@ export default function ReviewPage() {
         setError(result.error);
       } else {
         setSuccess("保存しました");
-        setParsedData(null);
-        setFile(null);
-        setAbcResult(null);
-        setCalculatedParams(null);
-        set漁獲データValue("");
-        set生物学的データValue("");
-        setInputKey(Date.now()); // Reset input to allow reselecting the same file
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存中にエラーが発生しました");
@@ -175,7 +167,6 @@ export default function ReviewPage() {
 
         <div className="space-y-4">
           <input
-            key={inputKey}
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileChange}
@@ -183,7 +174,7 @@ export default function ReviewPage() {
             className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-dark cursor-pointer disabled:opacity-50"
           />
 
-          {isParsing && <p className="text-sm text-secondary">パース中...</p>}
+          {isParsing && <p className="text-sm text-secondary">読み込み中...</p>}
         </div>
       </section>
 
@@ -193,16 +184,10 @@ export default function ReviewPage() {
         </div>
       )}
 
-      {success && (
-        <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800">{success}</p>
-        </div>
-      )}
-
       {parsedData && (
         <>
           <section className="mb-8">
-            <h2 className="mb-4">パース結果</h2>
+            <h2 className="mb-4">データ表の要約</h2>
 
             <div className="p-4 border rounded-lg space-y-4">
               <div>
@@ -294,6 +279,12 @@ export default function ReviewPage() {
             <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
               {isSaving ? "保存中..." : "保存する"}
             </Button>
+
+            {success && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800">{success}</p>
+              </div>
+            )}
           </section>
         </>
       )}
