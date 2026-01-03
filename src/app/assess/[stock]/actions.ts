@@ -20,12 +20,27 @@ import { SupabaseAuditLogRepository } from "@/infrastructure/supabase-audit-log-
 import { logger } from "@/utils/logger";
 import { SupabaseClient } from "@supabase/supabase-js";
 
-// Get current fiscal year (April-based fiscal year in Japan)
-function getCurrentFiscalYear(): number {
+/**
+ * Get current fiscal year from system settings
+ * Falls back to calculated fiscal year if system setting is not configured
+ */
+async function getCurrentFiscalYear(): Promise<number> {
+  const supabase = await getSupabaseServerClient();
+
+  const { data } = await supabase
+    .from("system_settings")
+    .select("value")
+    .eq("key", "current_fiscal_year")
+    .single();
+
+  if (data) {
+    return data.value as number;
+  }
+
+  // Fallback: Calculate from current date (April-based fiscal year in Japan)
   const now = new Date();
   const month = now.getMonth() + 1; // 0-indexed
   const year = now.getFullYear();
-  // Fiscal year starts in April
   return month >= 4 ? year : year - 1;
 }
 
@@ -128,7 +143,7 @@ export async function saveAssessmentResultAction(
 ): Promise<{ version: number; isNew: boolean }> {
   // Check current status - only "作業中" or "再検討中" can save results
   const statusRepository = await create資源評価RepositoryServer();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
   const currentAssessment = await statusRepository.findBy資源名And年度(stockGroupName, 年度);
   const currentStatus = currentAssessment?.ステータス ?? "未着手";
 
@@ -167,7 +182,7 @@ export async function saveAssessmentResultAction(
 export async function getVersionHistoryAction(
   stockGroupName: 資源名
 ): Promise<VersionedAssessmentResult[]> {
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
   const repository = createAssessmentResultRepository();
 
   const versions = await repository.findByStockNameAndFiscalYear(stockGroupName, 年度);
@@ -182,7 +197,7 @@ export async function getAssessmentResultByVersionAction(
   stockGroupName: 資源名,
   version: number
 ): Promise<VersionedAssessmentResult | undefined> {
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
   const repository = createAssessmentResultRepository();
 
   return repository.findByStockNameAndVersion(stockGroupName, 年度, version);
@@ -195,7 +210,7 @@ export async function getAssessmentStatusAction(
   stockGroupName: 資源名
 ): Promise<{ status: 評価ステータス; approvedVersion?: number }> {
   const repository = await create資源評価RepositoryServer();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   const assessment = await repository.findBy資源名And年度(stockGroupName, 年度);
 
@@ -234,7 +249,7 @@ export async function startWorkAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -293,7 +308,7 @@ export async function requestInternalReviewAction(
   const repository = await create資源評価RepositoryServer();
   const resultRepository = createAssessmentResultRepository();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Verify the target version exists
   const targetResult = await resultRepository.findByStockNameAndVersion(
@@ -364,7 +379,7 @@ export async function cancelInternalReviewAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -425,7 +440,7 @@ export async function approveInternalReviewAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -525,7 +540,7 @@ export async function cancelApprovalAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -588,7 +603,7 @@ export async function requestReconsiderationAction(
   const repository = await create資源評価RepositoryServer();
   const resultRepository = createAssessmentResultRepository();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -699,7 +714,7 @@ export async function publishExternallyAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -788,7 +803,7 @@ export async function stopExternalPublicationAction(
 
   const repository = await create資源評価RepositoryServer();
   const auditLogRepository = new SupabaseAuditLogRepository();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
 
   // Get current status
   const currentAssessment = await repository.findBy資源名And年度(stockGroupName, 年度);
@@ -840,7 +855,7 @@ export async function getPublicationHistoryAction(stockGroupName: 資源名): Pr
   }>
 > {
   const supabase = await getSupabaseServerClient();
-  const 年度 = getCurrentFiscalYear();
+  const 年度 = await getCurrentFiscalYear();
   const stockGroupId = await getStockGroupId(supabase, stockGroupName);
 
   const { data, error } = await supabase
