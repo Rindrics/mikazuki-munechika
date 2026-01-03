@@ -21,7 +21,6 @@ export default function ReviewPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [inputKey, setInputKey] = useState(Date.now());
 
   // ABC calculation state
   const [漁獲データValue, set漁獲データValue] = useState("");
@@ -168,7 +167,6 @@ export default function ReviewPage() {
 
         <div className="space-y-4">
           <input
-            key={inputKey}
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileChange}
@@ -183,12 +181,6 @@ export default function ReviewPage() {
       {error && (
         <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-800 whitespace-pre-wrap">{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800">{success}</p>
         </div>
       )}
 
@@ -287,6 +279,12 @@ export default function ReviewPage() {
             <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
               {isSaving ? "保存中..." : "保存する"}
             </Button>
+
+            {success && (
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800">{success}</p>
+              </div>
+            )}
           </section>
         </>
       )}
