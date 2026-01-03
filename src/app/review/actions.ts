@@ -224,8 +224,12 @@ export async function getPublishedAssessmentAction(
     const assessmentRepo = await create資源評価RepositoryServer();
     const assessment = await assessmentRepo.findBy資源名And年度(資源名, 年度);
 
-    if (!assessment?.承諾バージョン) {
-      return { error: "承諾済みのバージョンが見つかりません" };
+    if (!assessment) {
+      return { error: `${資源名}（${年度}年度）の資源評価が見つかりません` };
+    }
+
+    if (!assessment.承諾バージョン) {
+      return { error: `${資源名}（${年度}年度）は承諾済みのバージョンがありません（現在のステータス: ${assessment.ステータス}）` };
     }
 
     // 2. Fetch the approved version from assessment_results

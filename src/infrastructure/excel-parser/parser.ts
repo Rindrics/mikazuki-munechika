@@ -79,7 +79,7 @@ export class PublishedDataExcelParser implements ExcelParser {
 
     if (!strategy) {
       throw new Error(
-        `${資源名} のパーサーは未実装です。\n` +
+        `${資源名} のデータ表読み込み機能は未実装です。\n` +
           `対応している資源: ${Array.from(this.strategies.keys()).join(", ")}`
       );
     }
