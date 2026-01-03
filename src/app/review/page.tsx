@@ -117,13 +117,6 @@ export default function ReviewPage() {
         setError(result.error);
       } else {
         setSuccess("保存しました");
-        setParsedData(null);
-        setFile(null);
-        setAbcResult(null);
-        setCalculatedParams(null);
-        set漁獲データValue("");
-        set生物学的データValue("");
-        setInputKey(Date.now()); // Reset input to allow reselecting the same file
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存中にエラーが発生しました");
