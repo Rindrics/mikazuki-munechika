@@ -1,10 +1,16 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
-import { parseExcelAction, saveReviewAction, type ParsedDataSummary } from "./actions";
+import {
+  parseExcelAction,
+  saveReviewAction,
+  calculateReviewAbcAction,
+  type ParsedDataSummary,
+} from "./actions";
+import type { ABC算定結果 } from "@/domain/data";
 
 export default function ReviewPage() {
   const { user, isLoading } = useAuth();
@@ -16,6 +22,50 @@ export default function ReviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [inputKey, setInputKey] = useState(Date.now());
+
+  // ABC calculation state
+  const [漁獲データValue, set漁獲データValue] = useState("");
+  const [生物学的データValue, set生物学的データValue] = useState("");
+  const [abcResult, setAbcResult] = useState<ABC算定結果 | null>(null);
+  const [calculatedParams, setCalculatedParams] = useState<{
+    漁獲データ: string;
+    生物学的データ: string;
+  } | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // Check if parameters have changed since calculation
+  const hasParametersChanged = useMemo(() => {
+    return !!(
+      abcResult &&
+      calculatedParams &&
+      (calculatedParams.漁獲データ !== 漁獲データValue ||
+        calculatedParams.生物学的データ !== 生物学的データValue)
+    );
+  }, [abcResult, calculatedParams, 漁獲データValue, 生物学的データValue]);
+
+  const handleCalculate = useCallback(async () => {
+    if (!parsedData) return;
+
+    setIsCalculating(true);
+    setError(null);
+    try {
+      const result = await calculateReviewAbcAction(
+        parsedData.資源名,
+        漁獲データValue,
+        生物学的データValue
+      );
+      setAbcResult(result);
+      // Track the parameters used for this calculation
+      setCalculatedParams({
+        漁獲データ: 漁獲データValue,
+        生物学的データ: 生物学的データValue,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [parsedData, 漁獲データValue, 生物学的データValue]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -56,7 +106,12 @@ export default function ReviewPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await saveReviewAction(formData);
+      const result = await saveReviewAction(
+        formData,
+        abcResult ?? undefined,
+        calculatedParams?.漁獲データ,
+        calculatedParams?.生物学的データ
+      );
 
       if (result.error) {
         setError(result.error);
@@ -64,6 +119,10 @@ export default function ReviewPage() {
         setSuccess("保存しました");
         setParsedData(null);
         setFile(null);
+        setAbcResult(null);
+        setCalculatedParams(null);
+        set漁獲データValue("");
+        set生物学的データValue("");
         setInputKey(Date.now()); // Reset input to allow reselecting the same file
       }
     } catch (err) {
@@ -71,7 +130,7 @@ export default function ReviewPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [file]);
+  }, [file, abcResult, calculatedParams]);
 
   // Loading state
   if (isLoading) {
@@ -141,38 +200,102 @@ export default function ReviewPage() {
       )}
 
       {parsedData && (
-        <section className="mb-8">
-          <h2 className="mb-4">パース結果</h2>
+        <>
+          <section className="mb-8">
+            <h2 className="mb-4">パース結果</h2>
 
-          <div className="p-4 border rounded-lg space-y-4">
-            <div>
-              <span className="font-medium">資源名:</span> <span>{parsedData.資源名}</span>
+            <div className="p-4 border rounded-lg space-y-4">
+              <div>
+                <span className="font-medium">資源名:</span> <span>{parsedData.資源名}</span>
+              </div>
+              <div>
+                <span className="font-medium">年度:</span> <span>{parsedData.年度}</span>
+              </div>
+              <div>
+                <span className="font-medium">最終年:</span> <span>{parsedData.最終年}</span>
+              </div>
+              <div>
+                <span className="font-medium">コホート解析結果:</span>
+                <ul className="ml-4 mt-2 text-sm text-secondary">
+                  <li>
+                    年範囲: {parsedData.年範囲.開始年}〜{parsedData.年範囲.終了年}年
+                  </li>
+                  <li>
+                    年齢範囲: {parsedData.年齢範囲.最小年齢}〜{parsedData.年齢範囲.最大年齢}歳
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <span className="font-medium">年度:</span> <span>{parsedData.年度}</span>
-            </div>
-            <div>
-              <span className="font-medium">最終年:</span> <span>{parsedData.最終年}</span>
-            </div>
-            <div>
-              <span className="font-medium">コホート解析結果:</span>
-              <ul className="ml-4 mt-2 text-sm text-secondary">
-                <li>
-                  年範囲: {parsedData.年範囲.開始年}〜{parsedData.年範囲.終了年}年
-                </li>
-                <li>
-                  年齢範囲: {parsedData.年齢範囲.最小年齢}〜{parsedData.年齢範囲.最大年齢}歳
-                </li>
-              </ul>
-            </div>
+          </section>
 
-            <div className="pt-4 border-t">
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? "保存中..." : "保存する"}
-              </Button>
+          <section className="mb-8">
+            <h2 className="mb-4">ABC 計算</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="catchData" className="block mb-2 font-medium">
+                  漁獲データ
+                </label>
+                <input
+                  id="catchData"
+                  type="text"
+                  value={漁獲データValue}
+                  onChange={(e) => set漁獲データValue(e.target.value)}
+                  placeholder="漁獲データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="biologicalData" className="block mb-2 font-medium">
+                  生物学的データ
+                </label>
+                <input
+                  id="biologicalData"
+                  type="text"
+                  value={生物学的データValue}
+                  onChange={(e) => set生物学的データValue(e.target.value)}
+                  placeholder="生物学的データを入力"
+                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCalculate}
+                disabled={!漁獲データValue || !生物学的データValue || isCalculating}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+              >
+                {isCalculating ? "計算中..." : "ABC を計算"}
+              </button>
+
+              <div className="p-4 border rounded-lg bg-secondary-light">
+                {abcResult ? (
+                  <div>
+                    <p className="font-medium mb-1">計算結果:</p>
+                    <p>{abcResult.value}</p>
+                  </div>
+                ) : (
+                  <p className="text-secondary italic">計算結果がここに表示されます</p>
+                )}
+              </div>
+
+              {hasParametersChanged && (
+                <p className="text-secondary text-sm">
+                  パラメータが変更されました。保存するには再計算してください。
+                </p>
+              )}
             </div>
-          </div>
-        </section>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="mb-4">保存</h2>
+
+            <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
+              {isSaving ? "保存中..." : "保存する"}
+            </Button>
+          </section>
+        </>
       )}
     </main>
   );

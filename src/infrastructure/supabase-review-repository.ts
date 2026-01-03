@@ -8,6 +8,7 @@
 import type { 資源名 } from "@/domain/models/stock/stock/model";
 import type { 当年までの資源計算結果 } from "@/domain/models/stock/calculation/strategy";
 import type { 査読用資源評価, 査読用資源評価Repository } from "@/domain/models/review";
+import type { ABC算定結果 } from "@/domain/data";
 import { logger } from "@/utils/logger";
 
 // Dynamic import to avoid bundling server-only code in client components
@@ -25,6 +26,8 @@ interface ReviewRow {
   stock_name: string;
   fiscal_year: number;
   calculation_result: unknown;
+  abc_result?: unknown;
+  abc_parameters?: unknown;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +42,8 @@ function toDomain(row: ReviewRow): 査読用資源評価 {
     対象資源: row.stock_name as 資源名,
     評価年度: row.fiscal_year,
     資源計算結果: row.calculation_result as 当年までの資源計算結果,
+    ABC結果: row.abc_result as ABC算定結果 | undefined,
+    ABCパラメータ: row.abc_parameters as { 漁獲データ: string; 生物学的データ: string } | undefined,
   };
 }
 
@@ -64,6 +69,8 @@ export class SupabaseReviewRepository implements 査読用資源評価Repository
         stock_name: 評価.対象資源,
         fiscal_year: 評価.評価年度,
         calculation_result: 評価.資源計算結果,
+        abc_result: 評価.ABC結果,
+        abc_parameters: 評価.ABCパラメータ,
       },
       {
         onConflict: "reviewer_id,stock_name,fiscal_year",
