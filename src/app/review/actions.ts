@@ -229,7 +229,9 @@ export async function getPublishedAssessmentAction(
     }
 
     if (!assessment.承諾バージョン) {
-      return { error: `${資源名}（${年度}年度）は承諾済みのバージョンがありません（現在のステータス: ${assessment.ステータス}）` };
+      return {
+        error: `${資源名}（${年度}年度）は承諾済みのバージョンがありません（現在のステータス: ${assessment.ステータス}）`,
+      };
     }
 
     // 2. Fetch the approved version from assessment_results
