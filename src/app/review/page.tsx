@@ -4,13 +4,16 @@ import { useAuth } from "@/contexts/auth-context";
 import { useState, useCallback, useMemo } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
+import { AssessmentComparison } from "@/components/molecules";
 import {
   parseExcelAction,
   saveReviewAction,
   calculateReviewAbcAction,
+  getPublishedAssessmentAction,
   type ParsedDataSummary,
 } from "./actions";
 import type { ABC算定結果 } from "@/domain/data";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 
 export default function ReviewPage() {
   const { user, isLoading } = useAuth();
@@ -31,6 +34,13 @@ export default function ReviewPage() {
     生物学的データ: string;
   } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Published assessment comparison state
+  const [publishedAssessment, setPublishedAssessment] = useState<VersionedAssessmentResult | null>(
+    null
+  );
+  const [isFetchingPublished, setIsFetchingPublished] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Check if parameters have changed since calculation
   const hasParametersChanged = useMemo(() => {
@@ -72,6 +82,27 @@ export default function ReviewPage() {
       setIsCalculating(false);
     }
   }, [file, 漁獲データValue, 生物学的データValue]);
+
+  const handleFetchPublished = useCallback(async () => {
+    if (!parsedData) return;
+
+    setIsFetchingPublished(true);
+    setFetchError(null);
+
+    try {
+      const result = await getPublishedAssessmentAction(parsedData.資源名, parsedData.年度);
+
+      if (result.error) {
+        setFetchError(result.error);
+      } else if (result.result) {
+        setPublishedAssessment(result.result);
+      }
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : "公開データ取得エラー");
+    } finally {
+      setIsFetchingPublished(false);
+    }
+  }, [parsedData]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -293,6 +324,35 @@ export default function ReviewPage() {
               </div>
             )}
           </section>
+
+          {abcResult && (
+            <section className="mb-8">
+              <h2 className="mb-4">公開データとの比較</h2>
+
+              {!publishedAssessment && (
+                <>
+                  <Button onClick={handleFetchPublished} disabled={isFetchingPublished}>
+                    {isFetchingPublished ? "取得中..." : "公開データを取得"}
+                  </Button>
+
+                  {fetchError && (
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800">{fetchError}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {publishedAssessment && (
+                <AssessmentComparison
+                  reviewerResult={abcResult}
+                  publishedResult={publishedAssessment.result}
+                  reviewerParams={calculatedParams ?? undefined}
+                  publishedParams={publishedAssessment.parameters}
+                />
+              )}
+            </section>
+          )}
         </>
       )}
     </main>

@@ -9,8 +9,11 @@ import { 固定値 } from "@/domain/models/stock/calculation/strategy";
 import type { 公開データセット } from "@/domain/models/published-data/types";
 import type { 当年までの資源計算結果 } from "@/domain/models/stock/calculation/strategy";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
-import type { ABC算定結果 } from "@/domain/data";
 import { APP_VERSION } from "@/utils/version";
+import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
+import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
+import type { ABC算定結果 } from "@/domain/data";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 
 /**
  * Serializable summary of parsed data for client display
@@ -205,6 +208,41 @@ export async function saveReviewAction(
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "保存中にエラーが発生しました";
+    return { error: message };
+  }
+}
+
+/**
+ * Get published (approved) assessment result for comparison
+ */
+export async function getPublishedAssessmentAction(
+  資源名: 資源名,
+  年度: number
+): Promise<{ result?: VersionedAssessmentResult; error?: string }> {
+  try {
+    // 1. Get assessment status to find approved version
+    const assessmentRepo = await create資源評価RepositoryServer();
+    const assessment = await assessmentRepo.findBy資源名And年度(資源名, 年度);
+
+    if (!assessment?.承諾バージョン) {
+      return { error: "承諾済みのバージョンが見つかりません" };
+    }
+
+    // 2. Fetch the approved version from assessment_results
+    const resultRepo = createAssessmentResultRepository();
+    const result = await resultRepo.findByStockNameAndVersion(
+      資源名,
+      年度,
+      assessment.承諾バージョン
+    );
+
+    if (!result) {
+      return { error: "公開された評価結果が見つかりません" };
+    }
+
+    return { result };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "データ取得中にエラーが発生しました";
     return { error: message };
   }
 }
