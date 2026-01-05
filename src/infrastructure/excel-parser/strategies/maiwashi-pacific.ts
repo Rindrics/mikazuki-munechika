@@ -405,7 +405,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
 
     // Detect table with header row containing N₀, N₁, SSB
     const tuningOptions: DetectTablesOptions = {
-      isTableTitle: (value) => !!value && value.includes("チューニングに用いた指標値"),
+      isTableTitle: (value) => !!value && value.startsWith("指標値"),
       isHeaderRow: (value) => !!value && (value.includes("対象") || value === "N₀" || value === "N0"),
       labelColumn: "A",
     };
@@ -430,7 +430,6 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
 
     for (const config of columnConfig) {
       const yearToValue = parseColumnByIndex(table, config.index, yearFilter);
-
       if (yearToValue.size === 0) {
         continue; // Skip if no data found for this column
       }

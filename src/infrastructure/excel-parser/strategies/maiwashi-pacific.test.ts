@@ -122,6 +122,23 @@ describe("マイワシ太平洋系群Strategy", () => {
       });
     });
 
+    it("should parse 資源量指標値", () => {
+        const workbook = loadFixtureWorkbook();
+        const strategy = new マイワシ太平洋系群Strategy();
+  
+        const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
+
+        expect(result.チューニング指標値).toBeDefined();
+        expect(result.チューニング指標値?.length).toBe(4);
+        if (result.チューニング指標値) {
+            result.チューニング指標値.forEach((指標値) => {
+                expect(指標値.種別).toBeDefined();
+                expect(指標値.年範囲).toBeDefined();
+                expect(指標値.観測値).toBeDefined();
+            });
+        }
+    });
+
     it("should parse SPR as Map with values", () => {
       const workbook = loadFixtureWorkbook();
       const strategy = new マイワシ太平洋系群Strategy();
