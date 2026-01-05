@@ -143,7 +143,7 @@ export function 固定値(value: number): 確率分布 {
  *
  * @see ADR 0024 for design rationale
  */
-export type 単位 = "トン" | "千尾" | "百万尾" | "尾" | "無次元";
+export type 単位 = "トン" | "千尾" | "百万尾" | "尾" | "g" | "無次元";
 
 /**
  * 単位ごとのフォーマット関数
@@ -156,6 +156,7 @@ export const 単位フォーマッタ: Record<単位, (値: number) => string> =
   千尾: (値) => `${値.toLocaleString()} 千尾`,
   百万尾: (値) => `${値.toLocaleString()} 百万尾`,
   尾: (値) => `${値.toLocaleString()} 尾`,
+  g: (値) => `${値.toLocaleString()} g`,
   無次元: (値) => 値.toFixed(3),
 };
 
@@ -171,6 +172,7 @@ const 単位変換係数: Record<単位, number> = {
   千尾: 1_000,
   百万尾: 1_000_000,
   トン: 1,
+  g: 1,
   無次元: 1,
 };
 
@@ -329,9 +331,9 @@ export type M = (年齢: number) => 確率分布;
  * このデータを使って前年までのコホート解析（VPA）を実行する。
  */
 export interface コホート解析用データ {
-  漁獲量行列: 年齢年行列<"トン">;
-  体重行列: 年齢年行列<"トン">;
-  成熟率行列: 年齢年行列<"無次元">;
+  漁獲尾数行列: 年齢年行列<"千尾">;
+  体重行列: 年齢年行列<"g">;
+  成熟割合行列: 年齢年行列<"無次元">;
   M: M;
 }
 

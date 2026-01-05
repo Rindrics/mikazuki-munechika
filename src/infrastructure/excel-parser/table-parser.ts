@@ -123,3 +123,97 @@ export function parseRowByLabel<TCol>(
 
   return result;
 }
+
+/**
+ * Extract single column data from a table by header name
+ *
+ * Useful for parameter tables where rows are categories (e.g., age)
+ * and columns are different parameters.
+ *
+ * @param table - Detected table with 2D data
+ * @param headerName - Name of the column header to extract
+ * @param rowExtractor - Function to extract row label values (e.g., age extraction)
+ * @param multiplier - Multiplier for unit conversion (default: 1)
+ * @returns Map of row values to cell values
+ */
+export function parseColumnByHeader<TRow>(
+  table: DetectedTable,
+  headerName: string,
+  rowExtractor: (label: string) => TRow | null,
+  multiplier: number = 1
+): Map<TRow, number> {
+  const result = new Map<TRow, number>();
+  const headerRow = table.data[table.headerIndex];
+
+  if (!headerRow) {
+    return result;
+  }
+
+  // Find the column index for the given header name
+  let targetColIndex = -1;
+  for (let col = 0; col < headerRow.length; col++) {
+    if (headerRow[col] === headerName) {
+      targetColIndex = col;
+      break;
+    }
+  }
+
+  if (targetColIndex === -1) {
+    return result;
+  }
+
+  // Extract values for each row
+  const dataRows = getDataRows(table);
+  for (const row of dataRows) {
+    const labelValue = row[0];
+    if (!labelValue) continue;
+
+    const extracted = rowExtractor(labelValue);
+    if (extracted !== null) {
+      const cellValue = row[targetColIndex];
+      const numValue = parseFloat(cellValue);
+      if (!isNaN(numValue)) {
+        result.set(extracted, numValue * multiplier);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Extract single column data from a table by column index
+ *
+ * Useful when header names are duplicated (e.g., N₀ appears twice)
+ *
+ * @param table - Detected table with 2D data
+ * @param colIndex - Column index (0-based)
+ * @param rowExtractor - Function to extract row label values (e.g., year extraction)
+ * @param multiplier - Multiplier for unit conversion (default: 1)
+ * @returns Map of row values to cell values
+ */
+export function parseColumnByIndex<TRow>(
+  table: DetectedTable,
+  colIndex: number,
+  rowExtractor: (label: string) => TRow | null,
+  multiplier: number = 1
+): Map<TRow, number> {
+  const result = new Map<TRow, number>();
+  const dataRows = getDataRows(table);
+
+  for (const row of dataRows) {
+    const labelValue = row[0];
+    if (!labelValue) continue;
+
+    const extracted = rowExtractor(labelValue);
+    if (extracted !== null) {
+      const cellValue = row[colIndex];
+      const numValue = parseFloat(cellValue);
+      if (!isNaN(numValue)) {
+        result.set(extracted, numValue * multiplier);
+      }
+    }
+  }
+
+  return result;
+}
