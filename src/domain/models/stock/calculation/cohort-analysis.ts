@@ -18,6 +18,14 @@ import type {
 } from "./strategy";
 import { create年齢年行列, 固定値, generateMermaidFlowchart } from "./strategy";
 import { logger } from "@/utils/logger";
+import { runVPA, type VPAInput } from "./vpa";
+import {
+  runチューニングVPA,
+  calculateターミナル資源尾数,
+  type チューニングVPA入力,
+  type 資源量指標値,
+  type ターミナルF as チューニングターミナルF,
+} from "./tuning-vpa";
 
 /**
  * Default calculation parameters
@@ -125,44 +133,50 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     logs.push(log);
 
     // Create dummy matrices for cohort analysis input
-    const 漁獲量行列 = create年齢年行列({
-      単位: "トン",
-      年範囲: { 開始年: 2020, 終了年: 2024 },
+    // マイワシ太平洋系群の実際のデータ期間 (1976-2023) に合わせる
+    const 開始年 = 1976;
+    const 終了年 = 2023;
+    const 年数 = 終了年 - 開始年 + 1; // 48年
+
+    const 漁獲尾数行列 = create年齢年行列({
+      単位: "千尾",
+      年範囲: { 開始年, 終了年 },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-      データ: Array(5)
+      データ: Array(年数)
         .fill(null)
         .map(() => Array(6).fill(100)),
     });
 
     const 体重行列 = create年齢年行列({
-      単位: "トン",
-      年範囲: { 開始年: 2020, 終了年: 2024 },
+      単位: "g",
+      年範囲: { 開始年, 終了年 },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-      データ: Array(5)
+      データ: Array(年数)
         .fill(null)
         .map(() => Array(6).fill(0.5)),
     });
 
-    const 成熟率行列 = create年齢年行列({
+    const 成熟割合行列 = create年齢年行列({
       単位: "無次元",
-      年範囲: { 開始年: 2020, 終了年: 2024 },
+      年範囲: { 開始年, 終了年 },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
-      データ: Array(5)
+      データ: Array(年数)
         .fill(null)
         .map(() => [0, 0.2, 0.5, 0.8, 1.0, 1.0]),
     });
 
     logger.debug("一次処理のダミー行列を作成しました", {
-      年範囲: { 開始年: 2020, 終了年: 2024 },
+      年範囲: { 開始年, 終了年 },
       年齢範囲: { 最小年齢: 0, 最大年齢: 5 },
+      年数,
     });
 
     logger.info("一次処理が完了しました");
 
     return {
-      漁獲量行列,
+      漁獲尾数行列,
       体重行列,
-      成熟率行列,
+      成熟割合行列,
       M: 入力.M ?? (() => 固定値(0.4)),
     };
   };
@@ -170,47 +184,149 @@ export function createコホート解析Strategy(): コホート解析Strategy {
   const 前年までのコホート解析 = (
     データ: コホート解析用データ,
     M: M,
-    資源量指標値: 資源量指標値データ
+    資源量指標値: 資源量指標値データ | 資源量指標値[]
   ): 前年までの資源計算結果 => {
     logger.info("前年までのコホート解析を開始します");
     logger.debug("前年までのコホート解析の入力", {
-      漁獲量行列年範囲: データ.漁獲量行列.年範囲,
-      年齢範囲: データ.漁獲量行列.年齢範囲,
+      漁獲量行列年範囲: データ.漁獲尾数行列.年範囲,
+      年齢範囲: データ.漁獲尾数行列.年齢範囲,
       M: M(0).平均値,
-      資源量指標値: 資源量指標値.value,
+      資源量指標値: Array.isArray(資源量指標値)
+        ? `${資源量指標値.length}個の指標値`
+        : 資源量指標値.value,
     });
 
-    const log = `[前年までのコホート解析] 年範囲=${データ.漁獲量行列.年範囲.開始年}-${データ.漁獲量行列.年範囲.終了年}`;
+    const log = `[前年までのコホート解析] 年範囲=${データ.漁獲尾数行列.年範囲.開始年}-${データ.漁獲尾数行列.年範囲.終了年}`;
     logs.push(log);
 
-    // Create dummy result matrices (VPA output)
-    const dummyMatrix千尾 = create年齢年行列({
-      単位: "千尾",
-      年範囲: データ.漁獲量行列.年範囲,
-      年齢範囲: データ.漁獲量行列.年齢範囲,
-      データ: Array(5)
-        .fill(null)
-        .map(() => Array(6).fill(100)),
-    });
+    const 最終年Index = データ.漁獲尾数行列.データ.length - 1;
+    const 最終年漁獲尾数 = データ.漁獲尾数行列.データ[最終年Index];
+    const 最終年 = データ.漁獲尾数行列.年範囲.終了年;
 
-    const dummyMatrixトン = create年齢年行列({
-      単位: "トン",
-      年範囲: データ.漁獲量行列.年範囲,
-      年齢範囲: データ.漁獲量行列.年齢範囲,
-      データ: Array(5)
-        .fill(null)
-        .map(() => Array(6).fill(1000)),
-    });
+    let 最近年の年齢別資源尾数: readonly number[];
+
+    // 資源量指標値が配列形式（パース済み）の場合は、チューニングVPAを使用
+    const useチューニングVPA = Array.isArray(資源量指標値) && 資源量指標値.length > 0;
+
+    if (useチューニングVPA) {
+      logger.info("チューニングVPAを使用してターミナルFを推定します");
+
+      // Step 1: 初期VPAを実行して直近3年のFを取得
+      logger.info("初期VPAを実行して直近3年のFを取得します");
+      const 初期資源尾数 = 最終年漁獲尾数.map((catch_量, 年齢index) => {
+        const M値 = M(年齢index).平均値;
+        const assumedF = 0.4; // 初期推定値
+        const numerator = catch_量 * Math.exp(M値 / 2);
+        const denominator = 1 - Math.exp(-assumedF);
+        return numerator / denominator;
+      });
+
+      const 初期VPA結果 = runVPA({
+        年齢別漁獲尾数: データ.漁獲尾数行列,
+        年齢別体重: データ.体重行列,
+        年齢別成熟割合: データ.成熟割合行列,
+        M: (年齢: number) => M(年齢).平均値,
+        最近年の年齢別資源尾数: 初期資源尾数,
+      });
+
+      // Step 2: 直近3年のFを抽出（最終年の3年前から2年前まで）
+      const データ年数 = 初期VPA結果.年齢別漁獲係数.データ.length;
+      const 直近3年開始Index = Math.max(0, データ年数 - 4); // 最終年を除く直近3年
+      const 直近3年F: number[][] = [];
+
+      for (let i = 直近3年開始Index; i < データ年数 - 1 && i < 直近3年開始Index + 3; i++) {
+        直近3年F.push([...初期VPA結果.年齢別漁獲係数.データ[i]]);
+      }
+
+      // 3年分のデータがない場合は最終年のFを複製
+      while (直近3年F.length < 3) {
+        const lastF =
+          直近3年F.length > 0
+            ? 直近3年F[直近3年F.length - 1]
+            : 初期VPA結果.年齢別漁獲係数.データ[データ年数 - 2] ||
+              初期VPA結果.年齢別漁獲係数.データ[データ年数 - 1];
+        直近3年F.push([...lastF]);
+      }
+
+      logger.info("直近3年のFを抽出しました", {
+        年数: 直近3年F.length,
+        サンプル: 直近3年F[0]?.slice(0, 3),
+      });
+
+      // Step 3: チューニングVPAを実行
+      const チューニング結果 = runチューニングVPA({
+        資源量指標値: 資源量指標値 as 資源量指標値[],
+        直近3年F,
+        チューニング期間: {
+          開始年: Math.max(2005, データ.漁獲尾数行列.年範囲.開始年),
+          終了年: 最終年,
+        },
+        VPA入力データ: {
+          年齢別漁獲尾数: データ.漁獲尾数行列,
+          年齢別体重: データ.体重行列,
+          年齢別成熟割合: データ.成熟割合行列,
+          M: (年齢: number) => M(年齢).平均値,
+        },
+      });
+
+      logger.info("チューニングVPAでターミナルFを推定しました", {
+        F0: チューニング結果.ターミナルF.F0,
+        F1: チューニング結果.ターミナルF.F1,
+        F2: チューニング結果.ターミナルF.F2,
+        F3: チューニング結果.ターミナルF.F3,
+        F4: チューニング結果.ターミナルF.F4,
+        最適λ: チューニング結果.最適λ,
+      });
+
+      // Step 4: チューニング結果から最近年の資源尾数を計算
+      最近年の年齢別資源尾数 = calculateターミナル資源尾数(
+        最終年漁獲尾数,
+        チューニング結果.ターミナルF,
+        (年齢: number) => M(年齢).平均値
+      );
+
+      logger.info("チューニングVPAによるターミナル資源尾数を計算しました", {
+        資源尾数サンプル: 最近年の年齢別資源尾数.slice(0, 3),
+      });
+    } else {
+      // 従来の方法: assumedF = 0.4 を使用
+      logger.info("固定Fを使用してターミナル資源尾数を推定します（assumedF = 0.4）");
+
+      // Estimate terminal year stock numbers assuming moderate exploitation (F ≈ 0.4)
+      // Using Pope (1972) approximation
+      最近年の年齢別資源尾数 = 最終年漁獲尾数.map((catch_量, 年齢index) => {
+        const M値 = M(年齢index).平均値;
+        const assumedF = 0.4; // Moderate exploitation assumption for dummy data
+
+        // Pope approximation: Na,Y = Ca,Y exp(M/2) / (1 - exp(-Fa,Y))
+        // This matches the formula used in vpa.ts (式2)
+        const numerator = catch_量 * Math.exp(M値 / 2);
+        const denominator = 1 - Math.exp(-assumedF);
+
+        return numerator / denominator;
+      });
+    }
+
+    // 基本VPAを実行
+    const vpaInput: VPAInput = {
+      年齢別漁獲尾数: データ.漁獲尾数行列,
+      年齢別体重: データ.体重行列,
+      年齢別成熟割合: データ.成熟割合行列,
+      M: (年齢: number) => M(年齢).平均値,
+      最近年の年齢別資源尾数,
+    };
+
+    const vpaResult = runVPA(vpaInput);
 
     logger.info("前年までのコホート解析が完了しました", {
-      最終年: データ.漁獲量行列.年範囲.終了年,
+      最終年,
     });
 
     return {
-      最終年: データ.漁獲量行列.年範囲.終了年,
-      年齢別資源尾数: dummyMatrix千尾,
-      親魚量: dummyMatrixトン,
-      加入量: dummyMatrix千尾,
+      最終年,
+      年齢別資源尾数: vpaResult.年齢別資源尾数,
+      親魚量: vpaResult.親魚量,
+      加入量: vpaResult.加入量,
       __kind: "前年まで",
     } as 前年までの資源計算結果;
   };

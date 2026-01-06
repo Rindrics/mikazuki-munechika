@@ -1,4 +1,5 @@
 import type { ABC算定結果, 漁獲量データ, 生物学的データ, 資源量指標値データ } from "@/domain/data";
+import type { 資源量指標値 } from "./tuning-vpa";
 
 /**
  * Available ABC calculation method names
@@ -424,7 +425,7 @@ export interface 調整係数β {
  */
 export interface CalculationParameters {
   M?: M;
-  資源量指標値?: 資源量指標値データ;
+  資源量指標値?: 資源量指標値データ | 資源量指標値[]; // パース済みの配列も受け取れるように
   再生産関係残差?: 再生産関係残差;
   当年のF?: F;
   将来予測年数?: number;
