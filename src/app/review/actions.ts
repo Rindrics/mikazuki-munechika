@@ -81,8 +81,23 @@ export async function calculateReviewAbcAction(
 
     // Get age-specific weights from last year of parsed data
     const 体重データ = data.コホート解析結果.年齢別体重;
+
+    if (!体重データ || !体重データ.データ || 体重データ.データ.length === 0) {
+      return {
+        error:
+          "年齢別体重データが見つかりません。Excel ファイルに体重データが含まれていることを確認してください。",
+      };
+    }
+
     const 最終年Index = 体重データ.データ.length - 1;
     const 年齢別体重 = 体重データ.データ[最終年Index];
+
+    if (!年齢別体重 || 年齢別体重.length === 0) {
+      return {
+        error:
+          "最終年の年齢別体重データが空です。Excel ファイルのデータを確認してください。",
+      };
+    }
 
     // Create strategy and run future projection + ABC calculation
     const strategy = createコホート解析Strategy();
