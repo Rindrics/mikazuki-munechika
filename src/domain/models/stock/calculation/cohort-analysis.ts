@@ -459,7 +459,12 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     } as 当年までの資源計算結果;
   };
 
-  const 将来予測 = (当年結果: 当年までの資源計算結果, F: F, 予測年数: number): 将来予測結果 => {
+  const 将来予測 = (
+    当年結果: 当年までの資源計算結果,
+    F: F,
+    予測年数: number,
+    年齢別体重データ?: readonly number[]
+  ): 将来予測結果 => {
     logger.info("将来予測を開始します", {
       当年最終年: 当年結果.最終年,
       予測年数,
@@ -485,7 +490,21 @@ export function createコホート解析Strategy(): コホート解析Strategy {
 
     // デフォルトパラメータ（簡易実装）
     const M値 = 0.4; // 固定の自然死亡係数
-    const 最終年体重 = Array(年齢数).fill(50); // デフォルト体重 50g
+
+    // 年齢別体重: 提供されたデータを使用、なければデフォルト50gでフォールバック
+    let 最終年体重: readonly number[];
+    if (年齢別体重データ && 年齢別体重データ.length >= 年齢数) {
+      最終年体重 = 年齢別体重データ.slice(0, 年齢数);
+    } else {
+      logger.warn(
+        "年齢別体重データが提供されていないか不足しています。デフォルト値（50g）を使用します",
+        {
+          提供されたデータ長: 年齢別体重データ?.length ?? 0,
+          必要な年齢数: 年齢数,
+        }
+      );
+      最終年体重 = Array(年齢数).fill(50);
+    }
 
     logger.debug("将来予測パラメータ", {
       平均加入量,
@@ -583,6 +602,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
       将来予測終了年: 終了年,
       年別資源量,
       年別漁獲量,
+      年齢別体重: [...最終年体重],
     };
   };
 
@@ -646,10 +666,35 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     // 将来予測結果の漁獲量データを使用
     const 総漁獲量千尾 = 年別漁獲量データ.reduce((sum, val) => sum + val, 0);
 
-    // 平均体重で漁獲量をトンに変換（簡易計算）
-    // 実際には年齢別体重を使用すべきだが、ここでは平均50gと仮定
-    const 平均体重g = 50;
-    const ABC_トン = (総漁獲量千尾 * 平均体重g) / 1000000; // 千尾 * g / 1,000,000 = トン
+    // 年齢別体重から加重平均体重を計算
+    // 加重平均 = Σ(漁獲量_i × 体重_i) / Σ(漁獲量_i)
+    let 平均体重g: number;
+    const 年齢別体重 = 予測結果.年齢別体重;
+
+    if (年齢別体重 && 年齢別体重.length === 年別漁獲量データ.length && 総漁獲量千尾 > 0) {
+      const 加重和 = 年別漁獲量データ.reduce((sum, catch_i, i) => {
+        return sum + catch_i * (年齢別体重[i] ?? 50);
+      }, 0);
+      平均体重g = 加重和 / 総漁獲量千尾;
+
+      logger.debug("加重平均体重を計算しました", {
+        平均体重g: 平均体重g.toFixed(2),
+        年齢別体重,
+        年別漁獲量データ,
+      });
+    } else {
+      平均体重g = 50;
+      logger.warn(
+        "年齢別体重データが利用できないため、デフォルト値（50g）を使用します",
+        {
+          年齢別体重長: 年齢別体重?.length ?? 0,
+          漁獲量データ長: 年別漁獲量データ.length,
+          総漁獲量千尾,
+        }
+      );
+    }
+
+    const ABC_トン = (総漁獲量千尾 * 平均体重g) / 1_000_000; // 千尾 * g / 1,000,000 = トン
 
     // 調整係数βを適用
     const 調整後ABC = ABC_トン * β.値;
@@ -710,12 +755,20 @@ export function createコホート解析Strategy(): コホート解析Strategy {
       methodName: "将来予測",
       inputNames: ["当年までの資源計算結果", "当年のF", "将来予測年数"],
       outputName: "将来予測結果",
-      execute: (ctx) =>
-        将来予測(
+      execute: (ctx) => {
+        // 最終年の年齢別体重を取得
+        const コホートデータ = ctx["コホート解析用データ"] as コホート解析用データ | undefined;
+        const 体重行列 = コホートデータ?.体重行列;
+        const 最終年Index = 体重行列 ? 体重行列.データ.length - 1 : -1;
+        const 年齢別体重 = 最終年Index >= 0 ? 体重行列?.データ[最終年Index] : undefined;
+
+        return 将来予測(
           ctx["当年までの資源計算結果"] as 当年までの資源計算結果,
           ctx.params.当年のF,
-          ctx.params.将来予測年数
-        ),
+          ctx.params.将来予測年数,
+          年齢別体重
+        );
+      },
     },
     {
       methodName: "ABC決定",
