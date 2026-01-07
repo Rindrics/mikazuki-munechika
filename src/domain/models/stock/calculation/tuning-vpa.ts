@@ -905,6 +905,9 @@ function runチューニングVPACore(
   // 目的関数の評価回数をカウント（デバッグ用）
   let 評価回数 = 0;
 
+  // 指標パラメータ推定に失敗した指標を記録
+  const 失敗した指標種別Set = new Set<資源量指標種別>();
+
   // 2. 目的関数を定義（Nelder-Mead用）
   const 目的関数wrapper = (F配列: readonly number[]): number => {
     評価回数++;
@@ -964,8 +967,12 @@ function runチューニングVPACore(
         );
         指標パラメータMap.set(指標値.種別, params);
       } catch (error) {
-        logger.warn("指標パラメータ推定エラー", { error, 種別: 指標値.種別 });
-        // エラーの場合はデフォルト値を使用
+        logger.warn("指標パラメータ推定エラー: デフォルト値を使用します", {
+          error,
+          種別: 指標値.種別,
+          デフォルト値: { q: 1.0, b: 1.0 },
+        });
+        失敗した指標種別Set.add(指標値.種別);
         指標パラメータMap.set(指標値.種別, { q: 1.0, b: 1.0 });
       }
     }
@@ -996,6 +1003,17 @@ function runチューニングVPACore(
     maxIterations: 500,
     tolerance: 1e-5,
   });
+
+  // 最適化中に失敗した指標があれば警告
+  if (失敗した指標種別Set.size > 0) {
+    logger.warn(
+      "最適化中に一部の指標パラメータ推定が失敗し、デフォルト値が使用されました。結果の信頼性に影響する可能性があります",
+      {
+        失敗した指標: Array.from(失敗した指標種別Set),
+        失敗数: 失敗した指標種別Set.size,
+      }
+    );
+  }
 
   // 4. 最適化されたターミナルFで最終的なVPAを実行
   const 最終ターミナルF: ターミナルF = {
@@ -1031,8 +1049,20 @@ function runチューニングVPACore(
     最終VPA推定値リスト.set(指標値.種別, VPA推定値trim);
 
     const 固定b = 指標値.種別 === "産卵量";
-    const params = estimate指標パラメータ({ ...指標値, 観測値: 観測値trim }, VPA推定値trim, 固定b);
-    最終指標パラメータMap.set(指標値.種別, params);
+    try {
+      const params = estimate指標パラメータ(
+        { ...指標値, 観測値: 観測値trim },
+        VPA推定値trim,
+        固定b
+      );
+      最終指標パラメータMap.set(指標値.種別, params);
+    } catch (error) {
+      logger.error("最終結果構築時に指標パラメータ推定が失敗しました", {
+        error,
+        種別: 指標値.種別,
+      });
+      throw error;
+    }
   }
 
   // 6. 最終的な目的関数値を計算
