@@ -73,11 +73,13 @@ describe("create資源評価", () => {
       const stock = create資源評価(stockGroup);
       const result = stock.資源量推定({ value: "100" }, { value: "100" }).ABC算定();
 
-      // Verify that the result shows the cohort analysis processing path
-      expect(result.value).toContain("[一次処理]");
-      expect(result.value).toContain("[前進計算]");
-      expect(result.value).toContain("[将来予測]");
-      expect(result.value).toContain("[ABC決定]");
+      // Verify that the result contains actual calculated ABC values
+      expect(result.value).toContain("トン");
+      expect(result.value).toContain("親魚量");
+      expect(result.value).toContain("F:");
+      expect(result.unit).toBe("トン");
+      expect(result.資源量).toBeDefined();
+      expect(result.資源量.単位).toBe("トン");
       expect(stock.対象.資源タイプ).toBe(資源タイプs["1系"]);
     });
 
