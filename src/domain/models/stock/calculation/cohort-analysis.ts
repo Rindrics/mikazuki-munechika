@@ -463,12 +463,14 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     当年結果: 当年までの資源計算結果,
     F: F,
     予測年数: number,
+    M: M,
     年齢別体重データ?: readonly number[]
   ): 将来予測結果 => {
     logger.info("将来予測を開始します", {
       当年最終年: 当年結果.最終年,
       予測年数,
       F: F.値,
+      M_0歳: M(0).平均値,
     });
 
     const log = `[将来予測] 当年最終年=${当年結果.最終年}, F=${F.値}, 予測年数=${予測年数}`;
@@ -488,9 +490,6 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     const 加入量データ = 当年結果.加入量.データ.map((年データ) => 年データ[0]);
     const 平均加入量 = 加入量データ.reduce((sum, val) => sum + val, 0) / 加入量データ.length;
 
-    // デフォルトパラメータ（簡易実装）
-    const M値 = 0.4; // 固定の自然死亡係数
-
     // 年齢別体重: 提供されたデータを使用、なければデフォルト50gでフォールバック
     let 最終年体重: readonly number[];
     if (年齢別体重データ && 年齢別体重データ.length >= 年齢数) {
@@ -509,7 +508,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     logger.debug("将来予測パラメータ", {
       平均加入量,
       F値: F.値,
-      M値,
+      M_0歳: M(0).平均値,
       年齢数,
     });
 
@@ -528,6 +527,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
         const N = 現在の資源尾数[年齢Index] ?? 0;
         const W = 最終年体重[年齢Index] ?? 50;
         const F値 = F.値;
+        const M値 = M(年齢Index).平均値;
 
         // 資源量（千尾 × g → トン変換）
         const 資源量トン = (N * W) / 1000000; // 千尾 * g / 1,000,000 = トン
@@ -558,7 +558,8 @@ export function createコホート解析Strategy(): コホート解析Strategy {
           if (前年齢Index >= 0) {
             const N前年 = 現在の資源尾数[前年齢Index] ?? 0;
             const F値 = F.値;
-            const Z = F値 + M値;
+            const M前年齢 = M(前年齢Index).平均値;
+            const Z = F値 + M前年齢;
 
             // 生き残り: N * exp(-Z)
             const 生き残り = N前年 * Math.exp(-Z);
@@ -566,7 +567,8 @@ export function createコホート解析Strategy(): コホート解析Strategy {
             // プラスグループ（最高齢）の場合は自分自身の生き残りも加算
             if (年齢 === 最大年齢) {
               const N自身 = 現在の資源尾数[年齢Index] ?? 0;
-              const Z自身 = F値 + M値;
+              const M自身 = M(年齢Index).平均値;
+              const Z自身 = F値 + M自身;
               次年資源尾数[年齢Index] = 生き残り + N自身 * Math.exp(-Z自身);
             } else {
               次年資源尾数[年齢Index] = 生き残り;
@@ -753,7 +755,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
     },
     {
       methodName: "将来予測",
-      inputNames: ["当年までの資源計算結果", "当年のF", "将来予測年数"],
+      inputNames: ["当年までの資源計算結果", "当年のF", "将来予測年数", "M"],
       outputName: "将来予測結果",
       execute: (ctx) => {
         // 最終年の年齢別体重を取得
@@ -766,6 +768,7 @@ export function createコホート解析Strategy(): コホート解析Strategy {
           ctx["当年までの資源計算結果"] as 当年までの資源計算結果,
           ctx.params.当年のF,
           ctx.params.将来予測年数,
+          ctx.params.M,
           年齢別体重
         );
       },
