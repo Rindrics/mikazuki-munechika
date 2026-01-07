@@ -4,12 +4,13 @@ import { createExcelParser } from "@/infrastructure/excel-parser/parser";
 import { createReviewRepository } from "@/infrastructure/supabase-review-repository";
 import { create査読用資源評価 } from "@/domain/models/review";
 import { getSupabaseServerClient } from "@/infrastructure/supabase-server-client";
-import { create資源情報, create資源評価 } from "@/domain/helpers";
-import { ABC算定 } from "@/application/calculate-abc";
+import { createコホート解析Strategy } from "@/domain/models/stock/calculation/cohort-analysis";
+import { 固定値 } from "@/domain/models/stock/calculation/strategy";
 import type { 公開データセット } from "@/domain/models/published-data/types";
 import type { 当年までの資源計算結果 } from "@/domain/models/stock/calculation/strategy";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
-import type { ABC算定結果, 漁獲量データ, 生物学的データ } from "@/domain/data";
+import type { ABC算定結果 } from "@/domain/data";
+import { APP_VERSION } from "@/utils/version";
 
 /**
  * Serializable summary of parsed data for client display
@@ -56,21 +57,79 @@ export async function parseExcelAction(
 }
 
 /**
- * Calculate ABC for review
- * Uses dummy calculation logic (same as assessment page)
+ * Calculate ABC for review using parsed Excel data
+ *
+ * パースされた Excel データから直接 ABC を計算します。
+ * ダミーデータではなく、実際のパースされた年齢別体重などを使用します。
  */
 export async function calculateReviewAbcAction(
-  資源名: 資源名,
-  漁獲データValue: string,
-  生物学的データValue: string
-): Promise<ABC算定結果> {
-  const stockGroup = create資源情報(資源名);
-  const stock = create資源評価(stockGroup);
+  formData: FormData
+): Promise<{ result?: ABC算定結果; error?: string }> {
+  try {
+    const file = formData.get("file") as File;
 
-  const catchData: 漁獲量データ = { value: 漁獲データValue };
-  const biologicalData: 生物学的データ = { value: 生物学的データValue };
+    if (!file) {
+      return { error: "ファイルが選択されていません" };
+    }
 
-  return ABC算定(stock, catchData, biologicalData);
+    // Parse the file
+    const parser = createExcelParser();
+    const data = await parser.parse(file);
+
+    // Convert to 当年までの資源計算結果
+    const 当年結果 = toResourceCalculationResult(data);
+
+    // Get age-specific weights from last year of parsed data
+    const 体重データ = data.コホート解析結果.年齢別体重;
+
+    if (!体重データ || !体重データ.データ || 体重データ.データ.length === 0) {
+      return {
+        error:
+          "年齢別体重データが見つかりません。Excel ファイルに体重データが含まれていることを確認してください。",
+      };
+    }
+
+    const 最終年Index = 体重データ.データ.length - 1;
+    const 年齢別体重 = 体重データ.データ[最終年Index];
+
+    if (!年齢別体重 || 年齢別体重.length === 0) {
+      return {
+        error: "最終年の年齢別体重データが空です。Excel ファイルのデータを確認してください。",
+      };
+    }
+
+    // Create strategy and run future projection + ABC calculation
+    const strategy = createコホート解析Strategy();
+
+    // Use default parameters
+    const F = { 値: 0.3 };
+    const M = (_年齢: number) => 固定値(0.4);
+    const 予測年数 = 1;
+
+    // Run future projection with parsed weight data
+    const 予測結果 = strategy.将来予測(当年結果, F, 予測年数, M, 年齢別体重);
+
+    // Run ABC decision
+    const 規則 = {
+      目標F: 0.3,
+      禁漁水準: 10000, // 10,000 トン
+      限界管理基準値: 50000, // 50,000 トン
+      目標管理基準値: 100000, // 100,000 トン
+    };
+    const β = { 値: 0.8 };
+
+    const abc結果 = strategy.ABC決定(予測結果, 規則, β);
+
+    return {
+      result: {
+        ...abc結果,
+        appVersion: APP_VERSION,
+      },
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "計算中にエラーが発生しました";
+    return { error: message };
+  }
 }
 
 /**

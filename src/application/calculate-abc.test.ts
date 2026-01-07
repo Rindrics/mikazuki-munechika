@@ -15,11 +15,13 @@ describe("ABC算定", () => {
     const result = ABC算定(資源評価, catchData, biologicalData);
 
     expect(result).toBeDefined();
-    // Type 1 resource uses cohort analysis strategy
-    expect(result.value).toContain("[一次処理]");
-    expect(result.value).toContain("[前進計算]");
-    expect(result.value).toContain("[将来予測]");
-    expect(result.value).toContain("[ABC決定]");
+    // Type 1 resource uses cohort analysis strategy - check for actual calculated values
+    expect(result.value).toContain("トン");
+    expect(result.value).toContain("親魚量");
+    expect(result.value).toContain("F:");
+    expect(result.unit).toBe("トン");
+    expect(result.資源量).toBeDefined();
+    expect(result.資源量.単位).toBe("トン");
   });
 
   it("returns the ABC算定結果 with correct value for Type 2 stock", () => {

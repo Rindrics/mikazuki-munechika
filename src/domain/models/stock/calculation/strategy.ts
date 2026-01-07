@@ -1,4 +1,5 @@
 import type { ABC算定結果, 漁獲量データ, 生物学的データ, 資源量指標値データ } from "@/domain/data";
+import type { 資源量指標値 } from "./tuning-vpa";
 
 /**
  * Available ABC calculation method names
@@ -143,7 +144,7 @@ export function 固定値(value: number): 確率分布 {
  *
  * @see ADR 0024 for design rationale
  */
-export type 単位 = "トン" | "千尾" | "百万尾" | "尾" | "無次元";
+export type 単位 = "トン" | "千尾" | "百万尾" | "尾" | "g" | "無次元";
 
 /**
  * 単位ごとのフォーマット関数
@@ -156,6 +157,7 @@ export const 単位フォーマッタ: Record<単位, (値: number) => string> =
   千尾: (値) => `${値.toLocaleString()} 千尾`,
   百万尾: (値) => `${値.toLocaleString()} 百万尾`,
   尾: (値) => `${値.toLocaleString()} 尾`,
+  g: (値) => `${値.toLocaleString()} g`,
   無次元: (値) => 値.toFixed(3),
 };
 
@@ -171,6 +173,7 @@ const 単位変換係数: Record<単位, number> = {
   千尾: 1_000,
   百万尾: 1_000_000,
   トン: 1,
+  g: 1,
   無次元: 1,
 };
 
@@ -329,9 +332,9 @@ export type M = (年齢: number) => 確率分布;
  * このデータを使って前年までのコホート解析（VPA）を実行する。
  */
 export interface コホート解析用データ {
-  漁獲量行列: 年齢年行列<"トン">;
-  体重行列: 年齢年行列<"トン">;
-  成熟率行列: 年齢年行列<"無次元">;
+  漁獲尾数行列: 年齢年行列<"千尾">;
+  体重行列: 年齢年行列<"g">;
+  成熟割合行列: 年齢年行列<"無次元">;
   M: M;
 }
 
@@ -388,6 +391,7 @@ export interface 将来予測結果 {
   将来予測終了年: number;
   年別資源量: 年齢年行列<"トン">;
   年別漁獲量: 年齢年行列<"千尾">;
+  年齢別体重?: readonly number[]; // ABC計算用の年齢別体重（g）
 }
 
 /**
@@ -422,7 +426,7 @@ export interface 調整係数β {
  */
 export interface CalculationParameters {
   M?: M;
-  資源量指標値?: 資源量指標値データ;
+  資源量指標値?: 資源量指標値データ | 資源量指標値[]; // パース済みの配列も受け取れるように
   再生産関係残差?: 再生産関係残差;
   当年のF?: F;
   将来予測年数?: number;
@@ -589,13 +593,30 @@ export interface コホート解析Strategy extends ABC算定Strategy<コホー�
    * Step 3: 前進計算
    *
    * 前年までの結果に再生産関係の残差をリサンプリングして当年までの資源計算結果を得る。
+   * 体重と成熟割合は前年結果の親魚量と資源尾数から逆算する。
+   *
+   * @param 前年結果 - 前年までの資源計算結果
+   * @param 残差 - 再生産関係残差
+   * @param 当年のF - 当年の漁獲死亡係数
+   * @param M - 自然死亡係数
    */
-  前進計算(前年結果: 前年までの資源計算結果, 残差: 再生産関係残差): 当年までの資源計算結果;
+  前進計算(
+    前年結果: 前年までの資源計算結果,
+    残差: 再生産関係残差,
+    当年のF: F,
+    M: M
+  ): 当年までの資源計算結果;
 
   /**
    * Step 4: 将来予測
    */
-  将来予測(当年結果: 当年までの資源計算結果, F: F, 予測年数: number): 将来予測結果;
+  将来予測(
+    当年結果: 当年までの資源計算結果,
+    F: F,
+    予測年数: number,
+    M: M,
+    年齢別体重データ?: readonly number[]
+  ): 将来予測結果;
 
   /**
    * Step 5: ABC 決定

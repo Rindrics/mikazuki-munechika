@@ -7,11 +7,21 @@
 
 import type { WorkBook, WorkSheet } from "xlsx";
 import type { ParseStrategy } from "@/domain/models/published-data/strategy";
-import type { 公開データセット, コホート解析結果 } from "@/domain/models/published-data/types";
+import type {
+  公開データセット,
+  コホート解析結果,
+  資源量指標値,
+} from "@/domain/models/published-data/types";
+import type { 資源量指標種別 } from "@/domain/models/stock/calculation/tuning-vpa";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
 import { create年齢年行列 } from "@/domain/models/stock/calculation/strategy";
 import { detectTables, type DetectedTable, type DetectTablesOptions } from "../table-detector";
-import { parseMatrixData, parseRowByLabel } from "../table-parser";
+import {
+  parseMatrixData,
+  parseRowByLabel,
+  parseColumnByHeader,
+  parseColumnByIndex,
+} from "../table-parser";
 
 // =============================================================================
 // ドメイン固有の判定関数
@@ -66,7 +76,7 @@ type TableType =
   | "年齢別漁獲係数"
   | "年齢別資源尾数"
   | "年齢別資源量"
-  | "年齢別平均体重"
+  | "年齢別体重"
   | "unknown";
 
 /**
@@ -78,7 +88,7 @@ const getTableType = (title: string): TableType => {
   if (title.includes("年齢別漁獲係数")) return "年齢別漁獲係数";
   if (title.includes("年齢別資源尾数")) return "年齢別資源尾数";
   if (title.includes("年齢別資源量")) return "年齢別資源量";
-  if (title.includes("年齢別平均体重")) return "年齢別平均体重";
+  if (title.includes("年齢別平均体重")) return "年齢別体重";
   return "unknown";
 };
 
@@ -101,11 +111,13 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
   parse(workbook: WorkBook, 資源名: 資源名): 公開データセット {
     const 年度 = this.extract年度(workbook);
     const コホート解析結果 = this.parseコホート解析結果(workbook);
+    const チューニング指標値 = this.parseチューニング指標値(workbook);
 
     return {
       資源名,
       年度,
       コホート解析結果,
+      チューニング指標値,
     };
   }
 
@@ -137,7 +149,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     // Find the sheet containing cohort analysis data
     const sheet = this.findCohortAnalysisSheet(workbook);
 
-    // Detect all tables in the sheet
+    // Detect all tables in the cohort analysis sheet
     const tables = detectTables(sheet, this.detectOptions);
 
     // Find required tables by type
@@ -149,6 +161,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     const 年齢別漁獲係数Table = this.getRequiredTable(tableMap, "年齢別漁獲係数");
     const 年齢別資源尾数Table = this.getRequiredTable(tableMap, "年齢別資源尾数");
     const 年齢別資源量Table = this.getRequiredTable(tableMap, "年齢別資源量");
+    const 年齢別体重Table = this.getRequiredTable(tableMap, "年齢別体重");
 
     // Parse age-year matrices
     // Note: Excel uses 百万尾, we convert to 千尾
@@ -171,6 +184,8 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
       extractAge,
       1000 // 百万尾 → 千尾
     );
+
+    const 年齢別体重Data = parseMatrixData(年齢別体重Table, yearFilter, extractAge, 1);
     const 年齢別資源量Data = parseMatrixData(
       年齢別資源量Table,
       yearFilter,
@@ -207,6 +222,11 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     const 年齢範囲 = { 最小年齢: ages[0], 最大年齢: ages[ages.length - 1] };
     const 最終年 = years[years.length - 1];
 
+    // Parse 成熟割合 from 将来予測のパラメータ sheet (age-based constants)
+    const biologicalParametersSheet = this.findBiologicalParametersSheet(workbook);
+    const 成熟割合ByAge = this.parse成熟割合(biologicalParametersSheet);
+    const 年齢別成熟割合Data = this.expand成熟割合ToMatrix(成熟割合ByAge, years, ages);
+
     // Derive 親魚量 (sum of 年齢別資源量 for each year)
     const 親魚量データ = this.derive親魚量(年齢別資源量Data.data, years);
 
@@ -238,6 +258,18 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
         年範囲,
         年齢範囲,
         データ: 年齢別資源尾数Data.data,
+      }),
+      年齢別体重: create年齢年行列({
+        単位: "g",
+        年範囲,
+        年齢範囲,
+        データ: 年齢別体重Data.data,
+      }),
+      年齢別成熟割合: create年齢年行列({
+        単位: "無次元",
+        年範囲,
+        年齢範囲,
+        データ: 年齢別成熟割合Data.data,
       }),
       年齢別資源量: create年齢年行列({
         単位: "トン",
@@ -323,6 +355,159 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     throw new Error(
       `コホート解析のシートが見つかりません。存在するシート: ${workbook.SheetNames.join(", ")}`
     );
+  }
+
+  /**
+   * 生物学的パラメータシートを検出する
+   *
+   * A1 セルに「将来予測のパラメータ」を含むシートを探す
+   * 見つからない場合は null を返す（必須ではない）
+   */
+  private findBiologicalParametersSheet(workbook: WorkBook): WorkSheet {
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const a1Cell = sheet["A1"];
+      if (a1Cell && typeof a1Cell.v === "string" && a1Cell.v.includes("将来予測のパラメータ")) {
+        return sheet;
+      }
+    }
+    throw new Error(
+      `将来予測のパラメータのシートが見つかりません。存在するシート: ${workbook.SheetNames.join(", ")}`
+    );
+  }
+
+  /**
+   * チューニング指標値シートを検出する
+   *
+   * A1 セルに「チューニングに用いた指標値」を含むシートを探す
+   */
+  private findTuningIndexSheet(workbook: WorkBook): WorkSheet {
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const a1Cell = sheet["A1"];
+      if (
+        a1Cell &&
+        typeof a1Cell.v === "string" &&
+        a1Cell.v.includes("チューニングに用いた指標値")
+      ) {
+        return sheet;
+      }
+    }
+    throw new Error(
+      `チューニング指標値のシートが見つかりません。存在するシート: ${workbook.SheetNames.join(", ")}`
+    );
+  }
+
+  /**
+   * チューニング指標値をパース（補足表2-2）
+   *
+   * 列の構造：
+   * - 1列目 (index 0): 年
+   * - 2列目 (index 1): N₀ → 北上期調査_0歳魚CPUE
+   * - 3列目 (index 2): N₁ → 北上期調査_1歳魚CPUE
+   * - 4列目 (index 3): N₀ → 秋季調査_0歳魚現存量
+   * - 5列目 (index 4): SSB → 産卵量
+   */
+  private parseチューニング指標値(workbook: WorkBook): 資源量指標値[] {
+    const sheet = this.findTuningIndexSheet(workbook);
+
+    // Detect table with header row containing N₀, N₁, SSB
+    const tuningOptions: DetectTablesOptions = {
+      isTableTitle: (value) => !!value && value.startsWith("指標値"),
+      isHeaderRow: (value) =>
+        !!value && (value.includes("対象") || value === "N₀" || value === "N0"),
+      labelColumn: "A",
+    };
+
+    const tables = detectTables(sheet, tuningOptions);
+    if (tables.length === 0) {
+      throw new Error("チューニング指標値シートからテーブルを検出できませんでした");
+    }
+
+    const table = tables[0];
+
+    // Column indices (0-based):
+    // 0: year, 1: N₀ (北上期調査), 2: N₁, 3: N₀ (秋季調査), 4: SSB
+    const columnConfig: { index: number; 種別: 資源量指標種別; 対象年齢?: number }[] = [
+      { index: 1, 種別: "北上期調査_0歳魚CPUE", 対象年齢: 0 },
+      { index: 2, 種別: "北上期調査_1歳魚CPUE", 対象年齢: 1 },
+      { index: 3, 種別: "秋季調査_0歳魚現存量", 対象年齢: 0 },
+      { index: 4, 種別: "産卵量" },
+    ];
+
+    const 指標値リスト: 資源量指標値[] = [];
+
+    for (const config of columnConfig) {
+      const yearToValue = parseColumnByIndex(table, config.index, yearFilter);
+      if (yearToValue.size === 0) {
+        continue; // Skip if no data found for this column
+      }
+
+      const years = Array.from(yearToValue.keys()).sort((a, b) => a - b);
+      const 観測値 = years.map((year) => yearToValue.get(year) ?? 0);
+
+      const 指標値: 資源量指標値 = {
+        種別: config.種別,
+        年範囲: { 開始年: years[0], 終了年: years[years.length - 1] },
+        観測値,
+        ...(config.対象年齢 !== undefined && { 対象年齢: config.対象年齢 }),
+      };
+
+      指標値リスト.push(指標値);
+    }
+
+    return 指標値リスト;
+  }
+
+  /**
+   * 将来予測のパラメータシートから成熟割合をパース
+   *
+   * ヘッダー行「年齢」を検出し、「成熟割合」列から年齢ごとの値を抽出
+   */
+  private parse成熟割合(sheet: WorkSheet): Map<number, number> {
+    // Detect table with header row starting with "年齢"
+    const biologicalOptions: DetectTablesOptions = {
+      isTableTitle: (value) => !!value && value.includes("将来予測のパラメータ"),
+      isHeaderRow: (value) => value === "年齢",
+      labelColumn: "A",
+    };
+
+    const tables = detectTables(sheet, biologicalOptions);
+    if (tables.length === 0) {
+      throw new Error("将来予測のパラメータシートからテーブルを検出できませんでした");
+    }
+
+    const table = tables[0];
+    return parseColumnByHeader(table, "成熟割合", extractAge);
+  }
+
+  /**
+   * 年齢ごとの成熟割合を年齢年行列形式に展開
+   *
+   * 全ての年に同じ成熟割合を適用する
+   */
+  private expand成熟割合ToMatrix(
+    成熟割合ByAge: Map<number, number>,
+    years: number[],
+    ages: number[]
+  ): { columns: number[]; rows: number[]; data: number[][] } {
+    // data[yearIndex][ageIndex]
+    const data: number[][] = [];
+
+    for (let yearIdx = 0; yearIdx < years.length; yearIdx++) {
+      const yearData: number[] = [];
+      for (const age of ages) {
+        const value = 成熟割合ByAge.get(age) ?? 0;
+        yearData.push(value);
+      }
+      data.push(yearData);
+    }
+
+    return {
+      columns: years,
+      rows: ages,
+      data,
+    };
   }
 
   /**

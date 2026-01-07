@@ -43,28 +43,35 @@ export default function ReviewPage() {
   }, [abcResult, calculatedParams, 漁獲データValue, 生物学的データValue]);
 
   const handleCalculate = useCallback(async () => {
-    if (!parsedData) return;
+    if (!file) return;
 
     setIsCalculating(true);
     setError(null);
     try {
-      const result = await calculateReviewAbcAction(
-        parsedData.資源名,
-        漁獲データValue,
-        生物学的データValue
-      );
-      setAbcResult(result);
-      // Track the parameters used for this calculation
-      setCalculatedParams({
-        漁獲データ: 漁獲データValue,
-        生物学的データ: 生物学的データValue,
-      });
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await calculateReviewAbcAction(formData);
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      if (response.result) {
+        setAbcResult(response.result);
+        // Track the parameters used for this calculation
+        setCalculatedParams({
+          漁獲データ: 漁獲データValue,
+          生物学的データ: 生物学的データValue,
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
     } finally {
       setIsCalculating(false);
     }
-  }, [parsedData, 漁獲データValue, 生物学的データValue]);
+  }, [file, 漁獲データValue, 生物学的データValue]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -248,7 +255,7 @@ export default function ReviewPage() {
               <button
                 type="button"
                 onClick={handleCalculate}
-                disabled={!漁獲データValue || !生物学的データValue || isCalculating}
+                disabled={!file || isCalculating}
                 className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
               >
                 {isCalculating ? "計算中..." : "ABC を計算"}
