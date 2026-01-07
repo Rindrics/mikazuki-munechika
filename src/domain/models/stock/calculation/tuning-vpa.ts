@@ -17,7 +17,6 @@
 
 import { logger } from "@/utils/logger";
 import { runVPA, type VPAInput, type VPAResult } from "./vpa";
-import type { 年齢年行列 } from "./strategy";
 
 /**
  * 資源量指標値の種類
@@ -288,7 +287,7 @@ export function extractVPA推定値(
   指標値: 資源量指標値,
   チューニング期間: { 開始年: number; 終了年: number }
 ): readonly number[] {
-  const { 種別, 年範囲, 対象年齢 } = 指標値;
+  const { 種別, 年範囲, 対象年齢: _対象年齢 } = 指標値;
   const 推定値: number[] = [];
 
   // 年範囲をチューニング期間内に制限
@@ -746,7 +745,7 @@ export function calculateMohnsRho(レトロ結果: readonly レトロスペク�
 
   for (const ピール結果 of ピール結果リスト) {
     // 比較する年のインデックス（ピール結果の最終年）
-    const 比較年Index = ピール結果.終了年 - 完全データ.親魚量.length + 完全データ.親魚量.length;
+    const _比較年Index = ピール結果.終了年 - 完全データ.親魚量.length + 完全データ.親魚量.length;
     const 完全データIndex = ピール結果.終了年 - (完全データ.終了年 - 完全データ.親魚量.length + 1);
 
     if (完全データIndex < 0 || 完全データIndex >= 完全データ.親魚量.length) {

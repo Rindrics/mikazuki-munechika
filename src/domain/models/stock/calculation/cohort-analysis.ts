@@ -22,9 +22,7 @@ import { runVPA, type VPAInput } from "./vpa";
 import {
   runチューニングVPA,
   calculateターミナル資源尾数,
-  type チューニングVPA入力,
   type 資源量指標値,
-  type ターミナルF as チューニングターミナルF,
 } from "./tuning-vpa";
 
 /**

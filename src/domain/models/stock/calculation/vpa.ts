@@ -19,7 +19,7 @@
  */
 
 import type { 年齢年行列 } from "./strategy";
-import { M, create年齢年行列 } from "./strategy";
+import { create年齢年行列 } from "./strategy";
 import { logger } from "@/utils/logger";
 
 /**
