@@ -15,9 +15,9 @@ const FIXTURE_FILE = join(FIXTURES_DIR, "maiwashi-pacific-2024.xlsx");
  * Load actual Excel file for testing
  */
 function loadFixtureWorkbook() {
-    const buffer = readFileSync(FIXTURE_FILE);
-    return read(buffer, { type: "buffer" });
-  }
+  const buffer = readFileSync(FIXTURE_FILE);
+  return read(buffer, { type: "buffer" });
+}
 
 describe("マイワシ太平洋系群Strategy", () => {
   describe("parse", () => {
@@ -91,20 +91,20 @@ describe("マイワシ太平洋系群Strategy", () => {
     });
 
     it("should parse 年齢別体重", () => {
-        const workbook = loadFixtureWorkbook();
-        const strategy = new マイワシ太平洋系群Strategy();
-  
-        const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
-        const { コホート解析結果 } = result;
-        const recentYear = コホート解析結果.年齢別体重.年範囲.終了年;
+      const workbook = loadFixtureWorkbook();
+      const strategy = new マイワシ太平洋系群Strategy();
 
-        expect(recentYear).toBe(2023); // 2024 年度の資源評価データを使っているので最終年は 2023 年
-  
-        const expectedWeights = [15, 40, 46, 60, 78, 94];
-        [0, 1, 2, 3, 4, 5].forEach((age, index) => {
-            const value = コホート解析結果.年齢別体重.get(recentYear, age, "g");
-            expect(value).toBe(expectedWeights[index]);
-        });
+      const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
+      const { コホート解析結果 } = result;
+      const recentYear = コホート解析結果.年齢別体重.年範囲.終了年;
+
+      expect(recentYear).toBe(2023); // 2024 年度の資源評価データを使っているので最終年は 2023 年
+
+      const expectedWeights = [15, 40, 46, 60, 78, 94];
+      [0, 1, 2, 3, 4, 5].forEach((age, index) => {
+        const value = コホート解析結果.年齢別体重.get(recentYear, age, "g");
+        expect(value).toBe(expectedWeights[index]);
+      });
     });
 
     it("should parse 年齢別成熟割合", () => {
@@ -123,20 +123,20 @@ describe("マイワシ太平洋系群Strategy", () => {
     });
 
     it("should parse 資源量指標値", () => {
-        const workbook = loadFixtureWorkbook();
-        const strategy = new マイワシ太平洋系群Strategy();
-  
-        const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
+      const workbook = loadFixtureWorkbook();
+      const strategy = new マイワシ太平洋系群Strategy();
 
-        expect(result.チューニング指標値).toBeDefined();
-        expect(result.チューニング指標値?.length).toBe(4);
-        if (result.チューニング指標値) {
-            result.チューニング指標値.forEach((指標値) => {
-                expect(指標値.種別).toBeDefined();
-                expect(指標値.年範囲).toBeDefined();
-                expect(指標値.観測値).toBeDefined();
-            });
-        }
+      const result = strategy.parse(workbook, 資源名s.マイワシ太平洋);
+
+      expect(result.チューニング指標値).toBeDefined();
+      expect(result.チューニング指標値?.length).toBe(4);
+      if (result.チューニング指標値) {
+        result.チューニング指標値.forEach((指標値) => {
+          expect(指標値.種別).toBeDefined();
+          expect(指標値.年範囲).toBeDefined();
+          expect(指標値.観測値).toBeDefined();
+        });
+      }
     });
 
     it("should parse SPR as Map with values", () => {

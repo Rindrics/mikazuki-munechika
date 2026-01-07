@@ -7,12 +7,21 @@
 
 import type { WorkBook, WorkSheet } from "xlsx";
 import type { ParseStrategy } from "@/domain/models/published-data/strategy";
-import type { 公開データセット, コホート解析結果, 資源量指標値 } from "@/domain/models/published-data/types";
+import type {
+  公開データセット,
+  コホート解析結果,
+  資源量指標値,
+} from "@/domain/models/published-data/types";
 import type { 資源量指標種別 } from "@/domain/models/stock/calculation/tuning-vpa";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
 import { create年齢年行列 } from "@/domain/models/stock/calculation/strategy";
 import { detectTables, type DetectedTable, type DetectTablesOptions } from "../table-detector";
-import { parseMatrixData, parseRowByLabel, parseColumnByHeader, parseColumnByIndex } from "../table-parser";
+import {
+  parseMatrixData,
+  parseRowByLabel,
+  parseColumnByHeader,
+  parseColumnByIndex,
+} from "../table-parser";
 
 // =============================================================================
 // ドメイン固有の判定関数
@@ -176,12 +185,7 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
       1000 // 百万尾 → 千尾
     );
 
-    const 年齢別体重Data = parseMatrixData(
-      年齢別体重Table,
-      yearFilter,
-      extractAge,
-      1,
-    );
+    const 年齢別体重Data = parseMatrixData(年齢別体重Table, yearFilter, extractAge, 1);
     const 年齢別資源量Data = parseMatrixData(
       年齢別資源量Table,
       yearFilter,
@@ -381,7 +385,11 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName];
       const a1Cell = sheet["A1"];
-      if (a1Cell && typeof a1Cell.v === "string" && a1Cell.v.includes("チューニングに用いた指標値")) {
+      if (
+        a1Cell &&
+        typeof a1Cell.v === "string" &&
+        a1Cell.v.includes("チューニングに用いた指標値")
+      ) {
         return sheet;
       }
     }
@@ -406,7 +414,8 @@ export class マイワシ太平洋系群Strategy implements ParseStrategy {
     // Detect table with header row containing N₀, N₁, SSB
     const tuningOptions: DetectTablesOptions = {
       isTableTitle: (value) => !!value && value.startsWith("指標値"),
-      isHeaderRow: (value) => !!value && (value.includes("対象") || value === "N₀" || value === "N0"),
+      isHeaderRow: (value) =>
+        !!value && (value.includes("対象") || value === "N₀" || value === "N0"),
       labelColumn: "A",
     };
 

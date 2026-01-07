@@ -250,8 +250,7 @@ export function runVPA(input: VPAInput): VPAResult {
         const 最高齢1歳割合 = 漁獲量合計 > 0 ? 最高齢1歳漁獲量 / 漁獲量合計 : 0.5;
 
         // 式(4): Np-1,y = (Cp-1,y / (Cp,y + Cp-1,y)) * (Np,y+1 exp(M) + Cp-1,y exp(M/2))
-        const 共通項 =
-          翌年プラスグループ * Math.exp(M値) + 最高齢1歳漁獲量 * Math.exp(M値 / 2);
+        const 共通項 = 翌年プラスグループ * Math.exp(M値) + 最高齢1歳漁獲量 * Math.exp(M値 / 2);
         const 推定資源尾数 = 最高齢1歳割合 * 共通項;
         資源尾数データ[年index][最高齢1歳index] = 推定資源尾数;
 

@@ -188,10 +188,7 @@ export function estimate比例定数q(
  * @param VPA推定値 VPAから計算された対象値 Xk,y
  * @returns 非線形性係数 b
  */
-export function estimate非線形性b(
-  観測値: readonly number[],
-  VPA推定値: readonly number[]
-): number {
+export function estimate非線形性b(観測値: readonly number[], VPA推定値: readonly number[]): number {
   if (観測値.length !== VPA推定値.length) {
     throw new Error("観測値とVPA推定値の長さが一致しません");
   }
@@ -486,14 +483,7 @@ export function optimizeNelderMead(
     δ?: number; // shrink
   } = {}
 ): { 最適値: readonly number[]; 目的関数値: number; 反復回数: number } {
-  const {
-    maxIterations = 1000,
-    tolerance = 1e-6,
-    α = 1.0,
-    β = 2.0,
-    γ = 0.5,
-    δ = 0.5,
-  } = オプション;
+  const { maxIterations = 1000, tolerance = 1e-6, α = 1.0, β = 2.0, γ = 0.5, δ = 0.5 } = オプション;
 
   const n = 初期値.length; // 次元数（5）
 
@@ -677,10 +667,7 @@ export function runレトロスペクティブ解析(
         .map((指標) => {
           // 指標データも削減
           const 指標終了年Index = 指標.年範囲.終了年 - 指標.年範囲.開始年;
-          const ピール後Index = Math.min(
-            指標終了年Index,
-            終了年 - 指標.年範囲.開始年
-          );
+          const ピール後Index = Math.min(指標終了年Index, 終了年 - 指標.年範囲.開始年);
 
           if (ピール後Index < 0) {
             return null;
@@ -739,9 +726,7 @@ export function runレトロスペクティブ解析(
  * @param レトロ結果 レトロスペクティブ解析の結果
  * @returns Mohn's ρ
  */
-export function calculateMohnsRho(
-  レトロ結果: readonly レトロスペクティブ結果[]
-): MohnsRho {
+export function calculateMohnsRho(レトロ結果: readonly レトロスペクティブ結果[]): MohnsRho {
   if (レトロ結果.length < 2) {
     throw new Error("Mohn's ρ計算には最低2つのレトロスペクティブ結果が必要です");
   }
@@ -1037,11 +1022,7 @@ function runチューニングVPACore(
     最終VPA推定値リスト.set(指標値.種別, VPA推定値trim);
 
     const 固定b = 指標値.種別 === "産卵量";
-    const params = estimate指標パラメータ(
-      { ...指標値, 観測値: 観測値trim },
-      VPA推定値trim,
-      固定b
-    );
+    const params = estimate指標パラメータ({ ...指標値, 観測値: 観測値trim }, VPA推定値trim, 固定b);
     最終指標パラメータMap.set(指標値.種別, params);
   }
 
