@@ -94,8 +94,7 @@ export async function calculateReviewAbcAction(
 
     if (!年齢別体重 || 年齢別体重.length === 0) {
       return {
-        error:
-          "最終年の年齢別体重データが空です。Excel ファイルのデータを確認してください。",
+        error: "最終年の年齢別体重データが空です。Excel ファイルのデータを確認してください。",
       };
     }
 
