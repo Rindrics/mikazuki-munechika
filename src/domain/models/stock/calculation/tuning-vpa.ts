@@ -157,6 +157,7 @@ export function estimate比例定数q(
 
   const n = 観測値.length;
   let sum = 0;
+  let validCount = 0;
 
   for (let i = 0; i < n; i++) {
     const I = 観測値[i];
@@ -169,11 +170,20 @@ export function estimate比例定数q(
 
     // ln(Ik,y / Xk,y^bk) = ln(Ik,y) - bk * ln(Xk,y)
     sum += Math.log(I) - b * Math.log(X);
+    validCount++;
   }
 
-  const q = Math.exp(sum / n);
+  if (validCount === 0) {
+    logger.error("有効なデータペアがありません。比例定数qを計算できません", {
+      n,
+      b,
+    });
+    throw new Error("有効なデータペアがありません");
+  }
 
-  logger.debug("比例定数qを推定しました", { q, b, n });
+  const q = Math.exp(sum / validCount);
+
+  logger.debug("比例定数qを推定しました", { q, b, n, validCount });
 
   return q;
 }
