@@ -19,11 +19,7 @@ import type {
 import { create年齢年行列, 固定値, generateMermaidFlowchart } from "./strategy";
 import { logger } from "@/utils/logger";
 import { runVPA, type VPAInput } from "./vpa";
-import {
-  runチューニングVPA,
-  calculateターミナル資源尾数,
-  type 資源量指標値,
-} from "./tuning-vpa";
+import { runチューニングVPA, calculateターミナル資源尾数, type 資源量指標値 } from "./tuning-vpa";
 
 /**
  * Default calculation parameters
