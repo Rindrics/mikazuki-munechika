@@ -9,6 +9,8 @@ export interface ABC算定結果 {
   value: string;
   /** 単位 */
   unit: "トン";
+  /** ABC 算定対象年（年度 + 1） */
+  ABC算定対象年?: number;
   /** 資源量 */
   資源量?: 資源量;
   /** 計算に使用したアプリのバージョン */

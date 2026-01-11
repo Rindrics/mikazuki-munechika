@@ -310,6 +310,9 @@ export default function ReviewPage() {
 
           <section className="mb-8">
             <h2 className="mb-4">公開データとの比較</h2>
+            <p className="text-sm text-secondary mb-4">
+              ABC 算定対象年: {parsedData.年度 + 1}年
+            </p>
 
             {isFetchingPublished && <p className="text-sm text-secondary">公開データを取得中...</p>}
 

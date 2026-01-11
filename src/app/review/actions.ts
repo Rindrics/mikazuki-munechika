@@ -133,9 +133,13 @@ export async function calculateReviewAbcAction(
 
     const abc結果 = strategy.ABC決定(予測結果, 規則, β);
 
+    // ABC 算定対象年 = 年度 + 1（例: 2024年度の評価 → 2025年の ABC）
+    const ABC算定対象年 = data.年度 + 1;
+
     return {
       result: {
         ...abc結果,
+        ABC算定対象年,
         appVersion: APP_VERSION,
       },
     };
