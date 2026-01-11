@@ -423,7 +423,7 @@ ON CONFLICT (stock_group_id, fiscal_year) DO UPDATE
       updated_by = EXCLUDED.updated_by,
       updated_at = NOW();
 
--- Scenario 3: マイワシ対馬暖流系群 (外部査読中 - Externally Published)
+-- Scenario 3: マイワシ対馬暖流系群 (作業中 - In Progress)
 INSERT INTO public.assessment_results (
   id,
   stock_group_id,
