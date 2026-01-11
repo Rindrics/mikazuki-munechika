@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import type { ABC算定結果 } from "@/domain/data";
 import type { AssessmentParameters } from "@/domain/repositories";
