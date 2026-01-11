@@ -232,9 +232,7 @@ export default function ReviewPage() {
           <section className="mb-8">
             <h2 className="mb-4">公開データとの比較</h2>
 
-            {isFetchingPublished && (
-              <p className="text-sm text-secondary">公開データを取得中...</p>
-            )}
+            {isFetchingPublished && <p className="text-sm text-secondary">公開データを取得中...</p>}
 
             {fetchError && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
