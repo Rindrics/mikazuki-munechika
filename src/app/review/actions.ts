@@ -157,9 +157,7 @@ function toResourceCalculationResult(data: 公開データセット): 当年ま�
  */
 export async function saveReviewAction(
   formData: FormData,
-  abc結果?: ABC算定結果,
-  abc漁獲データ?: string,
-  abc生物学的データ?: string
+  abc結果?: ABC算定結果
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const file = formData.get("file") as File;
@@ -192,13 +190,6 @@ export async function saveReviewAction(
       評価年度: data.年度,
       資源計算結果,
       ABC結果: abc結果,
-      ABCパラメータ:
-        abc漁獲データ && abc生物学的データ
-          ? {
-              漁獲データ: abc漁獲データ,
-              生物学的データ: abc生物学的データ,
-            }
-          : undefined,
     });
 
     // Save to repository

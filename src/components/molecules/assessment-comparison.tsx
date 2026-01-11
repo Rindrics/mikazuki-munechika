@@ -5,14 +5,12 @@ import type { AssessmentParameters } from "@/domain/repositories";
 interface AssessmentComparisonProps {
   reviewerResult: ABC算定結果 | null;
   publishedResult: ABC算定結果 | null;
-  reviewerParams?: { 漁獲データ: string; 生物学的データ: string };
   publishedParams?: AssessmentParameters;
 }
 
 export function AssessmentComparison({
   reviewerResult,
   publishedResult,
-  reviewerParams,
   publishedParams,
 }: AssessmentComparisonProps) {
   // Calculate difference
@@ -62,12 +60,6 @@ export function AssessmentComparison({
               <p className="text-2xl font-bold mb-2">
                 {reviewerResult.value} {reviewerResult.unit}
               </p>
-              {reviewerParams && (
-                <div className="text-sm text-secondary space-y-1">
-                  <p>漁獲データ: {reviewerParams.漁獲データ}</p>
-                  <p>生物学的データ: {reviewerParams.生物学的データ}</p>
-                </div>
-              )}
               {/* Difference Display */}
               {difference !== null && (
                 <div

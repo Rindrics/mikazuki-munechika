@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
 import { AssessmentComparison } from "@/components/molecules";
@@ -26,13 +26,7 @@ export default function ReviewPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // ABC calculation state
-  const [漁獲データValue, set漁獲データValue] = useState("");
-  const [生物学的データValue, set生物学的データValue] = useState("");
   const [abcResult, setAbcResult] = useState<ABC算定結果 | null>(null);
-  const [calculatedParams, setCalculatedParams] = useState<{
-    漁獲データ: string;
-    生物学的データ: string;
-  } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
 
   // Published assessment comparison state
@@ -41,16 +35,6 @@ export default function ReviewPage() {
   );
   const [isFetchingPublished, setIsFetchingPublished] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Check if parameters have changed since calculation
-  const hasParametersChanged = useMemo(() => {
-    return !!(
-      abcResult &&
-      calculatedParams &&
-      (calculatedParams.漁獲データ !== 漁獲データValue ||
-        calculatedParams.生物学的データ !== 生物学的データValue)
-    );
-  }, [abcResult, calculatedParams, 漁獲データValue, 生物学的データValue]);
 
   const handleCalculate = useCallback(async () => {
     if (!file) return;
@@ -70,18 +54,13 @@ export default function ReviewPage() {
 
       if (response.result) {
         setAbcResult(response.result);
-        // Track the parameters used for this calculation
-        setCalculatedParams({
-          漁獲データ: 漁獲データValue,
-          生物学的データ: 生物学的データValue,
-        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
     } finally {
       setIsCalculating(false);
     }
-  }, [file, 漁獲データValue, 生物学的データValue]);
+  }, [file]);
 
   const handleFetchPublished = useCallback(async () => {
     if (!parsedData) return;
@@ -143,12 +122,7 @@ export default function ReviewPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await saveReviewAction(
-        formData,
-        abcResult ?? undefined,
-        calculatedParams?.漁獲データ,
-        calculatedParams?.生物学的データ
-      );
+      const result = await saveReviewAction(formData, abcResult ?? undefined);
 
       if (result.error) {
         setError(result.error);
@@ -160,7 +134,7 @@ export default function ReviewPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [file, abcResult, calculatedParams]);
+  }, [file, abcResult]);
 
   // Loading state
   if (isLoading) {
@@ -255,34 +229,6 @@ export default function ReviewPage() {
             <h2 className="mb-4">ABC 計算</h2>
 
             <div className="space-y-4">
-              <div>
-                <label htmlFor="catchData" className="block mb-2 font-medium">
-                  漁獲データ
-                </label>
-                <input
-                  id="catchData"
-                  type="text"
-                  value={漁獲データValue}
-                  onChange={(e) => set漁獲データValue(e.target.value)}
-                  placeholder="漁獲データを入力"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="biologicalData" className="block mb-2 font-medium">
-                  生物学的データ
-                </label>
-                <input
-                  id="biologicalData"
-                  type="text"
-                  value={生物学的データValue}
-                  onChange={(e) => set生物学的データValue(e.target.value)}
-                  placeholder="生物学的データを入力"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
               <button
                 type="button"
                 onClick={handleCalculate}
@@ -302,19 +248,13 @@ export default function ReviewPage() {
                   <p className="text-secondary italic">計算結果がここに表示されます</p>
                 )}
               </div>
-
-              {hasParametersChanged && (
-                <p className="text-secondary text-sm">
-                  パラメータが変更されました。保存するには再計算してください。
-                </p>
-              )}
             </div>
           </section>
 
           <section className="mb-8">
             <h2 className="mb-4">保存</h2>
 
-            <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
+            <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "保存中..." : "保存する"}
             </Button>
 
@@ -347,7 +287,6 @@ export default function ReviewPage() {
                 <AssessmentComparison
                   reviewerResult={abcResult}
                   publishedResult={publishedAssessment.result}
-                  reviewerParams={calculatedParams ?? undefined}
                   publishedParams={publishedAssessment.parameters}
                 />
               )}
