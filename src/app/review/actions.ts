@@ -60,13 +60,23 @@ export async function parseExcelAction(
 }
 
 /**
+ * Parameters for ABC calculation that can be configured by the reviewer
+ */
+interface ABCCalculationParams {
+  F: number;
+  M: number;
+  β: number;
+}
+
+/**
  * Calculate ABC for review using parsed Excel data
  *
  * パースされた Excel データから直接 ABC を計算します。
  * ダミーデータではなく、実際のパースされた年齢別体重などを使用します。
  */
 export async function calculateReviewAbcAction(
-  formData: FormData
+  formData: FormData,
+  params: ABCCalculationParams
 ): Promise<{ result?: ABC算定結果; error?: string }> {
   try {
     const file = formData.get("file") as File;
@@ -104,9 +114,9 @@ export async function calculateReviewAbcAction(
     // Create strategy and run future projection + ABC calculation
     const strategy = createコホート解析Strategy();
 
-    // Use default parameters
-    const F = { 値: 0.3 };
-    const M = (_年齢: number) => 固定値(0.4);
+    // Use parameters from input
+    const F = { 値: params.F };
+    const M = (_年齢: number) => 固定値(params.M);
     const 予測年数 = 1;
 
     // Run future projection with parsed weight data
@@ -114,12 +124,12 @@ export async function calculateReviewAbcAction(
 
     // Run ABC decision
     const 規則 = {
-      目標F: 0.3,
+      目標F: params.F,
       禁漁水準: 10000, // 10,000 トン
       限界管理基準値: 50000, // 50,000 トン
       目標管理基準値: 100000, // 100,000 トン
     };
-    const β = { 値: 0.8 };
+    const β = { 値: params.β };
 
     const abc結果 = strategy.ABC決定(予測結果, 規則, β);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
 import { AssessmentComparison } from "@/components/molecules";
@@ -12,6 +12,24 @@ import {
   getPublishedAssessmentAction,
   type ParsedDataSummary,
 } from "./actions";
+
+/**
+ * Parameters for ABC calculation that can be configured by the reviewer
+ */
+interface ABCCalculationParams {
+  F: number;
+  M: number;
+  β: number;
+}
+
+/**
+ * Default parameters for ABC calculation
+ */
+const DEFAULT_ABC_PARAMS: ABCCalculationParams = {
+  F: 0.3,
+  M: 0.4,
+  β: 0.8,
+};
 import type { ABC算定結果 } from "@/domain/data";
 import type { VersionedAssessmentResult } from "@/domain/repositories";
 
@@ -28,6 +46,7 @@ export default function ReviewPage() {
   // ABC calculation state
   const [abcResult, setAbcResult] = useState<ABC算定結果 | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [abcParams, setAbcParams] = useState<ABCCalculationParams>(DEFAULT_ABC_PARAMS);
 
   // Published assessment comparison state
   const [publishedAssessment, setPublishedAssessment] = useState<VersionedAssessmentResult | null>(
@@ -36,31 +55,35 @@ export default function ReviewPage() {
   const [isFetchingPublished, setIsFetchingPublished] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const handleCalculate = useCallback(async () => {
-    if (!file) return;
+  // Auto-calculate ABC when parameters change
+  useEffect(() => {
+    if (!file || !parsedData) return;
 
-    setIsCalculating(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const calculate = async () => {
+      setIsCalculating(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const response = await calculateReviewAbcAction(formData);
+        const response = await calculateReviewAbcAction(formData, abcParams);
 
-      if (response.error) {
-        setError(response.error);
-        return;
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.result) {
+          setAbcResult(response.result);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
+      } finally {
+        setIsCalculating(false);
       }
+    };
 
-      if (response.result) {
-        setAbcResult(response.result);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
-    } finally {
-      setIsCalculating(false);
-    }
-  }, [file]);
+    calculate();
+  }, [file, parsedData, abcParams]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -230,16 +253,59 @@ export default function ReviewPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4">ABC 計算</h2>
+            <h2 className="mb-4">ABC 計算パラメータ</h2>
 
-            <button
-              type="button"
-              onClick={handleCalculate}
-              disabled={!file || isCalculating}
-              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-            >
-              {isCalculating ? "計算中..." : "ABC を計算"}
-            </button>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="param-f" className="block text-sm font-medium mb-1">
+                  F（漁獲係数）
+                </label>
+                <input
+                  id="param-f"
+                  type="number"
+                  step="0.01"
+                  value={abcParams.F}
+                  onChange={(e) =>
+                    setAbcParams((prev) => ({ ...prev, F: parseFloat(e.target.value) || 0 }))
+                  }
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label htmlFor="param-m" className="block text-sm font-medium mb-1">
+                  M（自然死亡係数）
+                </label>
+                <input
+                  id="param-m"
+                  type="number"
+                  step="0.01"
+                  value={abcParams.M}
+                  onChange={(e) =>
+                    setAbcParams((prev) => ({ ...prev, M: parseFloat(e.target.value) || 0 }))
+                  }
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label htmlFor="param-beta" className="block text-sm font-medium mb-1">
+                  β（調整係数）
+                </label>
+                <input
+                  id="param-beta"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  value={abcParams.β}
+                  onChange={(e) =>
+                    setAbcParams((prev) => ({ ...prev, β: parseFloat(e.target.value) || 0 }))
+                  }
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {isCalculating && <p className="mt-2 text-sm text-secondary">計算中...</p>}
           </section>
 
           <section className="mb-8">
