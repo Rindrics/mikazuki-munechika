@@ -1,16 +1,24 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
+import {
+  AssessmentComparison,
+  ABCParamsForm,
+  DEFAULT_ABC_PARAMS,
+  type ABCCalculationParams,
+} from "@/components/molecules";
 import {
   parseExcelAction,
   saveReviewAction,
   calculateReviewAbcAction,
+  getPublishedAssessmentAction,
   type ParsedDataSummary,
 } from "./actions";
 import type { ABC算定結果 } from "@/domain/data";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 
 export default function ReviewPage() {
   const { user, isLoading } = useAuth();
@@ -23,55 +31,46 @@ export default function ReviewPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // ABC calculation state
-  const [漁獲データValue, set漁獲データValue] = useState("");
-  const [生物学的データValue, set生物学的データValue] = useState("");
   const [abcResult, setAbcResult] = useState<ABC算定結果 | null>(null);
-  const [calculatedParams, setCalculatedParams] = useState<{
-    漁獲データ: string;
-    生物学的データ: string;
-  } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [abcParams, setAbcParams] = useState<ABCCalculationParams>(DEFAULT_ABC_PARAMS);
 
-  // Check if parameters have changed since calculation
-  const hasParametersChanged = useMemo(() => {
-    return !!(
-      abcResult &&
-      calculatedParams &&
-      (calculatedParams.漁獲データ !== 漁獲データValue ||
-        calculatedParams.生物学的データ !== 生物学的データValue)
-    );
-  }, [abcResult, calculatedParams, 漁獲データValue, 生物学的データValue]);
+  // Published assessment comparison state
+  const [publishedAssessment, setPublishedAssessment] = useState<VersionedAssessmentResult | null>(
+    null
+  );
+  const [isFetchingPublished, setIsFetchingPublished] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const handleCalculate = useCallback(async () => {
-    if (!file) return;
+  // Auto-calculate ABC when parameters change
+  useEffect(() => {
+    if (!file || !parsedData) return;
 
-    setIsCalculating(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const calculate = async () => {
+      setIsCalculating(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
 
-      const response = await calculateReviewAbcAction(formData);
+        const response = await calculateReviewAbcAction(formData, abcParams);
 
-      if (response.error) {
-        setError(response.error);
-        return;
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.result) {
+          setAbcResult(response.result);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
+      } finally {
+        setIsCalculating(false);
       }
+    };
 
-      if (response.result) {
-        setAbcResult(response.result);
-        // Track the parameters used for this calculation
-        setCalculatedParams({
-          漁獲データ: 漁獲データValue,
-          生物学的データ: 生物学的データValue,
-        });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "計算中にエラーが発生しました");
-    } finally {
-      setIsCalculating(false);
-    }
-  }, [file, 漁獲データValue, 生物学的データValue]);
+    calculate();
+  }, [file, parsedData, abcParams]);
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -79,8 +78,11 @@ export default function ReviewPage() {
 
     setFile(selectedFile);
     setParsedData(null);
+    setPublishedAssessment(null);
+    setAbcResult(null);
     setError(null);
     setSuccess(null);
+    setFetchError(null);
     setIsParsing(true);
 
     try {
@@ -91,8 +93,30 @@ export default function ReviewPage() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.data) {
+        return;
+      }
+
+      if (result.data) {
         setParsedData(result.data);
+
+        // Automatically fetch published assessment after parsing
+        setIsFetchingPublished(true);
+        try {
+          const publishedResult = await getPublishedAssessmentAction(
+            result.data.資源名,
+            result.data.年度
+          );
+
+          if (publishedResult.error) {
+            setFetchError(publishedResult.error);
+          } else if (publishedResult.result) {
+            setPublishedAssessment(publishedResult.result);
+          }
+        } catch (err) {
+          setFetchError(err instanceof Error ? err.message : "公開データ取得エラー");
+        } finally {
+          setIsFetchingPublished(false);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "パース中にエラーが発生しました");
@@ -112,12 +136,7 @@ export default function ReviewPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await saveReviewAction(
-        formData,
-        abcResult ?? undefined,
-        calculatedParams?.漁獲データ,
-        calculatedParams?.生物学的データ
-      );
+      const result = await saveReviewAction(formData, abcResult ?? undefined);
 
       if (result.error) {
         setError(result.error);
@@ -129,7 +148,7 @@ export default function ReviewPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [file, abcResult, calculatedParams]);
+  }, [file, abcResult]);
 
   // Loading state
   if (isLoading) {
@@ -221,69 +240,40 @@ export default function ReviewPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4">ABC 計算</h2>
+            <h2 className="mb-4">ABC 計算パラメータ</h2>
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="catchData" className="block mb-2 font-medium">
-                  漁獲データ
-                </label>
-                <input
-                  id="catchData"
-                  type="text"
-                  value={漁獲データValue}
-                  onChange={(e) => set漁獲データValue(e.target.value)}
-                  placeholder="漁獲データを入力"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+            <ABCParamsForm
+              params={abcParams}
+              onChange={setAbcParams}
+              isCalculating={isCalculating}
+            />
+          </section>
+
+          <section className="mb-8">
+            <h2 className="mb-4">公開データとの比較</h2>
+            <p className="text-sm text-secondary mb-4">ABC 算定対象年: {parsedData.年度 + 1}年</p>
+
+            {isFetchingPublished && <p className="text-sm text-secondary">公開データを取得中...</p>}
+
+            {fetchError && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">{fetchError}</p>
               </div>
+            )}
 
-              <div>
-                <label htmlFor="biologicalData" className="block mb-2 font-medium">
-                  生物学的データ
-                </label>
-                <input
-                  id="biologicalData"
-                  type="text"
-                  value={生物学的データValue}
-                  onChange={(e) => set生物学的データValue(e.target.value)}
-                  placeholder="生物学的データを入力"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleCalculate}
-                disabled={!file || isCalculating}
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-              >
-                {isCalculating ? "計算中..." : "ABC を計算"}
-              </button>
-
-              <div className="p-4 border rounded-lg bg-secondary-light">
-                {abcResult ? (
-                  <div>
-                    <p className="font-medium mb-1">計算結果:</p>
-                    <p>{abcResult.value}</p>
-                  </div>
-                ) : (
-                  <p className="text-secondary italic">計算結果がここに表示されます</p>
-                )}
-              </div>
-
-              {hasParametersChanged && (
-                <p className="text-secondary text-sm">
-                  パラメータが変更されました。保存するには再計算してください。
-                </p>
-              )}
-            </div>
+            {publishedAssessment && (
+              <AssessmentComparison
+                reviewerResult={abcResult}
+                publishedResult={publishedAssessment.result}
+                publishedParams={publishedAssessment.parameters}
+              />
+            )}
           </section>
 
           <section className="mb-8">
             <h2 className="mb-4">保存</h2>
 
-            <Button onClick={handleSave} disabled={isSaving || hasParametersChanged}>
+            <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "保存中..." : "保存する"}
             </Button>
 

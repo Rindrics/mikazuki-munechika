@@ -20,6 +20,9 @@ import {
   VersionHistory,
   ButtonGroup,
   ConfirmDialog,
+  ABCParamsForm,
+  DEFAULT_ABC_PARAMS,
+  type ABCCalculationParams,
 } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { use, useState, useEffect, useCallback } from "react";
@@ -60,6 +63,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     biologicalData: string;
   } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Future projection (ABC calculation) state
+  const [abcParams, setAbcParams] = useState<ABCCalculationParams>(DEFAULT_ABC_PARAMS);
+  const [isCalculatingAbc, setIsCalculatingAbc] = useState(false);
+  const [abcCalculationError, setAbcCalculationError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
@@ -190,23 +198,52 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     }
   }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
+  // Handle resource calculation (VPA, etc.)
   const handleCalculate = async () => {
     if (!stockGroupName) return;
     setIsCalculating(true);
     setIsSaved(false);
     setSaveError(null);
+    setCalculationResult(null); // Reset ABC result when re-calculating
     try {
-      const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
-      setCalculationResult(result);
-      // Track the parameters used for this calculation
+      // Track the parameters used for resource calculation
       setCalculatedParams({
         catchData: catchDataValue,
         biologicalData: biologicalDataValue,
       });
+      // Note: Actual resource calculation will trigger useEffect for ABC calculation
     } finally {
       setIsCalculating(false);
     }
   };
+
+  // Auto-calculate ABC when resource calculation is done or ABC params change
+  useEffect(() => {
+    if (!stockGroupName || !calculatedParams) return;
+
+    const calculateAbc = async () => {
+      setIsCalculatingAbc(true);
+      setAbcCalculationError(null);
+      try {
+        const result = await calculateAbcAction(
+          stockGroupName,
+          calculatedParams.catchData,
+          calculatedParams.biologicalData,
+          abcParams
+        );
+        setCalculationResult(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "ABC計算に失敗しました";
+        setAbcCalculationError(message);
+        setCalculationResult(null);
+        setIsCalculatingAbc(false);
+      } finally {
+        setIsCalculatingAbc(false);
+      }
+    };
+
+    calculateAbc();
+  }, [stockGroupName, calculatedParams, abcParams]);
 
   const handleSave = async () => {
     if (!stockGroupName || !calculationResult) return;
@@ -513,7 +550,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
         {/* Left column: Main content */}
         <div className="flex-1 min-w-0">
           <section className="mb-8">
-            <h2 className="mb-4">パラメータ入力</h2>
+            <h2 className="mb-4">資源計算</h2>
 
             <div className="space-y-4">
               <div>
@@ -543,29 +580,59 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
                   className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={handleCalculate}
+                disabled={!catchDataValue || !biologicalDataValue || isCalculating}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+              >
+                {isCalculating ? "計算中..." : "資源計算を実行"}
+              </button>
+
+              <div className="p-4 border rounded-lg bg-secondary-light">
+                {calculatedParams ? (
+                  <div>
+                    <p className="font-medium mb-1">資源計算結果:</p>
+                    <p className="text-secondary">コホート解析が完了しました</p>
+                  </div>
+                ) : (
+                  <p className="text-secondary italic">資源計算結果がここに表示されます</p>
+                )}
+              </div>
             </div>
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4">計算・プレビュー</h2>
+            <h2 className="mb-4">将来予測（ABC 算定）</h2>
 
-            <button
-              type="button"
-              onClick={handleCalculate}
-              disabled={!catchDataValue || !biologicalDataValue || isCalculating}
-              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-            >
-              {isCalculating ? "計算中..." : "ABC を計算"}
-            </button>
+            <ABCParamsForm
+              params={abcParams}
+              onChange={setAbcParams}
+              disabled={!calculatedParams}
+              isCalculating={isCalculatingAbc}
+            />
+
+            {abcCalculationError && (
+              <div className="mt-4 p-4 border border-danger rounded-lg bg-danger-light">
+                <p className="text-danger-dark font-medium">{abcCalculationError}</p>
+              </div>
+            )}
 
             <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
               {calculationResult ? (
                 <div>
-                  <p className="font-medium mb-1">計算結果:</p>
-                  <p>{calculationResult.value}</p>
+                  <p className="font-medium mb-1">ABC 算定結果:</p>
+                  <p className="text-2xl font-bold">
+                    {calculationResult.value} {calculationResult.unit}
+                  </p>
                 </div>
               ) : (
-                <p className="text-secondary italic">計算結果がここに表示されます</p>
+                <p className="text-secondary italic">
+                  {calculatedParams
+                    ? "パラメータを変更すると自動で計算されます"
+                    : "資源計算を先に実行してください"}
+                </p>
               )}
             </div>
           </section>

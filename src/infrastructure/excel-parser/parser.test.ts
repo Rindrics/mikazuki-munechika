@@ -51,7 +51,7 @@ describe("PublishedDataExcelParser", () => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (parser as any).getParseStrategy("未対応の資源");
-      }).toThrow("のパーサーは未実装です");
+      }).toThrow("のデータ表読み込み機能は未実装です");
     });
   });
 });

@@ -9,8 +9,11 @@ import { 固定値 } from "@/domain/models/stock/calculation/strategy";
 import type { 公開データセット } from "@/domain/models/published-data/types";
 import type { 当年までの資源計算結果 } from "@/domain/models/stock/calculation/strategy";
 import type { 資源名 } from "@/domain/models/stock/stock/model";
-import type { ABC算定結果 } from "@/domain/data";
 import { APP_VERSION } from "@/utils/version";
+import { create資源評価RepositoryServer } from "@/infrastructure/assessment-repository-server-factory";
+import { createAssessmentResultRepository } from "@/infrastructure/assessment-result-repository-factory";
+import type { ABC算定結果 } from "@/domain/data";
+import type { VersionedAssessmentResult } from "@/domain/repositories";
 
 /**
  * Serializable summary of parsed data for client display
@@ -57,13 +60,23 @@ export async function parseExcelAction(
 }
 
 /**
+ * Parameters for ABC calculation that can be configured by the reviewer
+ */
+interface ABCCalculationParams {
+  F: number;
+  M: number;
+  β: number;
+}
+
+/**
  * Calculate ABC for review using parsed Excel data
  *
  * パースされた Excel データから直接 ABC を計算します。
  * ダミーデータではなく、実際のパースされた年齢別体重などを使用します。
  */
 export async function calculateReviewAbcAction(
-  formData: FormData
+  formData: FormData,
+  params: ABCCalculationParams
 ): Promise<{ result?: ABC算定結果; error?: string }> {
   try {
     const file = formData.get("file") as File;
@@ -101,9 +114,9 @@ export async function calculateReviewAbcAction(
     // Create strategy and run future projection + ABC calculation
     const strategy = createコホート解析Strategy();
 
-    // Use default parameters
-    const F = { 値: 0.3 };
-    const M = (_年齢: number) => 固定値(0.4);
+    // Use parameters from input
+    const F = { 値: params.F };
+    const M = (_年齢: number) => 固定値(params.M);
     const 予測年数 = 1;
 
     // Run future projection with parsed weight data
@@ -111,18 +124,22 @@ export async function calculateReviewAbcAction(
 
     // Run ABC decision
     const 規則 = {
-      目標F: 0.3,
+      目標F: params.F,
       禁漁水準: 10000, // 10,000 トン
       限界管理基準値: 50000, // 50,000 トン
       目標管理基準値: 100000, // 100,000 トン
     };
-    const β = { 値: 0.8 };
+    const β = { 値: params.β };
 
     const abc結果 = strategy.ABC決定(予測結果, 規則, β);
+
+    // ABC 算定対象年 = 年度 + 1（例: 2024年度の評価 → 2025年の ABC）
+    const ABC算定対象年 = data.年度 + 1;
 
     return {
       result: {
         ...abc結果,
+        ABC算定対象年,
         appVersion: APP_VERSION,
       },
     };
@@ -154,9 +171,7 @@ function toResourceCalculationResult(data: 公開データセット): 当年ま�
  */
 export async function saveReviewAction(
   formData: FormData,
-  abc結果?: ABC算定結果,
-  abc漁獲データ?: string,
-  abc生物学的データ?: string
+  abc結果?: ABC算定結果
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const file = formData.get("file") as File;
@@ -189,13 +204,6 @@ export async function saveReviewAction(
       評価年度: data.年度,
       資源計算結果,
       ABC結果: abc結果,
-      ABCパラメータ:
-        abc漁獲データ && abc生物学的データ
-          ? {
-              漁獲データ: abc漁獲データ,
-              生物学的データ: abc生物学的データ,
-            }
-          : undefined,
     });
 
     // Save to repository
@@ -205,6 +213,47 @@ export async function saveReviewAction(
     return { success: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "保存中にエラーが発生しました";
+    return { error: message };
+  }
+}
+
+/**
+ * Get published (approved) assessment result for comparison
+ */
+export async function getPublishedAssessmentAction(
+  資源名: 資源名,
+  年度: number
+): Promise<{ result?: VersionedAssessmentResult; error?: string }> {
+  try {
+    // 1. Get assessment status to find approved version
+    const assessmentRepo = await create資源評価RepositoryServer();
+    const assessment = await assessmentRepo.findBy資源名And年度(資源名, 年度);
+
+    if (!assessment) {
+      return { error: `${資源名}（${年度}年度）の資源評価が見つかりません` };
+    }
+
+    if (!assessment.承諾バージョン) {
+      return {
+        error: `${資源名}（${年度}年度）は承諾済みのバージョンがありません（現在のステータス: ${assessment.ステータス}）`,
+      };
+    }
+
+    // 2. Fetch the approved version from assessment_results
+    const resultRepo = createAssessmentResultRepository();
+    const result = await resultRepo.findByStockNameAndVersion(
+      資源名,
+      年度,
+      assessment.承諾バージョン
+    );
+
+    if (!result) {
+      return { error: "公開された評価結果が見つかりません" };
+    }
+
+    return { result };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "データ取得中にエラーが発生しました";
     return { error: message };
   }
 }
