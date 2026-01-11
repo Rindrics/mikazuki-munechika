@@ -34,27 +34,7 @@ export function AssessmentComparison({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        {/* Left: Reviewer's Result */}
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-medium mb-2">査読者の計算結果</h3>
-          {reviewerResult ? (
-            <>
-              <p className="text-2xl font-bold mb-2">
-                {reviewerResult.value} {reviewerResult.unit}
-              </p>
-              {reviewerParams && (
-                <div className="text-sm text-secondary space-y-1">
-                  <p>漁獲データ: {reviewerParams.漁獲データ}</p>
-                  <p>生物学的データ: {reviewerParams.生物学的データ}</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-secondary italic">計算結果がありません</p>
-          )}
-        </div>
-
-        {/* Right: Published Result */}
+        {/* Left: Published Result */}
         <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-900">
           <h3 className="font-medium mb-2">公開された評価結果</h3>
           {publishedResult ? (
@@ -71,6 +51,26 @@ export function AssessmentComparison({
             </>
           ) : (
             <p className="text-secondary italic">公開データがありません</p>
+          )}
+        </div>
+
+        {/* Right: Reviewer's Result */}
+        <div className="p-4 border rounded-lg">
+          <h3 className="font-medium mb-2">査読者の計算結果</h3>
+          {reviewerResult ? (
+            <>
+              <p className="text-2xl font-bold mb-2">
+                {reviewerResult.value} {reviewerResult.unit}
+              </p>
+              {reviewerParams && (
+                <div className="text-sm text-secondary space-y-1">
+                  <p>漁獲データ: {reviewerParams.漁獲データ}</p>
+                  <p>生物学的データ: {reviewerParams.生物学的データ}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-secondary italic">計算結果がありません</p>
           )}
         </div>
       </div>
