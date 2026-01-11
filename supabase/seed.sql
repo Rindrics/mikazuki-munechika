@@ -2,6 +2,33 @@
 -- This creates test users and assigns roles to stock groups
 -- Reference: scripts/create-users.ts
 
+-- Validate that required stock_groups exist before seeding
+-- This prevents silent failures from NULL subqueries
+DO $$
+DECLARE
+  missing_groups TEXT[];
+  required_groups TEXT[] := ARRAY[
+    'マイワシ太平洋系群',
+    'マイワシ対馬暖流系群',
+    'ズワイガニオホーツク海系群',
+    'マチ類（奄美諸島・沖縄諸島・先島諸島）'
+  ];
+  group_name TEXT;
+BEGIN
+  missing_groups := ARRAY[]::TEXT[];
+  
+  FOREACH group_name IN ARRAY required_groups LOOP
+    IF NOT EXISTS (SELECT 1 FROM public.stock_groups WHERE name = group_name) THEN
+      missing_groups := array_append(missing_groups, group_name);
+    END IF;
+  END LOOP;
+  
+  IF array_length(missing_groups, 1) > 0 THEN
+    RAISE EXCEPTION 'Required stock_groups not found: %. Run migration 20251205000003_seed_initial_stock_groups.sql first.',
+      array_to_string(missing_groups, ', ');
+  END IF;
+END $$;
+
 -- Insert test users into auth.users
 -- Using fixed UUIDs for reproducibility
 INSERT INTO auth.users (
