@@ -4,7 +4,12 @@ import { useAuth } from "@/contexts/auth-context";
 import { useState, useCallback, useEffect } from "react";
 import AuthModal from "@/components/auth-modal";
 import { Button } from "@/components/atoms";
-import { AssessmentComparison } from "@/components/molecules";
+import {
+  AssessmentComparison,
+  ABCParamsForm,
+  DEFAULT_ABC_PARAMS,
+  type ABCCalculationParams,
+} from "@/components/molecules";
 import {
   parseExcelAction,
   saveReviewAction,
@@ -12,24 +17,6 @@ import {
   getPublishedAssessmentAction,
   type ParsedDataSummary,
 } from "./actions";
-
-/**
- * Parameters for ABC calculation that can be configured by the reviewer
- */
-interface ABCCalculationParams {
-  F: number;
-  M: number;
-  β: number;
-}
-
-/**
- * Default parameters for ABC calculation
- */
-const DEFAULT_ABC_PARAMS: ABCCalculationParams = {
-  F: 0.3,
-  M: 0.4,
-  β: 0.8,
-};
 import type { ABC算定結果 } from "@/domain/data";
 import type { VersionedAssessmentResult } from "@/domain/repositories";
 
@@ -255,57 +242,11 @@ export default function ReviewPage() {
           <section className="mb-8">
             <h2 className="mb-4">ABC 計算パラメータ</h2>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="param-f" className="block text-sm font-medium mb-1">
-                  F（漁獲係数）
-                </label>
-                <input
-                  id="param-f"
-                  type="number"
-                  step="0.01"
-                  value={abcParams.F}
-                  onChange={(e) =>
-                    setAbcParams((prev) => ({ ...prev, F: parseFloat(e.target.value) || 0 }))
-                  }
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label htmlFor="param-m" className="block text-sm font-medium mb-1">
-                  M（自然死亡係数）
-                </label>
-                <input
-                  id="param-m"
-                  type="number"
-                  step="0.01"
-                  value={abcParams.M}
-                  onChange={(e) =>
-                    setAbcParams((prev) => ({ ...prev, M: parseFloat(e.target.value) || 0 }))
-                  }
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label htmlFor="param-beta" className="block text-sm font-medium mb-1">
-                  β（調整係数）
-                </label>
-                <input
-                  id="param-beta"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="1"
-                  value={abcParams.β}
-                  onChange={(e) =>
-                    setAbcParams((prev) => ({ ...prev, β: parseFloat(e.target.value) || 0 }))
-                  }
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
-
-            {isCalculating && <p className="mt-2 text-sm text-secondary">計算中...</p>}
+            <ABCParamsForm
+              params={abcParams}
+              onChange={setAbcParams}
+              isCalculating={isCalculating}
+            />
           </section>
 
           <section className="mb-8">
