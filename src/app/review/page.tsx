@@ -232,27 +232,14 @@ export default function ReviewPage() {
           <section className="mb-8">
             <h2 className="mb-4">ABC 計算</h2>
 
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleCalculate}
-                disabled={!file || isCalculating}
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
-              >
-                {isCalculating ? "計算中..." : "ABC を計算"}
-              </button>
-
-              <div className="p-4 border rounded-lg bg-secondary-light">
-                {abcResult ? (
-                  <div>
-                    <p className="font-medium mb-1">計算結果:</p>
-                    <p>{abcResult.value}</p>
-                  </div>
-                ) : (
-                  <p className="text-secondary italic">計算結果がここに表示されます</p>
-                )}
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={handleCalculate}
+              disabled={!file || isCalculating}
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-disabled disabled:cursor-not-allowed transition-colors"
+            >
+              {isCalculating ? "計算中..." : "ABC を計算"}
+            </button>
           </section>
 
           <section className="mb-8">
