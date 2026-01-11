@@ -68,39 +68,38 @@ export function AssessmentComparison({
                   <p>生物学的データ: {reviewerParams.生物学的データ}</p>
                 </div>
               )}
+              {/* Difference Display */}
+              {difference !== null && (
+                <div
+                  className={`mt-4 pt-4 border-t ${
+                    Math.abs(difference) < 0.01
+                      ? "border-green-200 dark:border-green-700"
+                      : "border-yellow-200 dark:border-yellow-700"
+                  }`}
+                >
+                  <p className="text-sm text-secondary mb-1">差分</p>
+                  <p
+                    className={`text-lg font-bold ${
+                      Math.abs(difference) < 0.01 ? "text-green-600" : "text-orange-600"
+                    }`}
+                  >
+                    {difference > 0 ? "+" : ""}
+                    {difference.toFixed(2)} トン
+                    {percentageDiff !== null && (
+                      <span className="text-sm ml-2">
+                        ({percentageDiff > 0 ? "+" : ""}
+                        {percentageDiff.toFixed(2)}%)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <p className="text-secondary italic">計算結果がありません</p>
           )}
         </div>
       </div>
-
-      {/* Difference Display */}
-      {difference !== null && (
-        <div
-          className={`p-4 border rounded-lg ${
-            Math.abs(difference) < 0.01
-              ? "bg-green-50 border-green-200 dark:bg-green-900 dark:border-green-700"
-              : "bg-yellow-50 border-yellow-200 dark:bg-yellow-900 dark:border-yellow-700"
-          }`}
-        >
-          <h3 className="font-medium mb-2">差分</h3>
-          <p
-            className={`text-xl font-bold ${
-              Math.abs(difference) < 0.01 ? "text-green-600" : "text-orange-600"
-            }`}
-          >
-            {difference > 0 ? "+" : ""}
-            {difference.toFixed(2)} トン
-            {percentageDiff !== null && (
-              <span className="text-sm ml-2">
-                ({percentageDiff > 0 ? "+" : ""}
-                {percentageDiff.toFixed(2)}%)
-              </span>
-            )}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
