@@ -66,7 +66,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
   // Future projection (ABC calculation) state
   const [abcParams, setAbcParams] = useState<ABCCalculationParams>(DEFAULT_ABC_PARAMS);
-  const [isCalculatingAbc, _setIsCalculatingAbc] = useState(false);
+  const [isCalculatingAbc, setIsCalculatingAbc] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
@@ -197,23 +197,46 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
     }
   }, [stockGroupName, isPrimaryAssignee, isLoading, user, fetchVersionHistory]);
 
+  // Handle resource calculation (VPA, etc.)
   const handleCalculate = async () => {
     if (!stockGroupName) return;
     setIsCalculating(true);
     setIsSaved(false);
     setSaveError(null);
+    setCalculationResult(null); // Reset ABC result when re-calculating
     try {
-      const result = await calculateAbcAction(stockGroupName, catchDataValue, biologicalDataValue);
-      setCalculationResult(result);
-      // Track the parameters used for this calculation
+      // Track the parameters used for resource calculation
       setCalculatedParams({
         catchData: catchDataValue,
         biologicalData: biologicalDataValue,
       });
+      // Note: Actual resource calculation will trigger useEffect for ABC calculation
     } finally {
       setIsCalculating(false);
     }
   };
+
+  // Auto-calculate ABC when resource calculation is done or ABC params change
+  useEffect(() => {
+    if (!stockGroupName || !calculatedParams) return;
+
+    const calculateAbc = async () => {
+      setIsCalculatingAbc(true);
+      try {
+        const result = await calculateAbcAction(
+          stockGroupName,
+          calculatedParams.catchData,
+          calculatedParams.biologicalData,
+          abcParams
+        );
+        setCalculationResult(result);
+      } finally {
+        setIsCalculatingAbc(false);
+      }
+    };
+
+    calculateAbc();
+  }, [stockGroupName, calculatedParams, abcParams]);
 
   const handleSave = async () => {
     if (!stockGroupName || !calculationResult) return;

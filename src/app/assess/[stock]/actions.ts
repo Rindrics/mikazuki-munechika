@@ -104,16 +104,33 @@ async function verifyAdministrator(supabase: SupabaseClient, userId: string): Pr
   }
 }
 
+/**
+ * Parameters for ABC calculation (future projection)
+ */
+interface ABCCalculationParams {
+  F: number;
+  M: number;
+  β: number;
+}
+
 export async function calculateAbcAction(
   stockGroupName: 資源名,
   catchDataValue: string,
-  biologicalDataValue: string
+  biologicalDataValue: string,
+  abcParams?: ABCCalculationParams
 ): Promise<ABC算定結果> {
   const stockGroup = create資源情報(stockGroupName);
   const stock = create資源評価(stockGroup);
 
   const catchData: 漁獲量データ = { value: catchDataValue };
   const biologicalData: 生物学的データ = { value: biologicalDataValue };
+
+  // TODO: Use abcParams (F, M, β) in actual calculation
+  // Currently the ABC算定 function uses internal defaults
+  // Future: Integrate with コホート解析Strategy to use these params
+  if (abcParams) {
+    logger.debug("ABC calculation params provided", abcParams);
+  }
 
   return ABC算定(stock, catchData, biologicalData);
 }
