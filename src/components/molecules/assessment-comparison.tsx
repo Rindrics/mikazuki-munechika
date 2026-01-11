@@ -23,7 +23,7 @@ export function AssessmentComparison({
   }, [reviewerResult, publishedResult]);
 
   const percentageDiff = useMemo(() => {
-    if (!difference || !publishedResult) return null;
+    if (difference == null || !publishedResult) return null;
     const published = parseFloat(publishedResult.value);
     if (isNaN(published) || published === 0) return null;
     return (difference / published) * 100;
