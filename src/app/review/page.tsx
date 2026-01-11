@@ -62,35 +62,17 @@ export default function ReviewPage() {
     }
   }, [file]);
 
-  const handleFetchPublished = useCallback(async () => {
-    if (!parsedData) return;
-
-    setIsFetchingPublished(true);
-    setFetchError(null);
-
-    try {
-      const result = await getPublishedAssessmentAction(parsedData.資源名, parsedData.年度);
-
-      if (result.error) {
-        setFetchError(result.error);
-      } else if (result.result) {
-        setPublishedAssessment(result.result);
-      }
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : "公開データ取得エラー");
-    } finally {
-      setIsFetchingPublished(false);
-    }
-  }, [parsedData]);
-
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
     setFile(selectedFile);
     setParsedData(null);
+    setPublishedAssessment(null);
+    setAbcResult(null);
     setError(null);
     setSuccess(null);
+    setFetchError(null);
     setIsParsing(true);
 
     try {
@@ -101,8 +83,30 @@ export default function ReviewPage() {
 
       if (result.error) {
         setError(result.error);
-      } else if (result.data) {
+        return;
+      }
+
+      if (result.data) {
         setParsedData(result.data);
+
+        // Automatically fetch published assessment after parsing
+        setIsFetchingPublished(true);
+        try {
+          const publishedResult = await getPublishedAssessmentAction(
+            result.data.資源名,
+            result.data.年度
+          );
+
+          if (publishedResult.error) {
+            setFetchError(publishedResult.error);
+          } else if (publishedResult.result) {
+            setPublishedAssessment(publishedResult.result);
+          }
+        } catch (err) {
+          setFetchError(err instanceof Error ? err.message : "公開データ取得エラー");
+        } finally {
+          setIsFetchingPublished(false);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "パース中にエラーが発生しました");
@@ -226,6 +230,28 @@ export default function ReviewPage() {
           </section>
 
           <section className="mb-8">
+            <h2 className="mb-4">公開データとの比較</h2>
+
+            {isFetchingPublished && (
+              <p className="text-sm text-secondary">公開データを取得中...</p>
+            )}
+
+            {fetchError && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">{fetchError}</p>
+              </div>
+            )}
+
+            {publishedAssessment && (
+              <AssessmentComparison
+                reviewerResult={abcResult}
+                publishedResult={publishedAssessment.result}
+                publishedParams={publishedAssessment.parameters}
+              />
+            )}
+          </section>
+
+          <section className="mb-8">
             <h2 className="mb-4">ABC 計算</h2>
 
             <div className="space-y-4">
@@ -264,34 +290,6 @@ export default function ReviewPage() {
               </div>
             )}
           </section>
-
-          {abcResult && (
-            <section className="mb-8">
-              <h2 className="mb-4">公開データとの比較</h2>
-
-              {!publishedAssessment && (
-                <>
-                  <Button onClick={handleFetchPublished} disabled={isFetchingPublished}>
-                    {isFetchingPublished ? "取得中..." : "公開データを取得"}
-                  </Button>
-
-                  {fetchError && (
-                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-yellow-800">{fetchError}</p>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {publishedAssessment && (
-                <AssessmentComparison
-                  reviewerResult={abcResult}
-                  publishedResult={publishedAssessment.result}
-                  publishedParams={publishedAssessment.parameters}
-                />
-              )}
-            </section>
-          )}
         </>
       )}
     </main>
