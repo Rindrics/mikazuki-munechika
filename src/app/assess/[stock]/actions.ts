@@ -129,7 +129,7 @@ export async function calculateAbcAction(
   // Currently the ABC算定 function uses internal defaults
   // Future: Integrate with コホート解析Strategy to use these params
   if (abcParams) {
-    logger.debug("ABC calculation params provided", abcParams);
+    logger.debug("ABC calculation params provided", { ...abcParams });
   }
 
   return ABC算定(stock, catchData, biologicalData);
