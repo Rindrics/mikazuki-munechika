@@ -67,6 +67,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
   // Future projection (ABC calculation) state
   const [abcParams, setAbcParams] = useState<ABCCalculationParams>(DEFAULT_ABC_PARAMS);
   const [isCalculatingAbc, setIsCalculatingAbc] = useState(false);
+  const [abcCalculationError, setAbcCalculationError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
@@ -222,6 +223,7 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
 
     const calculateAbc = async () => {
       setIsCalculatingAbc(true);
+      setAbcCalculationError(null);
       try {
         const result = await calculateAbcAction(
           stockGroupName,
@@ -230,6 +232,11 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
           abcParams
         );
         setCalculationResult(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "ABC計算に失敗しました";
+        setAbcCalculationError(message);
+        setCalculationResult(null);
+        setIsCalculatingAbc(false);
       } finally {
         setIsCalculatingAbc(false);
       }
@@ -605,6 +612,12 @@ export default function AssessmentPage({ params }: AssessmentPageProps) {
               disabled={!calculatedParams}
               isCalculating={isCalculatingAbc}
             />
+
+            {abcCalculationError && (
+              <div className="mt-4 p-4 border border-danger rounded-lg bg-danger-light">
+                <p className="text-danger-dark font-medium">{abcCalculationError}</p>
+              </div>
+            )}
 
             <div className="mt-4 p-4 border rounded-lg bg-secondary-light">
               {calculationResult ? (
