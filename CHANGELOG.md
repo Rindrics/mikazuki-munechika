@@ -1,5 +1,49 @@
 # Changelog
 
+## [v0.3.0](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.14...v0.3.0) - 2026-01-11
+- Run deploy after build by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/106
+- Configure Dependabot by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/111
+- Configure tagpr to avoid conflict with Dependabot behavior by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/118
+- Use `pnpm` in `docs/` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/119
+- Correct lockfile extension by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/120
+- Decrease open pull requests limit to 2 by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/121
+- Bump next from 16.0.7 to 16.0.10 in the npm_and_yarn group across 1 directory by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/110
+- Bump eslint-config-next from 16.0.6 to 16.0.10 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/114
+- Bump next from 16.0.7 to 16.0.10 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/115
+- Bump tailwindcss from 4.1.17 to 4.1.18 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/117
+- Bump @supabase/supabase-js from 2.86.0 to 2.87.1 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/116
+- Bump supabase from 2.65.5 to 2.67.0 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/113
+- Model state transition of `資源評価` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/107
+- Rename `middleware.ts` -> `proxy.ts` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/122
+- Model cancel operations by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/123
+- Provide state change function via UI by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/124
+- Introduce versioning of each 資源評価 by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/125
+- Correct migrations by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/126
+- Improve UI & UX by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/127
+- Setup Sentry by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/128
+- Set envvar `FLAGS_SECRET` to use Vercrl feature flag by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/131
+- Correct function signature to reflect business logic by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/132
+- Add user-admin functionality by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/134
+- Add ABC calculation strategy interface for swappable calculation methods by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/135
+- Set `SUPABASE_SERVICE_ROLE_KEY` by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/138
+- Use port 30300 for local development by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/141
+- Provide `/reference/[stock]` with calculation flowchart by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/140
+- Bump autoprefixer from 10.4.22 to 10.4.23 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/129
+- Bump @sentry/nextjs from 10.31.0 to 10.32.0 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/130
+- Setup Grafana by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/142
+- Bump next from 16.0.10 to 16.1.1 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/144
+- Bump @tailwindcss/postcss from 4.1.17 to 4.1.18 by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/145
+- feat: add file parser for published data in Excel format by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/146
+- feat: add file upload UI for published data by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/148
+- feat: add ABC calculation to review page by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/152
+- style: improve review page by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/153
+- Bump just-the-docs from 0.10.1 to 0.11.0 in /docs by @dependabot[bot] in https://github.com/Rindrics/mikazuki-munechika/pull/149
+- build: add lint-staged for efficient pre-commit checks by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/155
+- feat: replace dummy calculation logic with the actual one by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/154
+- chore: import preexistent DNS config by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/157
+- chore: redirect to rindrics.com by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/158
+- feat: provide compare UI in review function by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/159
+
 ## [v0.2.14](https://github.com/Rindrics/mikazuki-munechika/compare/v0.2.13...v0.2.14) - 2025-12-11
 - Test application services by @Rindrics in https://github.com/Rindrics/mikazuki-munechika/pull/104
 
