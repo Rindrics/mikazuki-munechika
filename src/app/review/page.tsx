@@ -230,26 +230,6 @@ export default function ReviewPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="mb-4">公開データとの比較</h2>
-
-            {isFetchingPublished && <p className="text-sm text-secondary">公開データを取得中...</p>}
-
-            {fetchError && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800">{fetchError}</p>
-              </div>
-            )}
-
-            {publishedAssessment && (
-              <AssessmentComparison
-                reviewerResult={abcResult}
-                publishedResult={publishedAssessment.result}
-                publishedParams={publishedAssessment.parameters}
-              />
-            )}
-          </section>
-
-          <section className="mb-8">
             <h2 className="mb-4">ABC 計算</h2>
 
             <div className="space-y-4">
@@ -273,6 +253,26 @@ export default function ReviewPage() {
                 )}
               </div>
             </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="mb-4">公開データとの比較</h2>
+
+            {isFetchingPublished && <p className="text-sm text-secondary">公開データを取得中...</p>}
+
+            {fetchError && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">{fetchError}</p>
+              </div>
+            )}
+
+            {publishedAssessment && (
+              <AssessmentComparison
+                reviewerResult={abcResult}
+                publishedResult={publishedAssessment.result}
+                publishedParams={publishedAssessment.parameters}
+              />
+            )}
           </section>
 
           <section className="mb-8">
