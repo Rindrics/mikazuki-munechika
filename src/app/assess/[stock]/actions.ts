@@ -33,8 +33,12 @@ async function getCurrentFiscalYear(): Promise<number> {
     .eq("key", "current_fiscal_year")
     .single();
 
-  if (data) {
-    return data.value as number;
+  if (data && data.value != null) {
+    const fiscalYear = Number(data.value);
+    if (Number.isFinite(fiscalYear)) {
+      return fiscalYear;
+    }
+    logger.warn("Invalid fiscal year value in system_settings", { value: data.value });
   }
 
   // Fallback: Calculate from current date (April-based fiscal year in Japan)
